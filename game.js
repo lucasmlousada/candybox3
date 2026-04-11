@@ -1,27 +1,35 @@
-// CANDY BOX 3 - Static UI + Partial Updates Architecture
+// CANDY BOX 3 - Deterministic Progression + Immediate UI Updates
 
 const MONSTERS = [
-    { name: 'Sugar Goblin', hp: 20, attack: 2, reward: 15, ascii: '  \\O_\n   |\n  / \\' },
-    { name: 'Caramel Slime', hp: 15, attack: 3, reward: 12, ascii: '  ~°~\n  (~)~\n   ~' },
-    { name: 'Chocolate Bat', hp: 18, attack: 5, reward: 20, ascii: '  \\||\n   ||\n  /||\\' },
-    { name: 'Lollipop Knight', hp: 35, attack: 4, reward: 30, ascii: '  |O|\n  /||\\\n  / \\' },
-    { name: 'Neural Nougat', hp: 40, attack: 3, reward: 35, ascii: '  [==]\n [====]\n [==]' },
-    { name: 'GPT-3.5 Ghost', hp: 50, attack: 6, reward: 60, ascii: '  (~)~\n  (~)~\n  (~)~' },
-    { name: 'Candy Crab', hp: 40, attack: 5, reward: 50, ascii: '  <(o)>\n  <(0)>\n   / \\' },
-    { name: 'Meme Wraith', hp: 45, attack: 7, reward: 70, ascii: '  ****\n *    *\n ****' },
-    { name: 'Jelly Jester', hp: 30, attack: 4, reward: 40, ascii: '  /||\\\n  \\||\n   ||' },
-    { name: 'Gummy Guardian', hp: 65, attack: 7, reward: 95, ascii: '  |==|\n |==|\n |==|' },
-    { name: 'Marshmallow Mimic', hp: 25, attack: 6, reward: 35, ascii: '  (oo)\n <(uu)>\n  (oo)' },
-    { name: 'Fudge Fiend', hp: 55, attack: 8, reward: 90, ascii: '  [#_#]\n (#_#)\n [# #]' },
-    { name: 'Cotton Candy Centaur', hp: 70, attack: 6, reward: 100, ascii: '  |O_O|\n /|   |\\\n / |   |' },
-    { name: 'Lemon Drop Drake', hp: 75, attack: 8, reward: 110, ascii: '  ~~^~~\n ~(o_o)~\n ~~~~~~~' },
-    { name: 'Sugar Siren', hp: 50, attack: 9, reward: 85, ascii: '  /^^\\\n / OO \\\n |    |' },
-    { name: 'Licorice Lich', hp: 80, attack: 9, reward: 120, ascii: '  [!!]\n  !!!\n [!!]' },
-    { name: 'Candy Kraken', hp: 100, attack: 8, reward: 150, ascii: '  ~^^^^~\n  ^^^^^^\n ~^^^^^^~' },
-    { name: 'Peppermint Paladin', hp: 60, attack: 5, reward: 80, ascii: '  |\\O/|\n | X |\n |/ \\|' },
-    { name: 'Sentient Sweetness', hp: 120, attack: 10, reward: 200, ascii: '  (@@@)\n (@@@)\n (@@@)' },
-    { name: 'The Candy King', hp: 150, attack: 12, reward: 300, ascii: '  /^^^|\n |   |\n |___|' },
-    { name: 'Caramel Colossus', hp: 140, attack: 11, reward: 250, ascii: '  |===|\n |===|\n |===|' }
+    // TIER 1
+    { id: 1, name: 'Sugar Goblin', hp: 15, attack: 2, reward: 10, tier: 1, ascii: '  \\O_\n   |\n  / \\' },
+    { id: 2, name: 'Caramel Slime', hp: 12, attack: 2, reward: 8, tier: 1, ascii: '  ~°~\n  (~)~\n   ~' },
+    { id: 3, name: 'Chocolate Bat', hp: 16, attack: 3, reward: 12, tier: 1, ascii: '  \\||\n   ||\n  /||\\' },
+    
+    // TIER 2
+    { id: 4, name: 'Lollipop Knight', hp: 30, attack: 4, reward: 25, tier: 2, ascii: '  |O|\n  /||\\\n  / \\' },
+    { id: 5, name: 'Neural Nougat', hp: 35, attack: 4, reward: 30, tier: 2, ascii: '  [==]\n [====]\n [==]' },
+    { id: 6, name: 'Candy Crab', hp: 32, attack: 5, reward: 28, tier: 2, ascii: '  <(o)>\n  <(0)>\n   / \\' },
+    
+    // TIER 3
+    { id: 7, name: 'Meme Wraith', hp: 45, attack: 6, reward: 50, tier: 3, ascii: '  ****\n *    *\n ****' },
+    { id: 8, name: 'Gummy Guardian', hp: 50, attack: 7, reward: 55, tier: 3, ascii: '  |==|\n |==|\n |==|' },
+    { id: 9, name: 'Fudge Fiend', hp: 48, attack: 7, reward: 52, tier: 3, ascii: '  [#_#]\n (#_#)\n [# #]' },
+    
+    // TIER 4
+    { id: 10, name: 'Cotton Candy Centaur', hp: 70, attack: 8, reward: 85, tier: 4, ascii: '  |O_O|\n /|   |\\\n / |   |' },
+    { id: 11, name: 'Lemon Drop Drake', hp: 75, attack: 8, reward: 90, tier: 4, ascii: '  ~~^~~\n ~(o_o)~\n ~~~~~~~' },
+    { id: 12, name: 'Sugar Siren', hp: 72, attack: 9, reward: 87, tier: 4, ascii: '  /^^\\\n / OO \\\n |    |' },
+    
+    // TIER 5
+    { id: 13, name: 'Licorice Lich', hp: 95, attack: 10, reward: 130, tier: 5, ascii: '  [!!]\n  !!!\n [!!]' },
+    { id: 14, name: 'Candy Kraken', hp: 105, attack: 11, reward: 145, tier: 5, ascii: '  ~^^^^~\n  ^^^^^^\n ~^^^^^^~' },
+    { id: 15, name: 'GPT-3.5 Ghost', hp: 100, attack: 10, reward: 140, tier: 5, ascii: '  (~)~\n  (~)~\n  (~)~' },
+    
+    // TIER 6
+    { id: 16, name: 'Sentient Sweetness', hp: 140, attack: 12, reward: 200, tier: 6, ascii: '  (@@@)\n (@@@)\n (@@@)' },
+    { id: 17, name: 'Caramel Colossus', hp: 150, attack: 13, reward: 220, tier: 6, ascii: '  |===|\n |===|\n |===|' },
+    { id: 18, name: 'The Candy King', hp: 160, attack: 14, reward: 250, tier: 6, ascii: '  /^^^|\n |   |\n |___|' }
 ];
 
 class CandyBox3 {
@@ -29,24 +37,26 @@ class CandyBox3 {
         this.state = {
             candies: 0,
             candyRate: 1,
-            hp: 50,
-            maxHp: 100,
-            regenRate: 1,
+            hp: 10,
+            maxHp: 10,
+            regenRate: 0.5,
             attack: 5,
             inCombat: false,
             enemy: null,
             unlockedMonsters: [],
-            upgrades: {
-                candy: { level: 0, baseCost: 10 },
-                hp: { level: 0, baseCost: 20 },
-                attack: { level: 0, baseCost: 15 }
+            maxUnlockedTier: 1,
+            totalCandiesEaten: 0,
+            upgradesPurchased: {
+                'candy': 0,
+                'regen': 0,
+                'attack': 0
             }
         };
         this.lastUpdate = Date.now();
         this.monsters = MONSTERS;
     }
 
-    // BUILD STATIC UI ONCE
+    // Build static UI once
     buildUI() {
         const main = document.getElementById('main');
         if (!main) return;
@@ -56,6 +66,10 @@ class CandyBox3 {
                 <div class="stat-row">
                     <span class="stat-label">Candies:</span>
                     <span id="candy-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Eaten:</span>
+                    <span id="total-eaten" class="stat-value">0</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Candy/sec:</span>
@@ -68,9 +82,9 @@ class CandyBox3 {
                 <div class="stat-row">
                     <span class="stat-label">HP:</span>
                     <span id="hp-bar" class="stat-value">[██████████]</span>
-                    <span id="hp-current" class="stat-value">50</span>
+                    <span id="hp-current" class="stat-value">10</span>
                     <span>/</span>
-                    <span id="hp-max" class="stat-value">100</span>
+                    <span id="hp-max" class="stat-value">10</span>
                 </div>
             </div>
 
@@ -128,9 +142,9 @@ class CandyBox3 {
         if (!container) return;
 
         const upgradeDefs = [
-            { key: 'candy', display: 'Sugar Engine', stat: 'candyRate', perLevel: 1 },
-            { key: 'hp', display: 'Candy Heart', stat: 'maxHp', perLevel: 10 },
-            { key: 'attack', display: 'Candy Sword', stat: 'attack', perLevel: 2 }
+            { key: 'candy', display: 'Sugar Engine', stat: 'candyRate', perLevel: 1, baseCost: 10 },
+            { key: 'attack', display: 'Candy Sword', stat: 'attack', perLevel: 2, baseCost: 15 },
+            { key: 'regen', display: 'Candy Metabolism', stat: 'regenRate', perLevel: 0.5, baseCost: 20 }
         ];
 
         container.innerHTML = '';
@@ -162,7 +176,7 @@ class CandyBox3 {
         }
     }
 
-    // GAME TICK: 100ms - update state only
+    // Game tick: 100ms
     tick() {
         const now = Date.now();
         const deltaTime = (now - this.lastUpdate) / 1000;
@@ -175,7 +189,7 @@ class CandyBox3 {
         }
     }
 
-    // UPDATE UI: selective, non-destructive
+    // Update UI: selective, no full rebuilds
     updateUI() {
         this.updateStatus();
         this.updateCombatDisplay();
@@ -186,6 +200,9 @@ class CandyBox3 {
     updateStatus() {
         const candyEl = document.getElementById('candy-count');
         if (candyEl) candyEl.textContent = Math.floor(this.state.candies);
+
+        const eatenEl = document.getElementById('total-eaten');
+        if (eatenEl) eatenEl.textContent = Math.floor(this.state.totalCandiesEaten);
 
         const rateEl = document.getElementById('candy-rate');
         if (rateEl) rateEl.textContent = this.state.candyRate.toFixed(1);
@@ -245,7 +262,6 @@ class CandyBox3 {
             }
         }
 
-        // Update monster select visibility
         const monsterPanel = document.getElementById('monster-select-panel');
         if (monsterPanel) {
             if (!this.state.inCombat && this.state.hp > 0 && this.state.unlockedMonsters.length > 0) {
@@ -257,22 +273,53 @@ class CandyBox3 {
     }
 
     updateUpgradeCosts() {
-        for (let key in this.state.upgrades) {
-            const btn = document.getElementById(`buy-${key}`);
-            const costSpan = document.getElementById(`upgrade-cost-${key}`);
+        const upgradeDefs = [
+            { key: 'candy', baseCost: 10 },
+            { key: 'attack', baseCost: 15 },
+            { key: 'regen', baseCost: 20 }
+        ];
+
+        for (let def of upgradeDefs) {
+            const btn = document.getElementById(`buy-${def.key}`);
+            const costSpan = document.getElementById(`upgrade-cost-${def.key}`);
             
             if (btn && costSpan) {
-                const up = this.state.upgrades[key];
-                const newLevel = up.level + 1;
-                const cost = Math.floor(up.baseCost * (up.level + 1) * 1.5);
+                const level = this.state.upgradesPurchased[def.key];
+                const newLevel = level + 1;
+                const cost = Math.floor(def.baseCost * (level + 1) * 1.5);
                 
-                costSpan.textContent = ` (Lv ${up.level} → ${newLevel}) - ${cost}`;
+                costSpan.textContent = ` (Lv ${level} → ${newLevel}) - ${cost}`;
                 btn.disabled = this.state.candies < cost;
             }
         }
     }
 
-    // ADD LOG ENTRY (not batch update)
+    // IMMEDIATE UI UPDATES
+    updateInventoryUI() {
+        const container = document.getElementById('inventory-items');
+        if (!container) return;
+
+        const upgradeDefs = {
+            'candy': 'Sugar Engine',
+            'attack': 'Candy Sword',
+            'regen': 'Candy Metabolism'
+        };
+
+        let html = '';
+        for (let key of Object.keys(upgradeDefs)) {
+            const level = this.state.upgradesPurchased[key];
+            if (level > 0) {
+                html += `<div class="inventory-item">✓ ${upgradeDefs[key]} Lv${level}</div>`;
+            }
+        }
+
+        container.innerHTML = html || '(empty)';
+    }
+
+    updateUpgradeButtons() {
+        this.updateUpgradeCosts();
+    }
+
     addLogEntry(msg) {
         const container = document.getElementById('game-log');
         if (!container) return;
@@ -282,38 +329,21 @@ class CandyBox3 {
         entry.textContent = msg;
         container.appendChild(entry);
 
-        // Keep only last 15
         while (container.children.length > 15) {
             container.removeChild(container.firstChild);
         }
     }
 
-    // ADD MONSTER TO DROPDOWN (when unlocked)
     addMonsterToDropdown(monster) {
         const select = document.getElementById('monster-select');
         if (!select) return;
 
-        if (!select.querySelector(`[value="${monster.name}"]`)) {
+        if (!select.querySelector(`[value="${monster.id}"]`)) {
             const option = document.createElement('option');
-            option.value = monster.name;
+            option.value = monster.id;
             option.textContent = monster.name;
             select.appendChild(option);
         }
-    }
-
-    // ADD INVENTORY ITEM (when upgraded)
-    addInventoryItem(name, level) {
-        const container = document.getElementById('inventory-items');
-        if (!container) return;
-
-        if (container.textContent === '(empty)') {
-            container.innerHTML = '';
-        }
-
-        const item = document.createElement('div');
-        item.className = 'inventory-item';
-        item.textContent = `✓ ${name} Lv${level}`;
-        container.appendChild(item);
     }
 
     // ACTION HANDLERS
@@ -323,60 +353,81 @@ class CandyBox3 {
             return;
         }
         const amount = Math.floor(this.state.candies);
+        this.state.totalCandiesEaten += amount;
+        this.state.maxHp = Math.floor(Math.sqrt(this.state.totalCandiesEaten) * 10);
         this.state.hp = Math.min(this.state.hp + amount, this.state.maxHp);
         this.state.candies = 0;
         this.addLogEntry(`Ate ${amount} candy. +${amount} HP`);
-        this.updateUI();
+        
+        // IMMEDIATE UI updates
+        this.updateStatus();
+        this.updateInventoryUI();
     }
 
     explore() {
         if (this.state.inCombat || this.state.hp <= 0) return;
 
-        const roll = Math.random();
-        if (roll < 0.4) {
-            const gain = 10 + Math.floor(Math.random() * 25);
+        const roll = Math.random() * 100;
+
+        if (roll < 50) {
+            // Small candies: 1-5
+            const gain = 1 + Math.floor(Math.random() * 5);
             this.state.candies += gain;
             this.addLogEntry(`Found ${gain} candies!`);
-        } else {
+        } else if (roll < 85) {
+            // Monster encounter: 35%
             this.spawnRandomMonster();
+            this.updateUI();
+            return;
+        } else if (roll < 95) {
+            // High candies: 100-200
+            const gain = 100 + Math.floor(Math.random() * 101);
+            this.state.candies += gain;
+            this.addLogEntry(`Lucky! Found ${gain} candies!`);
+        } else {
+            // Huge candies: 1000-2000
+            const gain = 1000 + Math.floor(Math.random() * 1001);
+            this.state.candies += gain;
+            this.addLogEntry(`JACKPOT! Found ${gain} candies!!!`);
         }
+
         this.updateUI();
     }
 
     spawnRandomMonster() {
-        const unlockedNames = this.state.unlockedMonsters.map(m => m.name);
-        const available = this.monsters.filter(m => !unlockedNames.includes(m.name));
-
-        let monster;
-        if (available.length > 0) {
-            monster = available[Math.floor(Math.random() * available.length)];
-        } else {
-            monster = this.monsters[Math.floor(Math.random() * this.monsters.length)];
+        const availableTiers = [];
+        for (let t = 1; t <= this.state.maxUnlockedTier; t++) {
+            availableTiers.push(t);
         }
+
+        const tierToSpawn = availableTiers[Math.floor(Math.random() * availableTiers.length)];
+        const monstersInTier = this.monsters.filter(m => m.tier === tierToSpawn);
+        const monster = monstersInTier[Math.floor(Math.random() * monstersInTier.length)];
 
         this.startCombat(monster);
     }
 
     startCombat(monster) {
         this.state.enemy = {
+            id: monster.id,
             name: monster.name,
             hp: monster.hp,
             maxHp: monster.hp,
             attack: monster.attack,
             reward: monster.reward,
-            ascii: monster.ascii
+            ascii: monster.ascii,
+            tier: monster.tier
         };
         this.state.inCombat = true;
         this.addLogEntry(`${monster.name} appears!`);
-        this.updateUI();
     }
 
     fightSelectedMonster() {
         const dropdown = document.getElementById('monster-select');
         if (!dropdown || !dropdown.value) return;
 
-        const monsterName = dropdown.value;
-        const monster = this.monsters.find(m => m.name === monsterName);
+        const monsterId = parseInt(dropdown.value);
+        const monster = this.monsters.find(m => m.id === monsterId);
         if (!monster) return;
 
         this.startCombat(monster);
@@ -414,16 +465,17 @@ class CandyBox3 {
         const reward = this.state.enemy.reward;
         this.state.candies += reward;
 
-        if (!this.state.unlockedMonsters.find(m => m.name === this.state.enemy.name)) {
-            const original = this.monsters.find(m => m.name === this.state.enemy.name);
-            const newMonster = {
-                name: this.state.enemy.name,
-                hp: original.hp,
-                attack: original.attack,
-                reward: original.reward
-            };
-            this.state.unlockedMonsters.push(newMonster);
-            this.addMonsterToDropdown(newMonster);
+        if (!this.state.unlockedMonsters.find(m => m.id === this.state.enemy.id)) {
+            const monster = this.monsters.find(m => m.id === this.state.enemy.id);
+            this.state.unlockedMonsters.push(monster);
+            this.addMonsterToDropdown(monster);
+        }
+
+        // Progression: unlock next tier after 2-3 wins
+        const winsInCurrentTier = this.state.unlockedMonsters.filter(m => m.tier === this.state.enemy.tier).length;
+        if (winsInCurrentTier >= 2 && this.state.maxUnlockedTier < 6) {
+            this.state.maxUnlockedTier += 1;
+            this.addLogEntry(`Tier ${this.state.maxUnlockedTier} unlocked!`);
         }
 
         this.addLogEntry(`Victory! +${reward} candies.`);
@@ -439,10 +491,10 @@ class CandyBox3 {
     }
 
     buyUpgrade(upgradeKey) {
-        const up = this.state.upgrades[upgradeKey];
-        if (!up) return;
-
-        const cost = Math.floor(up.baseCost * (up.level + 1) * 1.5);
+        const level = this.state.upgradesPurchased[upgradeKey] || 0;
+        const baseCosts = { 'candy': 10, 'attack': 15, 'regen': 20 };
+        const baseCost = baseCosts[upgradeKey];
+        const cost = Math.floor(baseCost * (level + 1) * 1.5);
 
         if (this.state.candies < cost) {
             this.addLogEntry('Not enough candies!');
@@ -450,22 +502,24 @@ class CandyBox3 {
         }
 
         this.state.candies -= cost;
-        up.level += 1;
+        this.state.upgradesPurchased[upgradeKey] = level + 1;
 
         const upgradeDefs = {
             'candy': { name: 'Sugar Engine', fn: () => this.state.candyRate += 1 },
-            'hp': { name: 'Candy Heart', fn: () => this.state.maxHp += 10 },
-            'attack': { name: 'Candy Sword', fn: () => this.state.attack += 2 }
+            'attack': { name: 'Candy Sword', fn: () => this.state.attack += 2 },
+            'regen': { name: 'Candy Metabolism', fn: () => this.state.regenRate += 0.5 }
         };
 
         const def = upgradeDefs[upgradeKey];
         if (def) {
             def.fn();
-            this.addInventoryItem(def.name, up.level);
-            this.addLogEntry(`Upgraded ${def.name} to Lv${up.level}!`);
+            this.addLogEntry(`Upgraded ${def.name} to Lv${this.state.upgradesPurchased[upgradeKey]}!`);
         }
 
-        this.updateUI();
+        // IMMEDIATE UI updates
+        this.updateInventoryUI();
+        this.updateUpgradeButtons();
+        this.updateStatus();
     }
 }
 
@@ -473,17 +527,15 @@ let game;
 
 document.addEventListener('DOMContentLoaded', () => {
     game = new CandyBox3();
-
-    // BUILD STATIC UI ONCE
     game.buildUI();
 
-    // GAME LOOP: 100ms - logic only
+    // Game loop: 100ms
     setInterval(() => {
         game.tick();
         game.updateUI();
     }, 100);
 
-    // EVENT DELEGATION (single listener)
+    // Event delegation
     document.body.addEventListener('click', (e) => {
         const action = e.target.dataset.action;
         if (!action) return;
@@ -500,6 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'fight-selected':
                 game.fightSelectedMonster();
+                game.updateUI();
                 break;
             case 'buy-upgrade':
                 const upgradeKey = e.target.dataset.upgradeKey;
