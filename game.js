@@ -1,4 +1,4 @@
-// CANDY BOX 3 - Fixed rendering strategy (separate tick and render)
+// CANDY BOX 3 - Static UI + Partial Updates Architecture
 
 const MONSTERS = [
     { name: 'Sugar Goblin', hp: 20, attack: 2, reward: 15, ascii: '  \\O_\n   |\n  / \\' },
@@ -43,41 +43,155 @@ class CandyBox3 {
             }
         };
         this.lastUpdate = Date.now();
-        this.gameLog = [];
         this.monsters = MONSTERS;
-        this.lastRenderState = null;
     }
 
-    // Game tick - LOGIC ONLY (no rendering)
+    // BUILD STATIC UI ONCE
+    buildUI() {
+        const main = document.getElementById('main');
+        if (!main) return;
+
+        main.innerHTML = `
+            <div id="status-panel" class="panel">
+                <div class="stat-row">
+                    <span class="stat-label">Candies:</span>
+                    <span id="candy-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Candy/sec:</span>
+                    <span id="candy-rate" class="stat-value">1.0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Attack:</span>
+                    <span id="attack-value" class="stat-value">5</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">HP:</span>
+                    <span id="hp-bar" class="stat-value">[██████████]</span>
+                    <span id="hp-current" class="stat-value">50</span>
+                    <span>/</span>
+                    <span id="hp-max" class="stat-value">100</span>
+                </div>
+            </div>
+
+            <div id="scene-panel" class="panel">
+                <div id="scene-content"></div>
+            </div>
+
+            <div id="combat-display" class="panel" style="display:none;">
+                <div id="enemy-ascii" style="white-space: pre-wrap; font-size: 12px;"></div>
+                <div id="enemy-name" style="font-weight: bold; margin-top: 5px;"></div>
+                <div id="enemy-hp" style="margin-bottom: 10px;"></div>
+            </div>
+
+            <div id="log-panel" class="panel">
+                <div id="game-log"></div>
+            </div>
+
+            <div id="actions-panel" class="panel">
+                <div id="action-buttons"></div>
+                <div id="quick-actions">
+                    <button class="action-btn" data-action="eat">🍬 Eat Candy</button>
+                </div>
+            </div>
+
+            <div id="monster-select-panel" class="panel" style="display:none;">
+                <div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div>
+                <select id="monster-select" data-action="none">
+                    <option value="">-- Select Monster --</option>
+                </select>
+                <button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button>
+            </div>
+
+            <div id="upgrades-panel" class="panel">
+                <h3>Upgrades</h3>
+                <div id="upgrades-list"></div>
+            </div>
+
+            <div id="inventory-panel" class="panel">
+                <h3>Inventory</h3>
+                <div id="inventory-items">(empty)</div>
+            </div>
+
+            <div id="settings-panel" class="panel">
+                <h3>Options</h3>
+                <button class="settings-btn" data-action="export-save">Export Save</button>
+                <button class="settings-btn" data-action="new-game">New Game</button>
+            </div>
+        `;
+
+        this.buildUpgrades();
+    }
+
+    buildUpgrades() {
+        const container = document.getElementById('upgrades-list');
+        if (!container) return;
+
+        const upgradeDefs = [
+            { key: 'candy', display: 'Sugar Engine', stat: 'candyRate', perLevel: 1 },
+            { key: 'hp', display: 'Candy Heart', stat: 'maxHp', perLevel: 10 },
+            { key: 'attack', display: 'Candy Sword', stat: 'attack', perLevel: 2 }
+        ];
+
+        container.innerHTML = '';
+        for (let def of upgradeDefs) {
+            const div = document.createElement('div');
+            div.className = 'upgrade-item';
+            div.id = `upgrade-${def.key}`;
+
+            const name = document.createElement('span');
+            name.className = 'upgrade-name';
+            name.textContent = def.display;
+            div.appendChild(name);
+
+            const cost = document.createElement('span');
+            cost.className = 'upgrade-cost';
+            cost.id = `upgrade-cost-${def.key}`;
+            cost.textContent = ` (Lv 0 → 1) - ${def.baseCost}`;
+            div.appendChild(cost);
+
+            const btn = document.createElement('button');
+            btn.className = 'upgrade-btn';
+            btn.id = `buy-${def.key}`;
+            btn.textContent = `BUY`;
+            btn.dataset.action = 'buy-upgrade';
+            btn.dataset.upgradeKey = def.key;
+            div.appendChild(btn);
+
+            container.appendChild(div);
+        }
+    }
+
+    // GAME TICK: 100ms - update state only
     tick() {
         const now = Date.now();
         const deltaTime = (now - this.lastUpdate) / 1000;
         this.lastUpdate = now;
 
-        // Candy generation
         this.state.candies += this.state.candyRate * deltaTime;
-
-        // HP regeneration
         this.state.hp += this.state.regenRate * deltaTime;
         if (this.state.hp > this.state.maxHp) {
             this.state.hp = this.state.maxHp;
         }
     }
 
-    // Full render - safely update DOM
-    render() {
+    // UPDATE UI: selective, non-destructive
+    updateUI() {
         this.updateStatus();
-        this.updateScene();
-        this.updateActions();
-        this.updateUpgrades();
-        this.updateMonsterSelect();
-        this.updateInventory();
-        this.updateLog();
+        this.updateCombatDisplay();
+        this.updateActionButtons();
+        this.updateUpgradeCosts();
     }
 
     updateStatus() {
         const candyEl = document.getElementById('candy-count');
         if (candyEl) candyEl.textContent = Math.floor(this.state.candies);
+
+        const rateEl = document.getElementById('candy-rate');
+        if (rateEl) rateEl.textContent = this.state.candyRate.toFixed(1);
+
+        const atkEl = document.getElementById('attack-value');
+        if (atkEl) atkEl.textContent = this.state.attack;
 
         const hpEl = document.getElementById('hp-current');
         if (hpEl) hpEl.textContent = Math.floor(this.state.hp);
@@ -90,41 +204,32 @@ class CandyBox3 {
             const percent = Math.max(0, Math.floor((this.state.hp / this.state.maxHp) * 10));
             hpBar.textContent = '[' + '█'.repeat(percent) + '░'.repeat(10 - percent) + ']';
         }
-
-        const rateEl = document.getElementById('candy-rate');
-        if (rateEl) rateEl.textContent = this.state.candyRate.toFixed(1);
-
-        const atkEl = document.getElementById('attack-value');
-        if (atkEl) atkEl.textContent = this.state.attack;
     }
 
-    updateScene() {
-        const scene = document.getElementById('scene-content');
-        if (!scene) return;
+    updateCombatDisplay() {
+        const container = document.getElementById('combat-display');
+        if (!container) return;
 
         if (this.state.inCombat && this.state.enemy) {
-            const percent = Math.max(0, Math.floor((this.state.enemy.hp / this.state.enemy.maxHp) * 10));
-            scene.textContent = `
-${this.state.enemy.ascii}
+            container.style.display = 'block';
+            
+            const ascii = document.getElementById('enemy-ascii');
+            if (ascii) ascii.textContent = this.state.enemy.ascii;
 
-${this.state.enemy.name}
-HP: [${`█`.repeat(percent)}${`░`.repeat(10 - percent)}] ${this.state.enemy.hp}/${this.state.enemy.maxHp}
+            const name = document.getElementById('enemy-name');
+            if (name) name.textContent = this.state.enemy.name;
 
-Your HP: ${Math.floor(this.state.hp)}/${this.state.maxHp}
-            `.trim();
-        } else if (this.state.hp <= 0) {
-            scene.textContent = 'YOU ARE DEAD\n\nWait for HP to recover...';
+            const hp = document.getElementById('enemy-hp');
+            if (hp) {
+                const percent = Math.max(0, Math.floor((this.state.enemy.hp / this.state.enemy.maxHp) * 10));
+                hp.textContent = `HP: [${`█`.repeat(percent)}${`░`.repeat(10 - percent)}] ${this.state.enemy.hp}/${this.state.enemy.maxHp}`;
+            }
         } else {
-            scene.textContent = `Welcome to Candy Box 3
-
-Candies spawn over time.
-Eat candy to heal.
-Explore to find monsters.
-Defeat them to grow stronger.`;
+            container.style.display = 'none';
         }
     }
 
-    updateActions() {
+    updateActionButtons() {
         const container = document.getElementById('action-buttons');
         if (!container) return;
 
@@ -132,144 +237,96 @@ Defeat them to grow stronger.`;
             if (!container.querySelector('[data-action="attack"]')) {
                 container.innerHTML = '<button class="action-btn" data-action="attack">⚔️ Attack</button>';
             }
-        } else if (this.state.hp > 0) {
+        } else if (this.state.hp <= 0) {
+            container.innerHTML = '<div style="color: red;">Dead - Recovering...</div>';
+        } else {
             if (!container.querySelector('[data-action="explore"]')) {
-                let html = `<button class="action-btn" data-action="explore">🔍 Explore</button>`;
-                container.innerHTML = html;
+                container.innerHTML = '<button class="action-btn" data-action="explore">🔍 Explore</button>';
             }
-        } else {
-            container.innerHTML = '';
-        }
-    }
-
-    updateMonsterSelect() {
-        const container = document.getElementById('monster-select-panel');
-        if (!container) return;
-
-        if (this.state.inCombat || this.state.hp <= 0) {
-            container.innerHTML = '';
-            return;
         }
 
-        const dropdown = document.getElementById('monster-dropdown');
-        
-        // Only rebuild if dropdown doesn't exist
-        if (!dropdown) {
-            let html = '<div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div>';
-            html += '<select id="monster-dropdown" data-action="none">';
-            html += '<option value="">-- Select Monster --</option>';
-
-            for (let monster of this.state.unlockedMonsters) {
-                html += `<option value="${monster.name}">${monster.name}</option>`;
-            }
-
-            html += '</select>';
-            html += ' <button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button>';
-
-            container.innerHTML = html;
-        } else {
-            // Just update the options
-            html = '';
-            for (let monster of this.state.unlockedMonsters) {
-                html += `<option value="${monster.name}">${monster.name}</option>`;
-            }
-            
-            const optionsContainer = dropdown.parentElement;
-            const newDropdown = `
-                <select id="monster-dropdown" data-action="none">
-                    <option value="">-- Select Monster --</option>
-                    ${html}
-                </select>
-                <button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button>
-            `;
-            
-            const fightBtn = optionsContainer.querySelector('[data-action="fight-selected"]');
-            if (fightBtn) {
-                const selectedValue = dropdown.value;
-                optionsContainer.innerHTML = newDropdown;
-                const newDropdown2 = optionsContainer.querySelector('#monster-dropdown');
-                if (newDropdown2 && selectedValue) {
-                    newDropdown2.value = selectedValue;
-                }
+        // Update monster select visibility
+        const monsterPanel = document.getElementById('monster-select-panel');
+        if (monsterPanel) {
+            if (!this.state.inCombat && this.state.hp > 0 && this.state.unlockedMonsters.length > 0) {
+                monsterPanel.style.display = 'block';
+            } else {
+                monsterPanel.style.display = 'none';
             }
         }
     }
 
-    updateUpgrades() {
-        const container = document.getElementById('upgrades-list');
-        if (!container) return;
-
-        const upgradeDefs = [
-            { key: 'candy', display: 'Sugar Engine', stat: 'candyRate', perLevel: 1 },
-            { key: 'hp', display: 'Candy Heart', stat: 'maxHp', perLevel: 10 },
-            { key: 'attack', display: 'Candy Sword', stat: 'attack', perLevel: 2 }
-        ];
-
-        let html = '';
-        for (let def of upgradeDefs) {
-            const up = this.state.upgrades[def.key];
-            const newLevel = up.level + 1;
-            const cost = Math.floor(up.baseCost * (up.level + 1) * 1.5);
-            const disabled = this.state.candies < cost ? 'disabled' : '';
-
-            html += `
-                <div class="upgrade-item">
-                    <span class="upgrade-name">${def.display}</span>
-                    <span class="upgrade-cost"> (Lv ${up.level} → ${newLevel}) - ${cost} candy</span>
-                    <button class="upgrade-btn" data-action="buy-upgrade" data-upgrade-key="${def.key}" ${disabled}>BUY</button>
-                </div>
-            `;
-        }
-
-        container.innerHTML = html;
-    }
-
-    updateInventory() {
-        const container = document.getElementById('inventory-items');
-        if (!container) return;
-
-        const upgradeDefs = {
-            'candy': 'Sugar Engine',
-            'hp': 'Candy Heart',
-            'attack': 'Candy Sword'
-        };
-
-        let html = '';
+    updateUpgradeCosts() {
         for (let key in this.state.upgrades) {
-            const up = this.state.upgrades[key];
-            if (up.level > 0) {
-                html += `<div class="inventory-item">✓ ${upgradeDefs[key]} Lv${up.level}</div>`;
+            const btn = document.getElementById(`buy-${key}`);
+            const costSpan = document.getElementById(`upgrade-cost-${key}`);
+            
+            if (btn && costSpan) {
+                const up = this.state.upgrades[key];
+                const newLevel = up.level + 1;
+                const cost = Math.floor(up.baseCost * (up.level + 1) * 1.5);
+                
+                costSpan.textContent = ` (Lv ${up.level} → ${newLevel}) - ${cost}`;
+                btn.disabled = this.state.candies < cost;
             }
         }
-
-        if (html === '') {
-            html = '(empty)';
-        }
-
-        container.innerHTML = html;
     }
 
-    updateLog() {
+    // ADD LOG ENTRY (not batch update)
+    addLogEntry(msg) {
         const container = document.getElementById('game-log');
         if (!container) return;
 
-        let html = '';
-        for (let msg of this.gameLog.slice(-8)) {
-            html += `<div class="log-entry">${msg}</div>`;
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.textContent = msg;
+        container.appendChild(entry);
+
+        // Keep only last 15
+        while (container.children.length > 15) {
+            container.removeChild(container.firstChild);
         }
-        container.innerHTML = html;
     }
 
-    // Actions
+    // ADD MONSTER TO DROPDOWN (when unlocked)
+    addMonsterToDropdown(monster) {
+        const select = document.getElementById('monster-select');
+        if (!select) return;
+
+        if (!select.querySelector(`[value="${monster.name}"]`)) {
+            const option = document.createElement('option');
+            option.value = monster.name;
+            option.textContent = monster.name;
+            select.appendChild(option);
+        }
+    }
+
+    // ADD INVENTORY ITEM (when upgraded)
+    addInventoryItem(name, level) {
+        const container = document.getElementById('inventory-items');
+        if (!container) return;
+
+        if (container.textContent === '(empty)') {
+            container.innerHTML = '';
+        }
+
+        const item = document.createElement('div');
+        item.className = 'inventory-item';
+        item.textContent = `✓ ${name} Lv${level}`;
+        container.appendChild(item);
+    }
+
+    // ACTION HANDLERS
     eatCandy() {
         if (this.state.candies <= 0) {
-            this.addLog('No candy to eat!');
+            this.addLogEntry('No candy to eat!');
             return;
         }
         const amount = Math.floor(this.state.candies);
         this.state.hp = Math.min(this.state.hp + amount, this.state.maxHp);
         this.state.candies = 0;
-        this.addLog(`Ate ${amount} candy. +${amount} HP`);
+        this.addLogEntry(`Ate ${amount} candy. +${amount} HP`);
+        this.updateUI();
     }
 
     explore() {
@@ -279,10 +336,11 @@ Defeat them to grow stronger.`;
         if (roll < 0.4) {
             const gain = 10 + Math.floor(Math.random() * 25);
             this.state.candies += gain;
-            this.addLog(`Found ${gain} candies!`);
+            this.addLogEntry(`Found ${gain} candies!`);
         } else {
             this.spawnRandomMonster();
         }
+        this.updateUI();
     }
 
     spawnRandomMonster() {
@@ -309,11 +367,12 @@ Defeat them to grow stronger.`;
             ascii: monster.ascii
         };
         this.state.inCombat = true;
-        this.addLog(`${monster.name} appears!`);
+        this.addLogEntry(`${monster.name} appears!`);
+        this.updateUI();
     }
 
     fightSelectedMonster() {
-        const dropdown = document.getElementById('monster-dropdown');
+        const dropdown = document.getElementById('monster-select');
         if (!dropdown || !dropdown.value) return;
 
         const monsterName = dropdown.value;
@@ -328,13 +387,14 @@ Defeat them to grow stronger.`;
 
         const damage = this.state.attack + (Math.random() < 0.5 ? 1 : 0);
         this.state.enemy.hp -= damage;
-        this.addLog(`Attack! ${damage} damage to ${this.state.enemy.name}.`);
+        this.addLogEntry(`Attack! ${damage} damage to ${this.state.enemy.name}.`);
 
         if (this.state.enemy.hp <= 0) {
             this.winCombat();
         } else {
             setTimeout(() => this.enemyAttack(), 600);
         }
+        this.updateUI();
     }
 
     enemyAttack() {
@@ -342,11 +402,12 @@ Defeat them to grow stronger.`;
 
         const damage = this.state.enemy.attack + (Math.random() < 0.5 ? 1 : 0);
         this.state.hp -= damage;
-        this.addLog(`${this.state.enemy.name} attacks! ${damage} damage.`);
+        this.addLogEntry(`${this.state.enemy.name} attacks! ${damage} damage.`);
 
         if (this.state.hp <= 0) {
             this.loseCombat();
         }
+        this.updateUI();
     }
 
     winCombat() {
@@ -355,15 +416,17 @@ Defeat them to grow stronger.`;
 
         if (!this.state.unlockedMonsters.find(m => m.name === this.state.enemy.name)) {
             const original = this.monsters.find(m => m.name === this.state.enemy.name);
-            this.state.unlockedMonsters.push({
+            const newMonster = {
                 name: this.state.enemy.name,
                 hp: original.hp,
                 attack: original.attack,
                 reward: original.reward
-            });
+            };
+            this.state.unlockedMonsters.push(newMonster);
+            this.addMonsterToDropdown(newMonster);
         }
 
-        this.addLog(`Victory! +${reward} candies.`);
+        this.addLogEntry(`Victory! +${reward} candies.`);
         this.state.inCombat = false;
         this.state.enemy = null;
     }
@@ -372,7 +435,7 @@ Defeat them to grow stronger.`;
         this.state.candies = 0;
         this.state.inCombat = false;
         this.state.enemy = null;
-        this.addLog('Defeated. Lost all candies.');
+        this.addLogEntry('Defeated. Lost all candies.');
     }
 
     buyUpgrade(upgradeKey) {
@@ -382,95 +445,74 @@ Defeat them to grow stronger.`;
         const cost = Math.floor(up.baseCost * (up.level + 1) * 1.5);
 
         if (this.state.candies < cost) {
-            this.addLog('Not enough candies!');
+            this.addLogEntry('Not enough candies!');
             return;
         }
 
         this.state.candies -= cost;
         up.level += 1;
 
-        // Apply effect
-        if (upgradeKey === 'candy') {
-            this.state.candyRate += 1;
-        } else if (upgradeKey === 'hp') {
-            this.state.maxHp += 10;
-        } else if (upgradeKey === 'attack') {
-            this.state.attack += 2;
+        const upgradeDefs = {
+            'candy': { name: 'Sugar Engine', fn: () => this.state.candyRate += 1 },
+            'hp': { name: 'Candy Heart', fn: () => this.state.maxHp += 10 },
+            'attack': { name: 'Candy Sword', fn: () => this.state.attack += 2 }
+        };
+
+        const def = upgradeDefs[upgradeKey];
+        if (def) {
+            def.fn();
+            this.addInventoryItem(def.name, up.level);
+            this.addLogEntry(`Upgraded ${def.name} to Lv${up.level}!`);
         }
 
-        this.addLog(`Upgraded successfully!`);
-    }
-
-    addLog(msg) {
-        this.gameLog.push(msg);
-        if (this.gameLog.length > 15) this.gameLog.shift();
+        this.updateUI();
     }
 }
 
 let game;
-let isInteracting = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     game = new CandyBox3();
 
-    // GAME LOOP: 100ms - LOGIC ONLY (no rendering)
+    // BUILD STATIC UI ONCE
+    game.buildUI();
+
+    // GAME LOOP: 100ms - logic only
     setInterval(() => {
         game.tick();
+        game.updateUI();
     }, 100);
 
-    // RENDER LOOP: 500ms - UI ONLY (skipped if user is interacting)
-    setInterval(() => {
-        if (!isInteracting) {
-            game.render();
+    // EVENT DELEGATION (single listener)
+    document.body.addEventListener('click', (e) => {
+        const action = e.target.dataset.action;
+        if (!action) return;
+
+        switch(action) {
+            case 'eat':
+                game.eatCandy();
+                break;
+            case 'explore':
+                game.explore();
+                break;
+            case 'attack':
+                game.playerAttack();
+                break;
+            case 'fight-selected':
+                game.fightSelectedMonster();
+                break;
+            case 'buy-upgrade':
+                const upgradeKey = e.target.dataset.upgradeKey;
+                game.buyUpgrade(upgradeKey);
+                break;
+            case 'export-save':
+                alert('Save:\n' + JSON.stringify(game.state));
+                break;
+            case 'new-game':
+                if (confirm('New game?')) location.reload();
+                break;
         }
-    }, 500);
-
-    // Track user interaction
-    document.addEventListener('mousedown', () => {
-        isInteracting = true;
     });
 
-    document.addEventListener('mouseup', () => {
-        isInteracting = false;
-    });
-
-    // SINGLE EVENT DELEGATION LISTENER
-    const container = document.getElementById('main');
-    if (container) {
-        container.addEventListener('click', (e) => {
-            const action = e.target.dataset.action;
-            if (!action) return;
-
-            switch(action) {
-                case 'eat':
-                    game.eatCandy();
-                    break;
-                case 'explore':
-                    game.explore();
-                    break;
-                case 'attack':
-                    game.playerAttack();
-                    break;
-                case 'fight-selected':
-                    game.fightSelectedMonster();
-                    break;
-                case 'buy-upgrade':
-                    const upgradeKey = e.target.dataset.upgradeKey;
-                    game.buyUpgrade(upgradeKey);
-                    break;
-                case 'export-save':
-                    alert('Save:\n' + JSON.stringify(game.state));
-                    break;
-                case 'new-game':
-                    if (confirm('New game?')) location.reload();
-                    break;
-            }
-
-            // Immediate render after action
-            game.render();
-        });
-    }
-
-    // Initial render
-    game.render();
+    game.updateUI();
 });
