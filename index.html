@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CANDY BOX 3</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <header>
+            <h1>CANDY BOX 3</h1>
+            <p>An Incremental Adventure</p>
+        </header>
+
+        <div id="main">
+            <!-- Status Panel -->
+            <div id="status-panel" class="panel">
+                <div class="stat-row">
+                    <span class="stat-label">Candy:</span>
+                    <span id="candy-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Earned:</span>
+                    <span id="total-candy" class="stat-value">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Per Second:</span>
+                    <span id="per-second" class="stat-value">1</span>
+                </div>
+            </div>
+
+            <!-- Scene / Content Area -->
+            <div id="scene-panel" class="panel">
+                <div id="scene-content"></div>
+            </div>
+
+            <!-- Log / Messages -->
+            <div id="log-panel" class="panel">
+                <div id="game-log"></div>
+            </div>
+
+            <!-- Actions -->
+            <div id="actions-panel" class="panel">
+                <div id="action-buttons"></div>
+                <div id="quick-actions">
+                    <button class="action-btn" id="eat-candy-btn">Eat Candy</button>
+                    <button class="action-btn" id="explore-btn">Explore</button>
+                </div>
+            </div>
+
+            <!-- Inventory -->
+            <div id="inventory-panel" class="panel">
+                <h3>Inventory</h3>
+                <div id="inventory-items"></div>
+            </div>
+
+            <!-- Upgrades -->
+            <div id="upgrades-panel" class="panel">
+                <h3>Upgrades</h3>
+                <div id="upgrades-list"></div>
+            </div>
+
+            <!-- Settings -->
+            <div id="settings-panel" class="panel">
+                <h3>Options</h3>
+                <button id="export-save-btn" class="settings-btn">Export Save</button>
+                <button id="import-save-btn" class="settings-btn">Import Save</button>
+                <button id="clear-save-btn" class="settings-btn">New Game</button>
+                <input type="text" id="import-input" style="display:none;">
+            </div>
+        </div>
+
+        <footer>
+            <p>A spiritual successor to Candy Box 1 & 2 | Made with vanilla JS</p>
+        </footer>
+    </div>
+
+    <script src="ascii.js"></script>
+    <script src="save.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
