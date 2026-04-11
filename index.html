@@ -17,16 +17,23 @@
             <!-- Status Panel -->
             <div id="status-panel" class="panel">
                 <div class="stat-row">
-                    <span class="stat-label">Candy:</span>
+                    <span class="stat-label">Candies:</span>
                     <span id="candy-count" class="stat-value">0</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">Total Earned:</span>
-                    <span id="total-candy" class="stat-value">0</span>
+                    <span class="stat-label">HP:</span>
+                    <span id="hp-bar" class="stat-value">[██████████]</span>
+                    <span id="hp-current" class="stat-value">100</span>
+                    <span style="color: #999;">/</span>
+                    <span id="hp-max" class="stat-value">100</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">Per Second:</span>
-                    <span id="per-second" class="stat-value">1</span>
+                    <span class="stat-label">Candy/sec:</span>
+                    <span id="candy-rate" class="stat-value">1.00</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Attack:</span>
+                    <span id="attack-value" class="stat-value">5</span>
                 </div>
             </div>
 
@@ -44,8 +51,7 @@
             <div id="actions-panel" class="panel">
                 <div id="action-buttons"></div>
                 <div id="quick-actions">
-                    <button class="action-btn" id="eat-candy-btn">Eat Candy</button>
-                    <button class="action-btn" id="explore-btn">Explore</button>
+                    <button class="action-btn" id="eat-candy-btn">🍬 Eat Candy</button>
                 </div>
             </div>
 
@@ -67,7 +73,6 @@
                 <button id="export-save-btn" class="settings-btn">Export Save</button>
                 <button id="import-save-btn" class="settings-btn">Import Save</button>
                 <button id="clear-save-btn" class="settings-btn">New Game</button>
-                <input type="text" id="import-input" style="display:none;">
             </div>
         </div>
 
