@@ -1,4 +1,4 @@
-// CANDY BOX 3 - Refactored with Upgrades, Monsters, and Dropdown
+// CANDY BOX 3 - Fixed rendering strategy (separate tick and render)
 
 const MONSTERS = [
     { name: 'Sugar Goblin', hp: 20, attack: 2, reward: 15, ascii: '  \\O_\n   |\n  / \\' },
@@ -45,9 +45,10 @@ class CandyBox3 {
         this.lastUpdate = Date.now();
         this.gameLog = [];
         this.monsters = MONSTERS;
+        this.lastRenderState = null;
     }
 
-    // Core game loop
+    // Game tick - LOGIC ONLY (no rendering)
     tick() {
         const now = Date.now();
         const deltaTime = (now - this.lastUpdate) / 1000;
@@ -63,18 +64,18 @@ class CandyBox3 {
         }
     }
 
-    // Full render
+    // Full render - safely update DOM
     render() {
-        this.renderStatus();
-        this.renderScene();
-        this.renderActions();
-        this.renderUpgrades();
-        this.renderMonsterSelect();
-        this.renderInventory();
-        this.renderLog();
+        this.updateStatus();
+        this.updateScene();
+        this.updateActions();
+        this.updateUpgrades();
+        this.updateMonsterSelect();
+        this.updateInventory();
+        this.updateLog();
     }
 
-    renderStatus() {
+    updateStatus() {
         const candyEl = document.getElementById('candy-count');
         if (candyEl) candyEl.textContent = Math.floor(this.state.candies);
 
@@ -97,7 +98,7 @@ class CandyBox3 {
         if (atkEl) atkEl.textContent = this.state.attack;
     }
 
-    renderScene() {
+    updateScene() {
         const scene = document.getElementById('scene-content');
         if (!scene) return;
 
@@ -123,23 +124,25 @@ Defeat them to grow stronger.`;
         }
     }
 
-    renderActions() {
+    updateActions() {
         const container = document.getElementById('action-buttons');
         if (!container) return;
 
-        container.innerHTML = '';
-
         if (this.state.inCombat && this.state.enemy) {
-            container.innerHTML = `
-                <button class="action-btn" data-action="attack">⚔️ Attack</button>
-            `;
+            if (!container.querySelector('[data-action="attack"]')) {
+                container.innerHTML = '<button class="action-btn" data-action="attack">⚔️ Attack</button>';
+            }
         } else if (this.state.hp > 0) {
-            let html = `<button class="action-btn" data-action="explore">🔍 Explore</button>`;
-            container.innerHTML = html;
+            if (!container.querySelector('[data-action="explore"]')) {
+                let html = `<button class="action-btn" data-action="explore">🔍 Explore</button>`;
+                container.innerHTML = html;
+            }
+        } else {
+            container.innerHTML = '';
         }
     }
 
-    renderMonsterSelect() {
+    updateMonsterSelect() {
         const container = document.getElementById('monster-select-panel');
         if (!container) return;
 
@@ -148,21 +151,51 @@ Defeat them to grow stronger.`;
             return;
         }
 
-        let html = '<div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div>';
-        html += '<select id="monster-dropdown" data-action="none">';
-        html += '<option value="">-- Select Monster --</option>';
+        const dropdown = document.getElementById('monster-dropdown');
+        
+        // Only rebuild if dropdown doesn't exist
+        if (!dropdown) {
+            let html = '<div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div>';
+            html += '<select id="monster-dropdown" data-action="none">';
+            html += '<option value="">-- Select Monster --</option>';
 
-        for (let monster of this.state.unlockedMonsters) {
-            html += `<option value="${monster.name}">${monster.name}</option>`;
+            for (let monster of this.state.unlockedMonsters) {
+                html += `<option value="${monster.name}">${monster.name}</option>`;
+            }
+
+            html += '</select>';
+            html += ' <button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button>';
+
+            container.innerHTML = html;
+        } else {
+            // Just update the options
+            html = '';
+            for (let monster of this.state.unlockedMonsters) {
+                html += `<option value="${monster.name}">${monster.name}</option>`;
+            }
+            
+            const optionsContainer = dropdown.parentElement;
+            const newDropdown = `
+                <select id="monster-dropdown" data-action="none">
+                    <option value="">-- Select Monster --</option>
+                    ${html}
+                </select>
+                <button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button>
+            `;
+            
+            const fightBtn = optionsContainer.querySelector('[data-action="fight-selected"]');
+            if (fightBtn) {
+                const selectedValue = dropdown.value;
+                optionsContainer.innerHTML = newDropdown;
+                const newDropdown2 = optionsContainer.querySelector('#monster-dropdown');
+                if (newDropdown2 && selectedValue) {
+                    newDropdown2.value = selectedValue;
+                }
+            }
         }
-
-        html += '</select>';
-        html += ' <button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button>';
-
-        container.innerHTML = html;
     }
 
-    renderUpgrades() {
+    updateUpgrades() {
         const container = document.getElementById('upgrades-list');
         if (!container) return;
 
@@ -191,7 +224,7 @@ Defeat them to grow stronger.`;
         container.innerHTML = html;
     }
 
-    renderInventory() {
+    updateInventory() {
         const container = document.getElementById('inventory-items');
         if (!container) return;
 
@@ -216,7 +249,7 @@ Defeat them to grow stronger.`;
         container.innerHTML = html;
     }
 
-    renderLog() {
+    updateLog() {
         const container = document.getElementById('game-log');
         if (!container) return;
 
@@ -375,15 +408,31 @@ Defeat them to grow stronger.`;
 }
 
 let game;
+let isInteracting = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     game = new CandyBox3();
 
-    // Game loop: 100ms tick
+    // GAME LOOP: 100ms - LOGIC ONLY (no rendering)
     setInterval(() => {
         game.tick();
-        game.render();
     }, 100);
+
+    // RENDER LOOP: 500ms - UI ONLY (skipped if user is interacting)
+    setInterval(() => {
+        if (!isInteracting) {
+            game.render();
+        }
+    }, 500);
+
+    // Track user interaction
+    document.addEventListener('mousedown', () => {
+        isInteracting = true;
+    });
+
+    document.addEventListener('mouseup', () => {
+        isInteracting = false;
+    });
 
     // SINGLE EVENT DELEGATION LISTENER
     const container = document.getElementById('main');
@@ -395,24 +444,19 @@ document.addEventListener('DOMContentLoaded', () => {
             switch(action) {
                 case 'eat':
                     game.eatCandy();
-                    game.render();
                     break;
                 case 'explore':
                     game.explore();
-                    game.render();
                     break;
                 case 'attack':
                     game.playerAttack();
-                    game.render();
                     break;
                 case 'fight-selected':
                     game.fightSelectedMonster();
-                    game.render();
                     break;
                 case 'buy-upgrade':
                     const upgradeKey = e.target.dataset.upgradeKey;
                     game.buyUpgrade(upgradeKey);
-                    game.render();
                     break;
                 case 'export-save':
                     alert('Save:\n' + JSON.stringify(game.state));
@@ -421,8 +465,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (confirm('New game?')) location.reload();
                     break;
             }
+
+            // Immediate render after action
+            game.render();
         });
     }
 
+    // Initial render
     game.render();
 });
