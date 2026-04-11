@@ -1,4 +1,4 @@
-// CANDY BOX 3 - Minimal Working Engine
+// CANDY BOX 3 - Minimal Working Engine (EVENT DELEGATION FIX)
 
 class CandyBox3 {
     constructor() {
@@ -97,42 +97,20 @@ Defeat them to grow stronger.`;
         container.innerHTML = '';
 
         if (this.state.inCombat && this.state.enemy) {
-            const btn = document.createElement('button');
-            btn.className = 'action-btn';
-            btn.textContent = '⚔️ Attack';
-            btn.onclick = () => {
-                this.playerAttack();
-                this.render();
-            };
-            container.appendChild(btn);
+            container.innerHTML = `
+                <button class="action-btn" data-action="attack">⚔️ Attack</button>
+            `;
         } else if (this.state.hp > 0) {
-            const exploreBtn = document.createElement('button');
-            exploreBtn.className = 'action-btn';
-            exploreBtn.textContent = '🔍 Explore';
-            exploreBtn.onclick = () => {
-                this.explore();
-                this.render();
-            };
-            container.appendChild(exploreBtn);
+            let html = `<button class="action-btn" data-action="explore">🔍 Explore</button>`;
 
             if (this.state.unlockedEnemies.length > 0) {
-                const label = document.createElement('div');
-                label.style.marginTop = '10px';
-                label.textContent = 'Known Enemies:';
-                label.style.fontWeight = 'bold';
-                container.appendChild(label);
-
+                html += `<div style="margin-top: 10px; font-weight: bold;">Known Enemies:</div>`;
                 for (let enemy of this.state.unlockedEnemies) {
-                    const btn = document.createElement('button');
-                    btn.className = 'action-btn';
-                    btn.textContent = `Fight ${enemy.name}`;
-                    btn.onclick = () => {
-                        this.fightKnownEnemy(enemy);
-                        this.render();
-                    };
-                    container.appendChild(btn);
+                    html += `<button class="action-btn" data-action="fight-enemy" data-enemy-name="${enemy.name}">Fight ${enemy.name}</button>`;
                 }
             }
+
+            container.innerHTML = html;
         }
     }
 
@@ -140,55 +118,38 @@ Defeat them to grow stronger.`;
         const container = document.getElementById('upgrades-list');
         if (!container) return;
 
-        container.innerHTML = '';
-
         const upgrades = [
             { id: 'candy_prod', name: 'Sugar Engine', cost: 20, effect: '+1 candies/sec' },
             { id: 'max_hp', name: 'Iron Body', cost: 50, effect: '+10 max HP' }
         ];
 
+        let html = '';
         for (let up of upgrades) {
-            const div = document.createElement('div');
-            div.className = 'upgrade-item';
-
-            const name = document.createElement('span');
-            name.className = 'upgrade-name';
-            name.textContent = up.name;
-            div.appendChild(name);
-
-            const info = document.createElement('span');
-            info.className = 'upgrade-cost';
-            info.textContent = ` ${up.effect} (${up.cost} candy)`;
-            div.appendChild(info);
-
-            const btn = document.createElement('button');
-            btn.className = 'upgrade-btn';
-            btn.textContent = 'BUY';
-            btn.disabled = this.state.candies < up.cost;
-            btn.onclick = () => {
-                this.buyUpgrade(up.id, up.cost, up.name);
-                this.render();
-            };
-            div.appendChild(btn);
-
-            container.appendChild(div);
+            const disabled = this.state.candies < up.cost ? 'disabled' : '';
+            html += `
+                <div class="upgrade-item">
+                    <span class="upgrade-name">${up.name}</span>
+                    <span class="upgrade-cost"> ${up.effect} (${up.cost} candy)</span>
+                    <button class="upgrade-btn" data-action="buy-upgrade" data-upgrade-id="${up.id}" ${disabled}>BUY</button>
+                </div>
+            `;
         }
+
+        container.innerHTML = html;
     }
 
     renderInventory() {
         const container = document.getElementById('inventory-items');
         if (!container) return;
 
-        container.innerHTML = '';
         if (this.state.upgrades.length === 0) {
             container.textContent = '(empty)';
         } else {
+            let html = '';
             for (let item of this.state.upgrades) {
-                const div = document.createElement('div');
-                div.className = 'inventory-item';
-                div.textContent = '✓ ' + item;
-                container.appendChild(div);
+                html += `<div class="inventory-item">✓ ${item}</div>`;
             }
+            container.innerHTML = html;
         }
     }
 
@@ -196,13 +157,11 @@ Defeat them to grow stronger.`;
         const container = document.getElementById('game-log');
         if (!container) return;
 
-        container.innerHTML = '';
+        let html = '';
         for (let msg of this.gameLog.slice(-8)) {
-            const div = document.createElement('div');
-            div.className = 'log-entry';
-            div.textContent = msg;
-            container.appendChild(div);
+            html += `<div class="log-entry">${msg}</div>`;
         }
+        container.innerHTML = html;
     }
 
     // Actions
@@ -236,7 +195,9 @@ Defeat them to grow stronger.`;
         this.addLog('A Sugar Goblin appears!');
     }
 
-    fightKnownEnemy(enemy) {
+    fightKnownEnemy(enemyName) {
+        const enemy = this.state.unlockedEnemies.find(e => e.name === enemyName);
+        if (!enemy) return;
         this.state.enemy = { ...enemy };
         this.state.inCombat = true;
     }
@@ -292,19 +253,24 @@ Defeat them to grow stronger.`;
         this.addLog('Defeated. Lost all candies.');
     }
 
-    buyUpgrade(id, cost, name) {
-        if (this.state.candies < cost) return;
+    buyUpgrade(upgradeId) {
+        const upgrades = {
+            'candy_prod': { cost: 20, name: 'Sugar Engine', fn: () => this.state.candyRate += 1 },
+            'max_hp': { cost: 50, name: 'Iron Body', fn: () => this.state.maxHp += 10 }
+        };
 
-        this.state.candies -= cost;
+        const up = upgrades[upgradeId];
+        if (!up) return;
 
-        if (id === 'candy_prod') {
-            this.state.candyRate += 1;
-        } else if (id === 'max_hp') {
-            this.state.maxHp += 10;
+        if (this.state.candies < up.cost) {
+            this.addLog('Not enough candies!');
+            return;
         }
 
-        this.state.upgrades.push(name);
-        this.addLog(`Bought ${name}!`);
+        this.state.candies -= up.cost;
+        up.fn();
+        this.state.upgrades.push(up.name);
+        this.addLog(`Bought ${up.name}!`);
     }
 
     addLog(msg) {
@@ -324,26 +290,43 @@ document.addEventListener('DOMContentLoaded', () => {
         game.render();
     }, 100);
 
-    // UI listeners
-    const eatBtn = document.getElementById('eat-candy-btn');
-    if (eatBtn) {
-        eatBtn.addEventListener('click', () => {
-            game.eatCandy();
-            game.render();
-        });
-    }
+    // SINGLE EVENT DELEGATION LISTENER
+    const container = document.getElementById('main');
+    if (container) {
+        container.addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            if (!action) return;
 
-    const exportBtn = document.getElementById('export-save-btn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
-            alert('Save:\n' + JSON.stringify(game.state));
-        });
-    }
-
-    const clearBtn = document.getElementById('clear-save-btn');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-            if (confirm('New game?')) location.reload();
+            switch(action) {
+                case 'eat':
+                    game.eatCandy();
+                    game.render();
+                    break;
+                case 'explore':
+                    game.explore();
+                    game.render();
+                    break;
+                case 'attack':
+                    game.playerAttack();
+                    game.render();
+                    break;
+                case 'fight-enemy':
+                    const enemyName = e.target.dataset.enemyName;
+                    game.fightKnownEnemy(enemyName);
+                    game.render();
+                    break;
+                case 'buy-upgrade':
+                    const upgradeId = e.target.dataset.upgradeId;
+                    game.buyUpgrade(upgradeId);
+                    game.render();
+                    break;
+                case 'export-save':
+                    alert('Save:\n' + JSON.stringify(game.state));
+                    break;
+                case 'new-game':
+                    if (confirm('New game?')) location.reload();
+                    break;
+            }
         });
     }
 
