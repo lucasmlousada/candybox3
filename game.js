@@ -1,4 +1,28 @@
-// CANDY BOX 3 - Minimal Working Engine (EVENT DELEGATION FIX)
+// CANDY BOX 3 - Refactored with Upgrades, Monsters, and Dropdown
+
+const MONSTERS = [
+    { name: 'Sugar Goblin', hp: 20, attack: 2, reward: 15, ascii: '  \\O_\n   |\n  / \\' },
+    { name: 'Caramel Slime', hp: 15, attack: 3, reward: 12, ascii: '  ~°~\n  (~)~\n   ~' },
+    { name: 'Chocolate Bat', hp: 18, attack: 5, reward: 20, ascii: '  \\||\n   ||\n  /||\\' },
+    { name: 'Lollipop Knight', hp: 35, attack: 4, reward: 30, ascii: '  |O|\n  /||\\\n  / \\' },
+    { name: 'Neural Nougat', hp: 40, attack: 3, reward: 35, ascii: '  [==]\n [====]\n [==]' },
+    { name: 'GPT-3.5 Ghost', hp: 50, attack: 6, reward: 60, ascii: '  (~)~\n  (~)~\n  (~)~' },
+    { name: 'Candy Crab', hp: 40, attack: 5, reward: 50, ascii: '  <(o)>\n  <(0)>\n   / \\' },
+    { name: 'Meme Wraith', hp: 45, attack: 7, reward: 70, ascii: '  ****\n *    *\n ****' },
+    { name: 'Jelly Jester', hp: 30, attack: 4, reward: 40, ascii: '  /||\\\n  \\||\n   ||' },
+    { name: 'Gummy Guardian', hp: 65, attack: 7, reward: 95, ascii: '  |==|\n |==|\n |==|' },
+    { name: 'Marshmallow Mimic', hp: 25, attack: 6, reward: 35, ascii: '  (oo)\n <(uu)>\n  (oo)' },
+    { name: 'Fudge Fiend', hp: 55, attack: 8, reward: 90, ascii: '  [#_#]\n (#_#)\n [# #]' },
+    { name: 'Cotton Candy Centaur', hp: 70, attack: 6, reward: 100, ascii: '  |O_O|\n /|   |\\\n / |   |' },
+    { name: 'Lemon Drop Drake', hp: 75, attack: 8, reward: 110, ascii: '  ~~^~~\n ~(o_o)~\n ~~~~~~~' },
+    { name: 'Sugar Siren', hp: 50, attack: 9, reward: 85, ascii: '  /^^\\\n / OO \\\n |    |' },
+    { name: 'Licorice Lich', hp: 80, attack: 9, reward: 120, ascii: '  [!!]\n  !!!\n [!!]' },
+    { name: 'Candy Kraken', hp: 100, attack: 8, reward: 150, ascii: '  ~^^^^~\n  ^^^^^^\n ~^^^^^^~' },
+    { name: 'Peppermint Paladin', hp: 60, attack: 5, reward: 80, ascii: '  |\\O/|\n | X |\n |/ \\|' },
+    { name: 'Sentient Sweetness', hp: 120, attack: 10, reward: 200, ascii: '  (@@@)\n (@@@)\n (@@@)' },
+    { name: 'The Candy King', hp: 150, attack: 12, reward: 300, ascii: '  /^^^|\n |   |\n |___|' },
+    { name: 'Caramel Colossus', hp: 140, attack: 11, reward: 250, ascii: '  |===|\n |===|\n |===|' }
+];
 
 class CandyBox3 {
     constructor() {
@@ -11,11 +35,16 @@ class CandyBox3 {
             attack: 5,
             inCombat: false,
             enemy: null,
-            unlockedEnemies: [],
-            upgrades: []
+            unlockedMonsters: [],
+            upgrades: {
+                candy: { level: 0, baseCost: 10 },
+                hp: { level: 0, baseCost: 20 },
+                attack: { level: 0, baseCost: 15 }
+            }
         };
         this.lastUpdate = Date.now();
         this.gameLog = [];
+        this.monsters = MONSTERS;
     }
 
     // Core game loop
@@ -40,6 +69,7 @@ class CandyBox3 {
         this.renderScene();
         this.renderActions();
         this.renderUpgrades();
+        this.renderMonsterSelect();
         this.renderInventory();
         this.renderLog();
     }
@@ -62,6 +92,9 @@ class CandyBox3 {
 
         const rateEl = document.getElementById('candy-rate');
         if (rateEl) rateEl.textContent = this.state.candyRate.toFixed(1);
+
+        const atkEl = document.getElementById('attack-value');
+        if (atkEl) atkEl.textContent = this.state.attack;
     }
 
     renderScene() {
@@ -69,12 +102,12 @@ class CandyBox3 {
         if (!scene) return;
 
         if (this.state.inCombat && this.state.enemy) {
-            const percent = Math.max(0, Math.floor((this.state.enemy.hp / 20) * 10));
+            const percent = Math.max(0, Math.floor((this.state.enemy.hp / this.state.enemy.maxHp) * 10));
             scene.textContent = `
-IN COMBAT
+${this.state.enemy.ascii}
 
-Enemy: ${this.state.enemy.name}
-HP: [${`█`.repeat(percent)}${`░`.repeat(10 - percent)}] ${this.state.enemy.hp}/20
+${this.state.enemy.name}
+HP: [${`█`.repeat(percent)}${`░`.repeat(10 - percent)}] ${this.state.enemy.hp}/${this.state.enemy.maxHp}
 
 Your HP: ${Math.floor(this.state.hp)}/${this.state.maxHp}
             `.trim();
@@ -85,7 +118,7 @@ Your HP: ${Math.floor(this.state.hp)}/${this.state.maxHp}
 
 Candies spawn over time.
 Eat candy to heal.
-Explore to find enemies.
+Explore to find monsters.
 Defeat them to grow stronger.`;
         }
     }
@@ -102,35 +135,55 @@ Defeat them to grow stronger.`;
             `;
         } else if (this.state.hp > 0) {
             let html = `<button class="action-btn" data-action="explore">🔍 Explore</button>`;
-
-            if (this.state.unlockedEnemies.length > 0) {
-                html += `<div style="margin-top: 10px; font-weight: bold;">Known Enemies:</div>`;
-                for (let enemy of this.state.unlockedEnemies) {
-                    html += `<button class="action-btn" data-action="fight-enemy" data-enemy-name="${enemy.name}">Fight ${enemy.name}</button>`;
-                }
-            }
-
             container.innerHTML = html;
         }
+    }
+
+    renderMonsterSelect() {
+        const container = document.getElementById('monster-select-panel');
+        if (!container) return;
+
+        if (this.state.inCombat || this.state.hp <= 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = '<div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div>';
+        html += '<select id="monster-dropdown" data-action="none">';
+        html += '<option value="">-- Select Monster --</option>';
+
+        for (let monster of this.state.unlockedMonsters) {
+            html += `<option value="${monster.name}">${monster.name}</option>`;
+        }
+
+        html += '</select>';
+        html += ' <button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button>';
+
+        container.innerHTML = html;
     }
 
     renderUpgrades() {
         const container = document.getElementById('upgrades-list');
         if (!container) return;
 
-        const upgrades = [
-            { id: 'candy_prod', name: 'Sugar Engine', cost: 20, effect: '+1 candies/sec' },
-            { id: 'max_hp', name: 'Iron Body', cost: 50, effect: '+10 max HP' }
+        const upgradeDefs = [
+            { key: 'candy', display: 'Sugar Engine', stat: 'candyRate', perLevel: 1 },
+            { key: 'hp', display: 'Candy Heart', stat: 'maxHp', perLevel: 10 },
+            { key: 'attack', display: 'Candy Sword', stat: 'attack', perLevel: 2 }
         ];
 
         let html = '';
-        for (let up of upgrades) {
-            const disabled = this.state.candies < up.cost ? 'disabled' : '';
+        for (let def of upgradeDefs) {
+            const up = this.state.upgrades[def.key];
+            const newLevel = up.level + 1;
+            const cost = Math.floor(up.baseCost * (up.level + 1) * 1.5);
+            const disabled = this.state.candies < cost ? 'disabled' : '';
+
             html += `
                 <div class="upgrade-item">
-                    <span class="upgrade-name">${up.name}</span>
-                    <span class="upgrade-cost"> ${up.effect} (${up.cost} candy)</span>
-                    <button class="upgrade-btn" data-action="buy-upgrade" data-upgrade-id="${up.id}" ${disabled}>BUY</button>
+                    <span class="upgrade-name">${def.display}</span>
+                    <span class="upgrade-cost"> (Lv ${up.level} → ${newLevel}) - ${cost} candy</span>
+                    <button class="upgrade-btn" data-action="buy-upgrade" data-upgrade-key="${def.key}" ${disabled}>BUY</button>
                 </div>
             `;
         }
@@ -142,15 +195,25 @@ Defeat them to grow stronger.`;
         const container = document.getElementById('inventory-items');
         if (!container) return;
 
-        if (this.state.upgrades.length === 0) {
-            container.textContent = '(empty)';
-        } else {
-            let html = '';
-            for (let item of this.state.upgrades) {
-                html += `<div class="inventory-item">✓ ${item}</div>`;
+        const upgradeDefs = {
+            'candy': 'Sugar Engine',
+            'hp': 'Candy Heart',
+            'attack': 'Candy Sword'
+        };
+
+        let html = '';
+        for (let key in this.state.upgrades) {
+            const up = this.state.upgrades[key];
+            if (up.level > 0) {
+                html += `<div class="inventory-item">✓ ${upgradeDefs[key]} Lv${up.level}</div>`;
             }
-            container.innerHTML = html;
         }
+
+        if (html === '') {
+            html = '(empty)';
+        }
+
+        container.innerHTML = html;
     }
 
     renderLog() {
@@ -180,26 +243,51 @@ Defeat them to grow stronger.`;
         if (this.state.inCombat || this.state.hp <= 0) return;
 
         const roll = Math.random();
-        if (roll < 0.5) {
-            const gain = 10 + Math.floor(Math.random() * 20);
+        if (roll < 0.4) {
+            const gain = 10 + Math.floor(Math.random() * 25);
             this.state.candies += gain;
             this.addLog(`Found ${gain} candies!`);
         } else {
-            this.spawnNewEnemy();
+            this.spawnRandomMonster();
         }
     }
 
-    spawnNewEnemy() {
-        this.state.enemy = { name: 'Sugar Goblin', hp: 20, attack: 2, reward: 15 };
-        this.state.inCombat = true;
-        this.addLog('A Sugar Goblin appears!');
+    spawnRandomMonster() {
+        const unlockedNames = this.state.unlockedMonsters.map(m => m.name);
+        const available = this.monsters.filter(m => !unlockedNames.includes(m.name));
+
+        let monster;
+        if (available.length > 0) {
+            monster = available[Math.floor(Math.random() * available.length)];
+        } else {
+            monster = this.monsters[Math.floor(Math.random() * this.monsters.length)];
+        }
+
+        this.startCombat(monster);
     }
 
-    fightKnownEnemy(enemyName) {
-        const enemy = this.state.unlockedEnemies.find(e => e.name === enemyName);
-        if (!enemy) return;
-        this.state.enemy = { ...enemy };
+    startCombat(monster) {
+        this.state.enemy = {
+            name: monster.name,
+            hp: monster.hp,
+            maxHp: monster.hp,
+            attack: monster.attack,
+            reward: monster.reward,
+            ascii: monster.ascii
+        };
         this.state.inCombat = true;
+        this.addLog(`${monster.name} appears!`);
+    }
+
+    fightSelectedMonster() {
+        const dropdown = document.getElementById('monster-dropdown');
+        if (!dropdown || !dropdown.value) return;
+
+        const monsterName = dropdown.value;
+        const monster = this.monsters.find(m => m.name === monsterName);
+        if (!monster) return;
+
+        this.startCombat(monster);
     }
 
     playerAttack() {
@@ -232,12 +320,13 @@ Defeat them to grow stronger.`;
         const reward = this.state.enemy.reward;
         this.state.candies += reward;
 
-        if (!this.state.unlockedEnemies.find(e => e.name === this.state.enemy.name)) {
-            this.state.unlockedEnemies.push({
+        if (!this.state.unlockedMonsters.find(m => m.name === this.state.enemy.name)) {
+            const original = this.monsters.find(m => m.name === this.state.enemy.name);
+            this.state.unlockedMonsters.push({
                 name: this.state.enemy.name,
-                hp: this.state.enemy.hp,
-                attack: this.state.enemy.attack,
-                reward: this.state.enemy.reward
+                hp: original.hp,
+                attack: original.attack,
+                reward: original.reward
             });
         }
 
@@ -253,24 +342,30 @@ Defeat them to grow stronger.`;
         this.addLog('Defeated. Lost all candies.');
     }
 
-    buyUpgrade(upgradeId) {
-        const upgrades = {
-            'candy_prod': { cost: 20, name: 'Sugar Engine', fn: () => this.state.candyRate += 1 },
-            'max_hp': { cost: 50, name: 'Iron Body', fn: () => this.state.maxHp += 10 }
-        };
-
-        const up = upgrades[upgradeId];
+    buyUpgrade(upgradeKey) {
+        const up = this.state.upgrades[upgradeKey];
         if (!up) return;
 
-        if (this.state.candies < up.cost) {
+        const cost = Math.floor(up.baseCost * (up.level + 1) * 1.5);
+
+        if (this.state.candies < cost) {
             this.addLog('Not enough candies!');
             return;
         }
 
-        this.state.candies -= up.cost;
-        up.fn();
-        this.state.upgrades.push(up.name);
-        this.addLog(`Bought ${up.name}!`);
+        this.state.candies -= cost;
+        up.level += 1;
+
+        // Apply effect
+        if (upgradeKey === 'candy') {
+            this.state.candyRate += 1;
+        } else if (upgradeKey === 'hp') {
+            this.state.maxHp += 10;
+        } else if (upgradeKey === 'attack') {
+            this.state.attack += 2;
+        }
+
+        this.addLog(`Upgraded successfully!`);
     }
 
     addLog(msg) {
@@ -310,14 +405,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     game.playerAttack();
                     game.render();
                     break;
-                case 'fight-enemy':
-                    const enemyName = e.target.dataset.enemyName;
-                    game.fightKnownEnemy(enemyName);
+                case 'fight-selected':
+                    game.fightSelectedMonster();
                     game.render();
                     break;
                 case 'buy-upgrade':
-                    const upgradeId = e.target.dataset.upgradeId;
-                    game.buyUpgrade(upgradeId);
+                    const upgradeKey = e.target.dataset.upgradeKey;
+                    game.buyUpgrade(upgradeKey);
                     game.render();
                     break;
                 case 'export-save':
