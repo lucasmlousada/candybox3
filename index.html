@@ -14,40 +14,32 @@
         </header>
 
         <div id="main">
-            <!-- Status Panel -->
             <div id="status-panel" class="panel">
                 <div class="stat-row">
                     <span class="stat-label">Candies:</span>
                     <span id="candy-count" class="stat-value">0</span>
                 </div>
                 <div class="stat-row">
+                    <span class="stat-label">Candy/sec:</span>
+                    <span id="candy-rate" class="stat-value">1.0</span>
+                </div>
+                <div class="stat-row">
                     <span class="stat-label">HP:</span>
                     <span id="hp-bar" class="stat-value">[██████████]</span>
-                    <span id="hp-current" class="stat-value">100</span>
-                    <span style="color: #999;">/</span>
+                    <span id="hp-current" class="stat-value">50</span>
+                    <span>/</span>
                     <span id="hp-max" class="stat-value">100</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Candy/sec:</span>
-                    <span id="candy-rate" class="stat-value">1.00</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Attack:</span>
-                    <span id="attack-value" class="stat-value">5</span>
                 </div>
             </div>
 
-            <!-- Scene / Content Area -->
             <div id="scene-panel" class="panel">
                 <div id="scene-content"></div>
             </div>
 
-            <!-- Log / Messages -->
             <div id="log-panel" class="panel">
                 <div id="game-log"></div>
             </div>
 
-            <!-- Actions -->
             <div id="actions-panel" class="panel">
                 <div id="action-buttons"></div>
                 <div id="quick-actions">
@@ -55,23 +47,19 @@
                 </div>
             </div>
 
-            <!-- Inventory -->
-            <div id="inventory-panel" class="panel">
-                <h3>Inventory</h3>
-                <div id="inventory-items"></div>
-            </div>
-
-            <!-- Upgrades -->
             <div id="upgrades-panel" class="panel">
                 <h3>Upgrades</h3>
                 <div id="upgrades-list"></div>
             </div>
 
-            <!-- Settings -->
+            <div id="inventory-panel" class="panel">
+                <h3>Inventory</h3>
+                <div id="inventory-items"></div>
+            </div>
+
             <div id="settings-panel" class="panel">
                 <h3>Options</h3>
                 <button id="export-save-btn" class="settings-btn">Export Save</button>
-                <button id="import-save-btn" class="settings-btn">Import Save</button>
                 <button id="clear-save-btn" class="settings-btn">New Game</button>
             </div>
         </div>
@@ -81,8 +69,6 @@
         </footer>
     </div>
 
-    <script src="ascii.js"></script>
-    <script src="save.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
