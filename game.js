@@ -82,7 +82,48 @@ function getDefaultGameState() {
         inColosseum: false,
         colosseumSpeed: 1,
         colosseumUnlockedSpeeds: [1],
-        colosseumSurvivalTime: 0
+        colosseumSurvivalTime: 0,
+        // Colosseum run control
+        colosseumRunning: false,
+        colosseumCurrentTime: 0,
+        colosseumBestTime: 0,
+        // Colosseum buffs
+        colosseumBuffs: {}
+    };
+}
+
+// Colosseum buff milestones
+const COLOSSEUM_BUFFS = [
+    { time: 10, id: "candyBoost", label: "Sugar Rush", effect: "candyRate" },
+    { time: 20, id: "attackBoost", label: "Fury", effect: "attack" },
+    { time: 30, id: "regenBoost", label: "Regeneration", effect: "regenRate" },
+    { time: 45, id: "hpBoost", label: "Fortitude", effect: "maxHp" },
+    { time: 60, id: "megaBoost", label: "Candy Overload", effect: "all" }
+];
+
+function applyColosseumBuffs(state) {
+    let candyMultiplier = 1;
+    let attackMultiplier = 1;
+    let regenMultiplier = 1;
+    let hpMultiplier = 1;
+
+    if (state.colosseumBuffs.candyBoost) candyMultiplier += 0.25;
+    if (state.colosseumBuffs.attackBoost) attackMultiplier += 0.25;
+    if (state.colosseumBuffs.regenBoost) regenMultiplier += 0.25;
+    if (state.colosseumBuffs.hpBoost) hpMultiplier += 0.25;
+
+    if (state.colosseumBuffs.megaBoost) {
+        candyMultiplier += 0.5;
+        attackMultiplier += 0.5;
+        regenMultiplier += 0.5;
+        hpMultiplier += 0.5;
+    }
+
+    return {
+        candyMultiplier,
+        attackMultiplier,
+        regenMultiplier,
+        hpMultiplier
     };
 }
 
@@ -548,11 +589,23 @@ class CandyBox3 {
         const now = Date.now();
         const deltaTime = (now - this.lastUpdate) / 1000;
         this.lastUpdate = now;
-        this.state.candies += this.state.candyRate * deltaTime;
+
+        // Apply colosseum buffs for stat multipliers
+        const buffs = applyColosseumBuffs(this.state);
+
+        // Candy generation with buff multiplier
+        this.state.candies += this.state.candyRate * buffs.candyMultiplier * deltaTime;
         this.state.chocolate += this.state.chocolateRate * (deltaTime / 3600); // per hour
-        this.state.hp += this.state.regenRate * deltaTime;
+
+        // HP regen with buff multiplier
+        this.state.hp += this.state.regenRate * buffs.regenMultiplier * deltaTime;
         if (this.state.hp > this.state.maxHp) {
             this.state.hp = this.state.maxHp;
+        }
+
+        // Track colosseum time only when running
+        if (this.state.colosseumRunning) {
+            this.state.colosseumCurrentTime += deltaTime;
         }
     }
 
