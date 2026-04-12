@@ -76,7 +76,13 @@ function getDefaultGameState() {
         chocolateRate: 0,
         chocolateTrees: 0,
         chocolateTreePositions: [], // state-driven tree positions
-        forestUnlocked: false
+        forestUnlocked: false,
+        // Candy Colosseum system
+        colosseumUnlocked: false,
+        inColosseum: false,
+        colosseumSpeed: 1,
+        colosseumUnlockedSpeeds: [1],
+        colosseumSurvivalTime: 0
     };
 }
 
@@ -85,6 +91,17 @@ class CandyBox3 {
         this.state = getDefaultGameState();
         this.lastUpdate = Date.now();
         this.monsters = MONSTERS;
+        this.colosseumInterval = null; // Track colosseum combat interval
+    }
+
+    checkColosseumUnlock() {
+        if (this.state.colosseumUnlocked) return; // Already unlocked
+        if (this.state.unlockedMonsters.length >= 40 &&
+            this.state.unlockedMonsters.every(m => m.level >= 10)) {
+            this.state.colosseumUnlocked = true;
+            this.addLog('🏟️ The Candy Colosseum is now open...');
+            this.updateUI();
+        }
     }
 
     buildUI() {
@@ -111,6 +128,7 @@ class CandyBox3 {
             </div>
             <div id="mapView" style="display:none;"></div>
             <div id="forestView" style="display:none; position: relative; min-height: 400px;"></div>
+            <div id="colosseumView" style="display:none; position: relative; min-height: 500px;"></div>
         `;
         this.buildUpgrades();
     }
@@ -244,19 +262,24 @@ class CandyBox3 {
         const mainView = document.getElementById('mainView');
         const mapView = document.getElementById('mapView');
         const forestView = document.getElementById('forestView');
+        const colosseumView = document.getElementById('colosseumView');
 
         // Show/hide views based on current view
         mainView.style.display = this.state.view === 'main' ? 'block' : 'none';
         mapView.style.display = this.state.view === 'map' ? 'block' : 'none';
         forestView.style.display = this.state.view === 'forest' ? 'block' : 'none';
+        colosseumView.style.display = this.state.view === 'colosseum' ? 'block' : 'none';
 
-        // Build map or forest UI when entering those views
+        // Build map, forest, or colosseum UI when entering those views
         if (this.state.view === 'map') {
             this.buildMapUI();
         } else if (this.state.view === 'forest') {
             this.buildForestUI();
             this.updateForestDisplay();
             this.renderForest(); // Render trees from state
+        } else if (this.state.view === 'colosseum') {
+            this.buildColosseumUI();
+            this.updateColosseumSpeedOptions();
         }
     }
 
@@ -312,6 +335,188 @@ class CandyBox3 {
             el.style.fontSize = '24px';
             forestView.appendChild(el);
         });
+    }
+
+    buildColosseumUI() {
+        const view = document.getElementById('colosseumView');
+        if (!view) return;
+        view.innerHTML = `
+            <div class="panel">
+                <h2>🏟️ Candy Colosseum</h2>
+                <p style="text-align: center; margin: 10px 0;">Survive continuous waves of monsters!</p>
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 32px; margin: 10px 0;" id="colosseum-enemy-emoji">👾</div>
+                    <div style="font-weight: bold; margin: 10px 0;" id="colosseum-enemy-name">Arena Champion</div>
+                    <div style="margin: 10px 0;" id="colosseum-enemy-hp">HP: [██████████] 100/100</div>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <div>Player HP: <strong id="colosseum-player-hp">100/100</strong></div>
+                    <div>Survival Time: <strong id="colosseum-time">0.0s</strong></div>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <label>Speed: </label>
+                    <select id="colosseumSpeedSelect" style="padding: 5px; margin: 0 10px;">
+                        <option value="1">x1</option>
+                    </select>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="action-btn" data-action="go-main">Exit Colosseum</button>
+                </div>
+            </div>
+        `;
+        this.updateColosseumUI();
+    }
+
+    startColosseum() {
+        this.state.inColosseum = true;
+        this.state.colosseumSurvivalTime = 0;
+        this.buildColosseumUI();
+        this.spawnColosseumMonster();
+
+        // Setup speed change listener
+        const speedSelect = document.getElementById('colosseumSpeedSelect');
+        if (speedSelect) {
+            speedSelect.onchange = (e) => {
+                const newSpeed = parseInt(e.target.value);
+                this.state.colosseumSpeed = newSpeed;
+                // Restart combat loop with new speed
+                if (this.colosseumInterval) clearInterval(this.colosseumInterval);
+                const tickRate = 1000 / (10 * this.state.colosseumSpeed);
+                this.colosseumInterval = setInterval(() => this.colosseumTick(), tickRate);
+                this.addLog('Speed changed to x' + newSpeed);
+            };
+        }
+
+        // Start combat loop
+        if (this.colosseumInterval) clearInterval(this.colosseumInterval);
+        const tickRate = 1000 / (10 * this.state.colosseumSpeed);
+        this.colosseumInterval = setInterval(() => this.colosseumTick(), tickRate);
+
+        this.addLog('🏟️ Entered the Colosseum!');
+    }
+
+    spawnColosseumMonster() {
+        const randomMonsters = this.state.unlockedMonsters;
+        if (randomMonsters.length === 0) return;
+
+        const unl = randomMonsters[Math.floor(Math.random() * randomMonsters.length)];
+        const baseM = this.monsters.find(m => m.id === unl.id);
+        if (!baseM) return;
+
+        const m = { ...baseM };
+        m.level = unl.level;
+        m.hp = Math.floor(baseM.hp * (1 + 0.2 * (unl.level - 1)));
+        m.attack = Math.floor(baseM.attack * (1 + 0.15 * (unl.level - 1)));
+        m.reward = Math.floor(baseM.reward * (1 + 0.25 * (unl.level - 1)));
+
+        this.state.enemy = {
+            id: m.id,
+            name: m.name,
+            emoji: m.emoji || '👾',
+            hp: m.hp,
+            maxHp: m.hp,
+            attack: m.attack,
+            reward: m.reward,
+            ascii: m.ascii,
+            level: m.level
+        };
+    }
+
+    colosseumTick() {
+        if (!this.state.inColosseum || !this.state.enemy) return;
+
+        this.state.colosseumSurvivalTime += (10 * this.state.colosseumSpeed) / 1000; // Convert to seconds
+
+        // Player auto-attack
+        const dmg = this.state.attack + (Math.random() < 0.5 ? 1 : 0);
+        this.state.enemy.hp -= dmg;
+
+        if (this.state.enemy.hp <= 0) {
+            this.winColosseumCombat();
+        } else {
+            // Enemy counter-attack (reduced by speed)
+            const enemyDmg = Math.max(1, Math.floor((this.state.enemy.attack + (Math.random() < 0.5 ? 1 : 0)) / this.state.colosseumSpeed));
+            this.state.hp -= enemyDmg;
+
+            if (this.state.hp <= 0) {
+                this.loseColosseum();
+            }
+        }
+
+        this.updateColosseumUI();
+    }
+
+    winColosseumCombat() {
+        const r = Math.floor(this.state.enemy.reward / 2); // Half reward
+        this.state.candies += r;
+
+        // Level up monster
+        const ex = this.state.unlockedMonsters.find(m => m.id === this.state.enemy.id);
+        if (ex) {
+            ex.level += 1;
+        }
+
+        // Check speed unlock
+        const nextSpeed = this.state.colosseumSpeed + 1;
+        const timeThreshold = this.state.colosseumSpeed * 10; // 10s for x1, 20s for x2, etc.
+        if (this.state.colosseumSurvivalTime >= timeThreshold &&
+            !this.state.colosseumUnlockedSpeeds.includes(nextSpeed)) {
+            this.state.colosseumUnlockedSpeeds.push(nextSpeed);
+            this.addLog('⚡ Speed x' + nextSpeed + ' unlocked!');
+            this.updateColosseumSpeedOptions();
+        }
+
+        // Spawn next monster after delay
+        setTimeout(() => {
+            if (this.state.inColosseum) {
+                this.spawnColosseumMonster();
+                this.updateColosseumUI();
+            }
+        }, 250);
+    }
+
+    loseColosseum() {
+        this.state.inColosseum = false;
+        if (this.colosseumInterval) clearInterval(this.colosseumInterval);
+        this.state.hp = this.state.maxHp;
+        this.addLog(`💀 Fell in the Colosseum after ${this.state.colosseumSurvivalTime.toFixed(1)}s`);
+        this.state.view = 'main';
+        this.updateView();
+        this.updateUI();
+        this.doSave();
+    }
+
+    updateColosseumUI() {
+        if (!this.state.inColosseum || !this.state.enemy) return;
+
+        const NameEl = document.getElementById('colosseum-enemy-name');
+        const emojiEl = document.getElementById('colosseum-enemy-emoji');
+        const hpEl = document.getElementById('colosseum-enemy-hp');
+        const playerHpEl = document.getElementById('colosseum-player-hp');
+        const timeEl = document.getElementById('colosseum-time');
+
+        if (NameEl) NameEl.textContent = this.state.enemy.name + ' (Lv' + this.state.enemy.level + ')';
+        if (emojiEl) emojiEl.textContent = this.state.enemy.emoji;
+        if (hpEl) {
+            const p = Math.max(0, Math.floor((this.state.enemy.hp / this.state.enemy.maxHp) * 10));
+            hpEl.innerHTML = `HP: [${`█`.repeat(p)}${`░`.repeat(10 - p)}] ${Math.max(0, Math.floor(this.state.enemy.hp))}/${this.state.enemy.maxHp}`;
+        }
+        if (playerHpEl) playerHpEl.textContent = Math.floor(this.state.hp) + '/' + this.state.maxHp;
+        if (timeEl) timeEl.textContent = this.state.colosseumSurvivalTime.toFixed(1) + 's';
+    }
+
+    updateColosseumSpeedOptions() {
+        const select = document.getElementById('colosseumSpeedSelect');
+        if (!select) return;
+
+        select.innerHTML = '';
+        for (let speed of this.state.colosseumUnlockedSpeeds) {
+            const opt = document.createElement('option');
+            opt.value = speed;
+            opt.textContent = 'x' + speed;
+            select.appendChild(opt);
+        }
+        select.value = this.state.colosseumSpeed;
     }
 
     rebuildMonsterDropdown() {
@@ -396,8 +601,12 @@ class CandyBox3 {
             } else if (this.state.hp <= 0) {
                 c.innerHTML = '<div style="color: red;">Dead - Recovering...</div>';
             } else {
+                let buttons = '<button class="action-btn" data-action="explore">🔍 Explore</button>';
+                if (this.state.colosseumUnlocked) {
+                    buttons += '<button class="action-btn" data-action="go-colosseum" style="margin-left: 5px;">🏟️ Colosseum</button>';
+                }
                 if (!c.querySelector('[data-action="explore"]')) {
-                    c.innerHTML = '<button class="action-btn" data-action="explore">🔍 Explore</button>';
+                    c.innerHTML = buttons;
                 }
             }
         }
@@ -659,6 +868,9 @@ class CandyBox3 {
             this.updateView(); // UPDATE NAVIGATION
         }
 
+        // Check colosseum unlock
+        this.checkColosseumUnlock();
+
         this.state.inCombat = false;
         this.state.enemy = null;
         this.doSave();
@@ -787,6 +999,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Backward compatibility: safely extend state with missing colosseum fields
+    game.state.colosseumUnlocked = game.state.colosseumUnlocked || false;
+    game.state.inColosseum = game.state.inColosseum || false;
+    game.state.colosseumSpeed = game.state.colosseumSpeed || 1;
+    game.state.colosseumUnlockedSpeeds = game.state.colosseumUnlockedSpeeds || [1];
+    game.state.colosseumSurvivalTime = game.state.colosseumSurvivalTime || 0;
+
     game.buildUI();
     game.rebuildMonsterDropdown();
     if (game.state.spellsUnlocked) {
@@ -794,6 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     game.updateUI();
     game.updateView(); // Initialize view (main or forest)
+    game.checkColosseumUnlock(); // Check if colosseum should be unlocked
 
     setInterval(() => {
         game.tick();
@@ -852,6 +1072,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'go-main':
                 game.state.view = 'main';
+                game.updateView();
+                break;
+            case 'go-colosseum':
+                game.state.view = 'colosseum';
+                game.startColosseum();
                 game.updateView();
                 break;
             case 'plant-tree':
