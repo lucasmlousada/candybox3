@@ -89,7 +89,8 @@ function getDefaultGameState() {
         colosseumBestTime: 0,
         // Colosseum buffs
         colosseumBuffs: {},
-        pendingBuffChoice: null  // Array of 3 choices when milestone reached
+        pendingBuffChoice: null,  // Array of 3 choices when milestone reached
+        colosseumSessionPaid: false  // Whether chocolate was paid for current session
     };
 }
 
@@ -617,6 +618,14 @@ class CandyBox3 {
         // Death penalty: lose all candies
         this.state.candies = 0;
         this.addLog(`💀 Fell in the Colosseum after ${this.state.colosseumSurvivalTime.toFixed(1)}s - Lost all candies!`);
+
+        // Reset combat state
+        this.state.colosseumRunning = false;
+        this.state.colosseumCurrentTime = 0;
+
+        // Allow next run to require payment again
+        this.state.colosseumSessionPaid = false;
+
         this.checkSecretBuffs();
         this.state.view = 'main';
         this.updateView();
@@ -1225,6 +1234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     game.state.colosseumBestTime = game.state.colosseumBestTime || 0;
     game.state.colosseumBuffs = game.state.colosseumBuffs || {};
     game.state.pendingBuffChoice = game.state.pendingBuffChoice || null;
+    game.state.colosseumSessionPaid = game.state.colosseumSessionPaid || false;
 
     // Migrate old buff format to new level-based format
     if (game.state.colosseumBuffs && Object.keys(game.state.colosseumBuffs).length > 0) {
@@ -1300,15 +1310,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.updateView();
                 break;
             case 'go-colosseum':
-                // Check chocolate cost
-                if (game.state.chocolate < 1) {
-                    game.addLog('You need at least 1 🍫 to enter the Colosseum.');
-                    return;
-                }
-
-                game.state.chocolate -= 1;
                 game.state.view = 'colosseum';
-                game.state.colosseumRunning = false;  // CRITICAL: Not running yet
+                game.state.colosseumRunning = false;
                 game.state.pendingBuffChoice = null;
 
                 // Clear any lingering interval
@@ -1321,18 +1324,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.updateView();
                 break;
             case 'start-colosseum':
-                if (!game.state.colosseumRunning && game.state.inColosseum) {
-                    game.state.colosseumRunning = true;
-                    game.state.colosseumCurrentTime = 0;
+                if (game.state.colosseumRunning) return;  // Already running
 
-                    // Start combat loop
-                    if (game.colosseumInterval) clearInterval(game.colosseumInterval);
-                    const tickRate = 1000 / (10 * game.state.colosseumSpeed);
-                    game.colosseumInterval = setInterval(() => game.colosseumTick(), tickRate);
+                // Only charge if not already paid for this session
+                if (!game.state.colosseumSessionPaid) {
+                    if (game.state.chocolate < 1) {
+                        game.addLog('You need at least 1 🍫 to start the Colosseum.');
+                        return;
+                    }
 
-                    game.addLog('⚔️ Combat started!');
-                    game.updateColosseumUI();
+                    game.state.chocolate -= 1;
+                    game.state.colosseumSessionPaid = true;
+                    game.addLog('🍫 You enter the arena...');
                 }
+
+                game.state.colosseumRunning = true;
+                game.state.colosseumCurrentTime = 0;
+
+                // Start combat loop
+                if (game.colosseumInterval) clearInterval(game.colosseumInterval);
+                const tickRate = 1000 / (10 * game.state.colosseumSpeed);
+                game.colosseumInterval = setInterval(() => game.colosseumTick(), tickRate);
+
+                game.addLog('⚔️ Combat started!');
+                game.updateColosseumUI();
                 break;
             case 'stop-colosseum':
                 game.stopColosseumCombat();
@@ -1357,6 +1372,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     game.addLog('🏆 New record! ' + game.state.colosseumBestTime.toFixed(1) + 's');
                 }
+
+                game.state.colosseumCurrentTime = 0;
+                game.state.colosseumRunning = false;
+
+                // Reset session flag to allow next run to require payment again
+                game.state.colosseumSessionPaid = false;
 
                 game.checkSecretBuffs();
                 game.updateColosseumUI();
