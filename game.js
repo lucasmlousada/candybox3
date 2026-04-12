@@ -69,7 +69,13 @@ function getDefaultGameState() {
         maxUnlockedTier: 1,
         totalCandiesEaten: 0,
         upgradesPurchased: { 'candy': 0, 'regen': 0, 'attack': 0 },
-        spellsUnlocked: false
+        spellsUnlocked: false,
+        // Chocolate Forest system
+        view: "main",
+        chocolate: 0,
+        chocolateRate: 0,
+        chocolateTrees: 0,
+        forestUnlocked: false
     };
 }
 
@@ -84,21 +90,25 @@ class CandyBox3 {
         const main = document.getElementById('main');
         if (!main) return;
         main.innerHTML = `
-            <div id="status-panel" class="panel">
-                <div class="stat-row"><span class="stat-label">Candies:</span><span id="candy-count">0</span></div>
-                <div class="stat-row"><span class="stat-label">Total Eaten:</span><span id="total-eaten">0</span></div>
-                <div class="stat-row"><span class="stat-label">Candy/sec:</span><span id="candy-rate">1.0</span></div>
-                <div class="stat-row"><span class="stat-label">Attack:</span><span id="attack-value">5</span></div>
-                <div class="stat-row"><span class="stat-label">HP:</span><span id="hp-bar">[██████████]</span><span id="hp-current">10</span><span>/</span><span id="hp-max">10</span></div>
+            <div id="mainView">
+                <div id="status-panel" class="panel">
+                    <div class="stat-row"><span class="stat-label">Candies:</span><span id="candy-count">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Total Eaten:</span><span id="total-eaten">0</span></div>
+                    <div class="stat-row"><span class="stat-label">Candy/sec:</span><span id="candy-rate">1.0</span></div>
+                    <div class="stat-row"><span class="stat-label">Chocolate:</span><span id="chocolate-count">0</span><span> (+</span><span id="chocolate-rate">0</span><span>/hr)</span></div>
+                    <div class="stat-row"><span class="stat-label">Attack:</span><span id="attack-value">5</span></div>
+                    <div class="stat-row"><span class="stat-label">HP:</span><span id="hp-bar">[██████████]</span><span id="hp-current">10</span><span>/</span><span id="hp-max">10</span></div>
+                </div>
+                <div id="actions-panel" class="panel"><div id="action-buttons"></div><div id="quick-actions"><button class="action-btn" data-action="eat">🍬 Eat Candy</button></div></div>
+                <div id="combat-display" class="panel" style="display:none;"><div id="enemy-ascii" style="white-space: pre-wrap; font-size: 12px;"></div><div id="enemy-name" style="font-weight: bold; margin-top: 5px;"></div><div id="enemy-hp" style="margin-bottom: 10px;"></div></div>
+                <div id="spells-panel" class="panel" style="display:none;"><h3>Spells</h3><div id="spells-list"></div></div>
+                <div id="monster-select-panel" class="panel" style="display:none;"><div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div><select id="monster-select"><option value="">-- Select Monster --</option></select><button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button></div>
+                <div id="upgrades-panel" class="panel"><h3>Upgrades</h3><div id="upgrades-list"></div></div>
+                <div id="inventory-panel" class="panel"><h3>Inventory</h3><div id="inventory-items">(empty)</div></div>
+                <div id="log-panel" class="panel" style="max-height: 200px; overflow-y: auto;"><h3>Log</h3><div id="game-log"></div></div>
+                <div id="settings-panel" class="panel"><h3>Options</h3><button class="settings-btn" data-action="export-save">Export Save</button><button class="settings-btn" data-action="import-save">Import Save</button><button class="settings-btn" data-action="new-game">New Game</button><button class="settings-btn" data-action="go-forest" id="forest-btn" style="display:none;">🌲 Chocolate Forest</button></div>
             </div>
-            <div id="actions-panel" class="panel"><div id="action-buttons"></div><div id="quick-actions"><button class="action-btn" data-action="eat">🍬 Eat Candy</button></div></div>
-            <div id="combat-display" class="panel" style="display:none;"><div id="enemy-ascii" style="white-space: pre-wrap; font-size: 12px;"></div><div id="enemy-name" style="font-weight: bold; margin-top: 5px;"></div><div id="enemy-hp" style="margin-bottom: 10px;"></div></div>
-            <div id="spells-panel" class="panel" style="display:none;"><h3>Spells</h3><div id="spells-list"></div></div>
-            <div id="monster-select-panel" class="panel" style="display:none;"><div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div><select id="monster-select"><option value="">-- Select Monster --</option></select><button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button></div>
-            <div id="upgrades-panel" class="panel"><h3>Upgrades</h3><div id="upgrades-list"></div></div>
-            <div id="inventory-panel" class="panel"><h3>Inventory</h3><div id="inventory-items">(empty)</div></div>
-            <div id="log-panel" class="panel" style="max-height: 200px; overflow-y: auto;"><h3>Log</h3><div id="game-log"></div></div>
-            <div id="settings-panel" class="panel"><h3>Options</h3><button class="settings-btn" data-action="export-save">Export Save</button><button class="settings-btn" data-action="import-save">Import Save</button><button class="settings-btn" data-action="new-game">New Game</button></div>
+            <div id="forestView" style="display:none;"></div>
         `;
         this.buildUpgrades();
     }
@@ -165,6 +175,99 @@ class CandyBox3 {
         }
     }
 
+    buildForestUI() {
+        const forest = document.getElementById('forestView');
+        if (!forest) return;
+        forest.innerHTML = `
+            <div class="panel">
+                <h2>🌲 Chocolate Bars Forest</h2>
+                <div style="white-space: pre-wrap; font-family: monospace; margin: 20px 0; font-size: 12px;">
+    ╔════════════════════════════════════════╗
+    ║  A once-thriving land of chocolate     ║
+    ║  bar trees... now barren and silent.   ║
+    ║                                        ║
+    ║  Plant trees to restore prosperity.    ║
+    ║  Each tree yields chocolate per hour.  ║
+    ╚════════════════════════════════════════╝
+                </div>
+                <div id="forest-content" style="position: relative; height: 300px; border: 1px solid #666; background: #222; margin: 20px 0; overflow: hidden;">
+                    <div style="position: absolute; top: 50%; left: 10%; font-size: 20px;">🌳</div>
+                    <div style="position: absolute; top: 30%; right: 15%; font-size: 20px;">🌳</div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <p>Trees Planted: <strong id="forest-trees">0</strong></p>
+                    <p>Chocolate/Hour: <strong id="forest-rate">0</strong></p>
+                    <p>Cost for next tree: <strong id="forest-cost">1000</strong> candies</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <button class="action-btn" data-action="plant-tree">🌱 Plant Tree</button>
+                    <button class="action-btn" data-action="go-main" style="margin-left: 10px;">🏠 Return to Main</button>
+                </div>
+            </div>
+        `;
+    }
+
+    updateView() {
+        const mainView = document.getElementById('mainView');
+        const forestView = document.getElementById('forestView');
+        const forestBtn = document.getElementById('forest-btn');
+
+        if (this.state.view === 'forest') {
+            mainView.style.display = 'none';
+            forestView.style.display = 'block';
+            this.buildForestUI();
+            this.updateForestDisplay();
+        } else {
+            mainView.style.display = 'block';
+            forestView.style.display = 'none';
+        }
+
+        // Show forest button if unlocked
+        if (forestBtn) {
+            forestBtn.style.display = this.state.forestUnlocked ? 'inline-block' : 'none';
+        }
+    }
+
+    updateForestDisplay() {
+        const treesEl = document.getElementById('forest-trees');
+        const rateEl = document.getElementById('forest-rate');
+        const costEl = document.getElementById('forest-cost');
+
+        if (treesEl) treesEl.textContent = this.state.chocolateTrees;
+        if (rateEl) rateEl.textContent = this.state.chocolateRate;
+        if (costEl) costEl.textContent = Math.floor(1000 * (this.state.chocolateTrees + 1));
+    }
+
+    plantTree() {
+        const cost = Math.floor(1000 * (this.state.chocolateTrees + 1));
+        if (this.state.candies < cost) {
+            this.addLog('Not enough candies to plant a tree');
+            return;
+        }
+
+        this.state.candies -= cost;
+        this.state.chocolateTrees += 1;
+        this.state.chocolateRate += 1;
+        this.addLog(`Planted a chocolate tree! (+1 chocolate/hour)`);
+
+        // Add random chocolate ASCII to forest
+        const forest = document.getElementById('forest-content');
+        if (forest) {
+            const el = document.createElement('div');
+            el.textContent = '[###]';
+            el.style.position = 'absolute';
+            el.style.top = Math.random() * 250 + 'px';
+            el.style.left = Math.random() * (forest.offsetWidth - 40) + 'px';
+            el.style.color = '#8B4513';
+            el.style.fontWeight = 'bold';
+            forest.appendChild(el);
+        }
+
+        this.updateForestDisplay();
+        this.updateUI();
+        this.doSave();
+    }
+
     rebuildMonsterDropdown() {
         const select = document.getElementById('monster-select');
         if (!select) return;
@@ -195,6 +298,7 @@ class CandyBox3 {
         const deltaTime = (now - this.lastUpdate) / 1000;
         this.lastUpdate = now;
         this.state.candies += this.state.candyRate * deltaTime;
+        this.state.chocolate += this.state.chocolateRate * (deltaTime / 3600); // per hour
         this.state.hp += this.state.regenRate * deltaTime;
         if (this.state.hp > this.state.maxHp) {
             this.state.hp = this.state.maxHp;
@@ -206,6 +310,8 @@ class CandyBox3 {
         u('candy-count', Math.floor(this.state.candies));
         u('total-eaten', Math.floor(this.state.totalCandiesEaten));
         u('candy-rate', this.state.candyRate.toFixed(1));
+        u('chocolate-count', Math.floor(this.state.chocolate));
+        u('chocolate-rate', this.state.chocolateRate.toFixed(1));
         u('attack-value', this.state.attack);
         u('hp-current', Math.floor(this.state.hp));
         u('hp-max', this.state.maxHp);
@@ -493,6 +599,13 @@ class CandyBox3 {
             this.addLog(`Tier ${this.state.maxUnlockedTier} unlocked`);
         }
         this.addLog(`Defeated ${this.state.enemy.name} (Lv${this.state.enemy.level}) +${r} candies`);
+
+        // Unlock forest if enemy level >= 10
+        if (this.state.enemy.level >= 10 && !this.state.forestUnlocked) {
+            this.state.forestUnlocked = true;
+            this.addLog('You discovered the Chocolate Bars Forest...');
+        }
+
         this.state.inCombat = false;
         this.state.enemy = null;
         this.doSave();
@@ -601,6 +714,7 @@ function doNewGame() {
     // 4. UPDATE UI IMMEDIATELY
     game.updateUI();
     game.addLog('New game started');
+    game.updateView(); // Reset to main view
 
     // 5. SAVE NEW CLEAN STATE
     game.doSave();
@@ -626,6 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
         game.buildSpells();
     }
     game.updateUI();
+    game.updateView(); // Initialize view (main or forest)
 
     setInterval(() => {
         game.tick();
@@ -673,6 +788,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (confirm('New game?')) {
                     doNewGame();
                 }
+                break;
+            case 'go-forest':
+                game.state.view = 'forest';
+                game.updateView();
+                break;
+            case 'go-main':
+                game.state.view = 'main';
+                game.updateView();
+                break;
+            case 'plant-tree':
+                game.plantTree();
                 break;
         }
     });
