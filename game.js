@@ -393,12 +393,24 @@ class CandyBox3 {
                 <div style="text-align: center; margin: 20px 0;">
                     <div>Player HP: <strong id="colosseum-player-hp">100/100</strong></div>
                     <div>Survival Time: <strong id="colosseum-time">0.0s</strong></div>
+                    <div>Best Time: <strong id="colosseum-best-time">0.0s</strong></div>
+                    <div>Chocolate: <strong id="colosseum-chocolate">0</strong></div>
                 </div>
                 <div style="text-align: center; margin: 20px 0;">
                     <label>Speed: </label>
                     <select id="colosseumSpeedSelect" style="padding: 5px; margin: 0 10px;">
                         <option value="1">x1</option>
                     </select>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="action-btn" data-action="start-colosseum">▶️ Start</button>
+                    <button class="action-btn" data-action="stop-colosseum" style="margin-left: 5px;">⏹️ Stop</button>
+                </div>
+                <div id="colosseum-buffs-display" style="margin: 20px 0; border: 1px solid #ccc; padding: 10px; background: #f5f5f5;">
+                    <strong>Active Buffs:</strong>
+                    <div id="colosseum-buffs-list" style="margin-top: 8px; font-size: 12px;">
+                        (none active)
+                    </div>
                 </div>
                 <div style="text-align: center; margin: 20px 0;">
                     <button class="action-btn" data-action="go-main">Exit Colosseum</button>
@@ -468,8 +480,9 @@ class CandyBox3 {
 
         this.state.colosseumSurvivalTime += (10 * this.state.colosseumSpeed) / 1000; // Convert to seconds
 
-        // Player auto-attack
-        const dmg = this.state.attack + (Math.random() < 0.5 ? 1 : 0);
+        // Apply colosseum buffs to player attack
+        const buffs = applyColosseumBuffs(this.state);
+        const dmg = (this.state.attack * buffs.attackMultiplier) + (Math.random() < 0.5 ? 1 : 0);
         this.state.enemy.hp -= dmg;
 
         if (this.state.enemy.hp <= 0) {
@@ -520,11 +533,21 @@ class CandyBox3 {
         this.state.inColosseum = false;
         if (this.colosseumInterval) clearInterval(this.colosseumInterval);
         this.state.hp = this.state.maxHp;
-        this.addLog(`💀 Fell in the Colosseum after ${this.state.colosseumSurvivalTime.toFixed(1)}s`);
+        // Death penalty: lose all candies
+        this.state.candies = 0;
+        this.addLog(`💀 Fell in the Colosseum after ${this.state.colosseumSurvivalTime.toFixed(1)}s - Lost all candies!`);
         this.state.view = 'main';
         this.updateView();
         this.updateUI();
         this.doSave();
+    }
+
+    stopColosseumCombat() {
+        if (this.state.colosseumRunning) {
+            this.state.colosseumRunning = false;
+            if (this.colosseumInterval) clearInterval(this.colosseumInterval);
+            this.addLog(`⏹️ Stopped at ${this.state.colosseumCurrentTime.toFixed(1)}s`);
+        }
     }
 
     updateColosseumUI() {
@@ -535,6 +558,9 @@ class CandyBox3 {
         const hpEl = document.getElementById('colosseum-enemy-hp');
         const playerHpEl = document.getElementById('colosseum-player-hp');
         const timeEl = document.getElementById('colosseum-time');
+        const bestTimeEl = document.getElementById('colosseum-best-time');
+        const chocolateEl = document.getElementById('colosseum-chocolate');
+        const buffsListEl = document.getElementById('colosseum-buffs-list');
 
         if (NameEl) NameEl.textContent = this.state.enemy.name + ' (Lv' + this.state.enemy.level + ')';
         if (emojiEl) emojiEl.textContent = this.state.enemy.emoji;
@@ -544,6 +570,21 @@ class CandyBox3 {
         }
         if (playerHpEl) playerHpEl.textContent = Math.floor(this.state.hp) + '/' + this.state.maxHp;
         if (timeEl) timeEl.textContent = this.state.colosseumSurvivalTime.toFixed(1) + 's';
+        if (bestTimeEl) bestTimeEl.textContent = this.state.colosseumBestTime.toFixed(1) + 's';
+        if (chocolateEl) chocolateEl.textContent = Math.floor(this.state.chocolate);
+
+        // Update buff display
+        if (buffsListEl) {
+            let buffHtml = '';
+            let activeCount = 0;
+            COLOSSEUM_BUFFS.forEach(buff => {
+                if (this.state.colosseumBuffs[buff.id]) {
+                    buffHtml += `<div>⭐ ${buff.label} (${buff.effect})</div>`;
+                    activeCount++;
+                }
+            });
+            buffsListEl.innerHTML = activeCount > 0 ? buffHtml : '(none active)';
+        }
     }
 
     updateColosseumSpeedOptions() {
@@ -703,6 +744,16 @@ class CandyBox3 {
                 if (lv > 0) h += `<div class="inventory-item">${upgs[k].emoji} ${upgs[k].name} +${lv}</div>`;
             }
             if (this.state.spellsUnlocked) h += `<div class="inventory-item">✨ Spells Unlocked</div>`;
+
+            // Show active colosseum buffs
+            if (this.state.inColosseum) {
+                COLOSSEUM_BUFFS.forEach(buff => {
+                    if (this.state.colosseumBuffs[buff.id]) {
+                        h += `<div class="inventory-item">⭐ ${buff.label}</div>`;
+                    }
+                });
+            }
+
             inv.innerHTML = h || '(empty)';
         }
     }
@@ -1058,6 +1109,10 @@ document.addEventListener('DOMContentLoaded', () => {
     game.state.colosseumSpeed = game.state.colosseumSpeed || 1;
     game.state.colosseumUnlockedSpeeds = game.state.colosseumUnlockedSpeeds || [1];
     game.state.colosseumSurvivalTime = game.state.colosseumSurvivalTime || 0;
+    game.state.colosseumRunning = game.state.colosseumRunning || false;
+    game.state.colosseumCurrentTime = game.state.colosseumCurrentTime || 0;
+    game.state.colosseumBestTime = game.state.colosseumBestTime || 0;
+    game.state.colosseumBuffs = game.state.colosseumBuffs || {};
 
     game.buildUI();
     game.rebuildMonsterDropdown();
@@ -1128,9 +1183,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.updateView();
                 break;
             case 'go-colosseum':
+                // Check chocolate cost
+                if (game.state.chocolate < 1) {
+                    game.addLog('You need at least 1 🍫 to enter the Colosseum.');
+                    return;
+                }
+                game.state.chocolate -= 1;
                 game.state.view = 'colosseum';
                 game.startColosseum();
                 game.updateView();
+                break;
+            case 'start-colosseum':
+                if (!game.state.colosseumRunning) {
+                    game.state.colosseumRunning = true;
+                    game.state.colosseumCurrentTime = 0;
+                    game.addLog('⚔️ Combat started!');
+                }
+                break;
+            case 'stop-colosseum':
+                game.stopColosseumCombat();
+                if (game.state.colosseumCurrentTime > game.state.colosseumBestTime) {
+                    game.state.colosseumBestTime = game.state.colosseumCurrentTime;
+                    // Check for buff unlocks
+                    COLOSSEUM_BUFFS.forEach(buff => {
+                        if (game.state.colosseumBestTime >= buff.time && !game.state.colosseumBuffs[buff.id]) {
+                            game.state.colosseumBuffs[buff.id] = true;
+                            game.addLog('✨ Buff unlocked: ' + buff.label + '!');
+                        }
+                    });
+                    game.addLog('🏆 New record! ' + game.state.colosseumBestTime.toFixed(1) + 's');
+                }
+                game.updateColosseumUI();
+                game.doSave();
                 break;
             case 'plant-tree':
                 game.plantTree();
