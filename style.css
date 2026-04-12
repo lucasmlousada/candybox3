@@ -257,7 +257,7 @@ footer {
     background: #333;
 }
 
-/* Monster Select Panel */
+/* Monster Select Panel & Viewport */
 #monster-select-panel {
     font-size: 12px;
 }
@@ -275,6 +275,30 @@ footer {
 #monster-select-panel select:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Fixed combat viewport - prevents page shift */
+#combat-display {
+    min-height: 250px !important;
+    overflow: hidden;
+}
+
+/* Clickable map elements */
+.clickable {
+    cursor: pointer;
+    text-decoration: underline;
+    color: #000;
+    font-weight: bold;
+}
+
+.clickable:hover {
+    color: #008000;
+    background-color: #ffffcc;
+}
+
+.locked {
+    color: #999999;
+    font-style: italic;
 }
 
 /* Responsive */

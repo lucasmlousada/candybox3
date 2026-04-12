@@ -71,7 +71,7 @@ function getDefaultGameState() {
         upgradesPurchased: { 'candy': 0, 'regen': 0, 'attack': 0 },
         spellsUnlocked: false,
         // Chocolate Forest system
-        view: "main",
+        view: "main", // "main" | "map" | "forest"
         chocolate: 0,
         chocolateRate: 0,
         chocolateTrees: 0,
@@ -99,15 +99,16 @@ class CandyBox3 {
                     <div class="stat-row"><span class="stat-label">Attack:</span><span id="attack-value">5</span></div>
                     <div class="stat-row"><span class="stat-label">HP:</span><span id="hp-bar">[██████████]</span><span id="hp-current">10</span><span>/</span><span id="hp-max">10</span></div>
                 </div>
-                <div id="actions-panel" class="panel"><div id="action-buttons"></div><div id="quick-actions"><button class="action-btn" data-action="eat">🍬 Eat Candy</button></div></div>
+                <div id="actions-panel" class="panel"><div id="action-buttons"></div><div id="quick-actions"><button class="action-btn" data-action="eat">🍬 Eat Candy</button><button class="action-btn" data-action="go-map">🗺️ Map</button></div></div>
                 <div id="combat-display" class="panel" style="display:none;"><div id="enemy-ascii" style="white-space: pre-wrap; font-size: 12px;"></div><div id="enemy-name" style="font-weight: bold; margin-top: 5px;"></div><div id="enemy-hp" style="margin-bottom: 10px;"></div></div>
                 <div id="spells-panel" class="panel" style="display:none;"><h3>Spells</h3><div id="spells-list"></div></div>
                 <div id="monster-select-panel" class="panel" style="display:none;"><div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div><select id="monster-select"><option value="">-- Select Monster --</option></select><button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button></div>
                 <div id="upgrades-panel" class="panel"><h3>Upgrades</h3><div id="upgrades-list"></div></div>
                 <div id="inventory-panel" class="panel"><h3>Inventory</h3><div id="inventory-items">(empty)</div></div>
                 <div id="log-panel" class="panel" style="max-height: 200px; overflow-y: auto;"><h3>Log</h3><div id="game-log"></div></div>
-                <div id="settings-panel" class="panel"><h3>Options</h3><button class="settings-btn" data-action="export-save">Export Save</button><button class="settings-btn" data-action="import-save">Import Save</button><button class="settings-btn" data-action="new-game">New Game</button><button class="settings-btn" data-action="go-forest" id="forest-btn" style="display:none;">🌲 Chocolate Forest</button></div>
+                <div id="settings-panel" class="panel"><h3>Options</h3><button class="settings-btn" data-action="export-save">Export Save</button><button class="settings-btn" data-action="import-save">Import Save</button><button class="settings-btn" data-action="new-game">New Game</button></div>
             </div>
+            <div id="mapView" style="display:none;"></div>
             <div id="forestView" style="display:none;"></div>
         `;
         this.buildUpgrades();
@@ -175,6 +176,37 @@ class CandyBox3 {
         }
     }
 
+    buildMapUI() {
+        const map = document.getElementById('mapView');
+        if (!map) return;
+
+        const forestLink = this.state.forestUnlocked
+            ? '<span data-action="go-forest" class="clickable">Chocolate Forest</span>'
+            : '<span class="locked">??? (locked)</span>';
+
+        map.innerHTML = `
+            <div class="panel">
+                <h2>🗺️ World Map</h2>
+                <pre id="asciiMap" style="font-family: monospace; margin: 20px 0; text-align: center;">
+        ┌──────────────────────┐
+        │                      │
+        │  <span data-action="go-main" class="clickable">🏭 Candy Factory</span>  │
+        │                      │
+        └───────────┬──────────┘
+                    │
+        ┌───────────▼──────────┐
+        │                      │
+        │  ${forestLink}  │
+        │                      │
+        └──────────────────────┘
+                </pre>
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="action-btn" data-action="go-main">Return to Factory</button>
+                </div>
+            </div>
+        `;
+    }
+
     buildForestUI() {
         const forest = document.getElementById('forestView');
         if (!forest) return;
@@ -201,7 +233,7 @@ class CandyBox3 {
                 </div>
                 <div style="margin: 20px 0;">
                     <button class="action-btn" data-action="plant-tree">🌱 Plant Tree</button>
-                    <button class="action-btn" data-action="go-main" style="margin-left: 10px;">🏠 Return to Main</button>
+                    <button class="action-btn" data-action="go-map" style="margin-left: 10px;">🗺️ Back to Map</button>
                 </div>
             </div>
         `;
@@ -209,22 +241,20 @@ class CandyBox3 {
 
     updateView() {
         const mainView = document.getElementById('mainView');
+        const mapView = document.getElementById('mapView');
         const forestView = document.getElementById('forestView');
-        const forestBtn = document.getElementById('forest-btn');
 
-        if (this.state.view === 'forest') {
-            mainView.style.display = 'none';
-            forestView.style.display = 'block';
+        // Show/hide views based on current view
+        mainView.style.display = this.state.view === 'main' ? 'block' : 'none';
+        mapView.style.display = this.state.view === 'map' ? 'block' : 'none';
+        forestView.style.display = this.state.view === 'forest' ? 'block' : 'none';
+
+        // Build map or forest UI when entering those views
+        if (this.state.view === 'map') {
+            this.buildMapUI();
+        } else if (this.state.view === 'forest') {
             this.buildForestUI();
             this.updateForestDisplay();
-        } else {
-            mainView.style.display = 'block';
-            forestView.style.display = 'none';
-        }
-
-        // Show forest button if unlocked
-        if (forestBtn) {
-            forestBtn.style.display = this.state.forestUnlocked ? 'inline-block' : 'none';
         }
     }
 
@@ -604,6 +634,8 @@ class CandyBox3 {
         if (this.state.enemy.level >= 10 && !this.state.forestUnlocked) {
             this.state.forestUnlocked = true;
             this.addLog('You discovered the Chocolate Bars Forest...');
+            this.updateUI(); // IMMEDIATE UPDATE
+            this.updateView(); // UPDATE NAVIGATION
         }
 
         this.state.inCombat = false;
@@ -791,6 +823,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'go-forest':
                 game.state.view = 'forest';
+                game.updateView();
+                break;
+            case 'go-map':
+                game.state.view = 'map';
                 game.updateView();
                 break;
             case 'go-main':
