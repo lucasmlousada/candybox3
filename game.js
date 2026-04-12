@@ -1,46 +1,46 @@
 // CANDY BOX 3 - Fixed: New Game Reset, Stable Layout, Structured Log
 
 const MONSTERS = [
-    { id: 1, name: 'Sugar Goblin', hp: 15, attack: 2, reward: 10, tier: 1, ascii: '  \\O_\n   |\n  / \\' },
-    { id: 2, name: 'Caramel Slime', hp: 12, attack: 2, reward: 8, tier: 1, ascii: '  ~°~\n  (~)~\n   ~' },
-    { id: 3, name: 'Chocolate Bat', hp: 16, attack: 3, reward: 12, tier: 1, ascii: '  \\||\n   ||\n  /||\\' },
-    { id: 19, name: 'Mint Drop', hp: 14, attack: 2, reward: 9, tier: 1, ascii: '  (o)\n  /d\n   l' },
-    { id: 20, name: 'Candy Ant', hp: 13, attack: 2, reward: 8, tier: 1, ascii: '  /W\\\n ( )\n  U' },
-    { id: 4, name: 'Lollipop Knight', hp: 30, attack: 4, reward: 25, tier: 2, ascii: '  |O|\n  /||\\\n  / \\' },
-    { id: 5, name: 'Neural Nougat', hp: 35, attack: 4, reward: 30, tier: 2, ascii: '  [==]\n [====]\n [==]' },
-    { id: 6, name: 'Candy Crab', hp: 32, attack: 5, reward: 28, tier: 2, ascii: '  <(o)>\n  <(0)>\n   / \\' },
-    { id: 21, name: 'Taffy Troll', hp: 38, attack: 5, reward: 32, tier: 2, ascii: '  /^V^\\\n  MMEM\n  |||||' },
-    { id: 22, name: 'Gumball Goblin', hp: 33, attack: 4, reward: 27, tier: 2, ascii: '  <O_O>\n  (ooo)\n   ^^^' },
-    { id: 23, name: 'Lemon Imp', hp: 28, attack: 6, reward: 24, tier: 2, ascii: '  (^_^)\n  /| |\\\n   | |' },
-    { id: 24, name: 'Butterscotch Beast', hp: 40, attack: 5, reward: 35, tier: 2, ascii: '  |**|\n |***|\n |*_*|' },
-    { id: 7, name: 'Meme Wraith', hp: 45, attack: 6, reward: 50, tier: 3, ascii: '  ****\n *    *\n ****' },
-    { id: 8, name: 'Gummy Guardian', hp: 50, attack: 7, reward: 55, tier: 3, ascii: '  |==|\n |==|\n |==|' },
-    { id: 9, name: 'Fudge Fiend', hp: 48, attack: 7, reward: 52, tier: 3, ascii: '  [#_#]\n (#_#)\n [# #]' },
-    { id: 25, name: 'Rock Candy Roller', hp: 55, attack: 6, reward: 58, tier: 3, ascii: '  OOOO\n OOOO\n OOOO' },
-    { id: 26, name: 'Jelly Jester', hp: 42, attack: 8, reward: 48, tier: 3, ascii: '  \\(^_^)/\n  |    |\n  /    \\' },
-    { id: 27, name: 'Marshmallow Mimic', hp: 46, attack: 7, reward: 51, tier: 3, ascii: '  (OoO)\n <(ooo)>\n  (OoO)' },
-    { id: 28, name: 'Sugar Spider', hp: 49, attack: 8, reward: 54, tier: 3, ascii: '  /\\ /\\ /\\\n  XX-XX-XX\n  \\/ \\/ \\/' },
-    { id: 10, name: 'Cotton Candy Centaur', hp: 70, attack: 8, reward: 85, tier: 4, ascii: '  |O_O|\n /|   |\\\n / |   |' },
-    { id: 11, name: 'Lemon Drop Drake', hp: 75, attack: 8, reward: 90, tier: 4, ascii: '  ~~^~~\n ~(o_o)~\n ~~~~~~~' },
-    { id: 12, name: 'Sugar Siren', hp: 72, attack: 9, reward: 87, tier: 4, ascii: '  /^^\\\n / OO \\\n |    |' },
-    { id: 29, name: 'Caramel Cyclops', hp: 78, attack: 9, reward: 92, tier: 4, ascii: '  [ O ]\n  |   |\n  |___|' },
-    { id: 30, name: 'Peppermint Phantom', hp: 74, attack: 10, reward: 88, tier: 4, ascii: '  (~O~)\n  (#_#)\n  (~_~)' },
-    { id: 31, name: 'Candy Colossus', hp: 85, attack: 8, reward: 95, tier: 4, ascii: '  [===]\n [===]\n [===]' },
-    { id: 32, name: 'Honeycomb Hornet', hp: 68, attack: 11, reward: 82, tier: 4, ascii: '  (o~o)\n  /\\W/\\\n   | |' },
-    { id: 13, name: 'Licorice Lich', hp: 95, attack: 10, reward: 130, tier: 5, ascii: '  [!!]\n  !!!\n [!!]' },
-    { id: 14, name: 'Candy Kraken', hp: 105, attack: 11, reward: 145, tier: 5, ascii: '  ~^^^^~\n  ^^^^^^\n ~^^^^^^~' },
-    { id: 15, name: 'GPT-3.5 Ghost', hp: 100, attack: 10, reward: 140, tier: 5, ascii: '  (~)~\n  (~)~\n  (~)~' },
-    { id: 33, name: 'Toffee Titan', hp: 110, attack: 11, reward: 150, tier: 5, ascii: '  |+++|\n |+++|\n |+++|' },
-    { id: 34, name: 'Candy Chimera', hp: 98, attack: 12, reward: 135, tier: 5, ascii: '  /VVV\\\n (ooo)\n  |||' },
-    { id: 35, name: 'Fondant Phoenix', hp: 102, attack: 10, reward: 142, tier: 5, ascii: '  /\\ /\\\n (oo)\n  \\\\/' },
-    { id: 36, name: 'Nougat Nemesis', hp: 108, attack: 13, reward: 148, tier: 5, ascii: '  [***]\n [***]\n [***]' },
-    { id: 16, name: 'Sentient Sweetness', hp: 140, attack: 12, reward: 200, tier: 6, ascii: '  (@@@)\n (@@@)\n (@@@)' },
-    { id: 17, name: 'Caramel Colossus', hp: 150, attack: 13, reward: 220, tier: 6, ascii: '  |===|\n |===|\n |===|' },
-    { id: 18, name: 'The Candy King', hp: 160, attack: 14, reward: 250, tier: 6, ascii: '  /^^^|\n |   |\n |___|' },
-    { id: 37, name: 'Licorice Leviathan', hp: 165, attack: 15, reward: 260, tier: 6, ascii: '  [###]\n [###]\n [###]' },
-    { id: 38, name: 'Sugar Sultan', hp: 155, attack: 14, reward: 240, tier: 6, ascii: '  /\\**/\\\n  ****\n  ****' },
-    { id: 39, name: 'The Lollipop Lord', hp: 170, attack: 16, reward: 280, tier: 6, ascii: '  |*_*|\n |***|\n |***|' },
-    { id: 40, name: 'Candy Constellation', hp: 180, attack: 15, reward: 300, tier: 6, ascii: '  ***\n ****\n *****' }
+    { id: 1, name: 'Sugar Goblin', hp: 15, attack: 2, reward: 10, tier: 1, emoji: '👹', ascii: '  \\O_\n   |\n  / \\' },
+    { id: 2, name: 'Caramel Slime', hp: 12, attack: 2, reward: 8, tier: 1, emoji: '💧', ascii: '  ~°~\n  (~)~\n   ~' },
+    { id: 3, name: 'Chocolate Bat', hp: 16, attack: 3, reward: 12, tier: 1, emoji: '🦇', ascii: '  \\||\n   ||\n  /||\\' },
+    { id: 19, name: 'Mint Drop', hp: 14, attack: 2, reward: 9, tier: 1, emoji: '🟢', ascii: '  (o)\n  /d\n   l' },
+    { id: 20, name: 'Candy Ant', hp: 13, attack: 2, reward: 8, tier: 1, emoji: '🐜', ascii: '  /W\\\n ( )\n  U' },
+    { id: 4, name: 'Lollipop Knight', hp: 30, attack: 4, reward: 25, tier: 2, emoji: '⚔️', ascii: '  |O|\n  /||\\\n  / \\' },
+    { id: 5, name: 'Neural Nougat', hp: 35, attack: 4, reward: 30, tier: 2, emoji: '🧠', ascii: '  [==]\n [====]\n [==]' },
+    { id: 6, name: 'Candy Crab', hp: 32, attack: 5, reward: 28, tier: 2, emoji: '🦀', ascii: '  <(o)>\n  <(0)>\n   / \\' },
+    { id: 21, name: 'Taffy Troll', hp: 38, attack: 5, reward: 32, tier: 2, emoji: '👺', ascii: '  /^V^\\\n  MMEM\n  |||||' },
+    { id: 22, name: 'Gumball Goblin', hp: 33, attack: 4, reward: 27, tier: 2, emoji: '👹', ascii: '  <O_O>\n  (ooo)\n   ^^^' },
+    { id: 23, name: 'Lemon Imp', hp: 28, attack: 6, reward: 24, tier: 2, emoji: '🍋', ascii: '  (^_^)\n  /| |\\\n   | |' },
+    { id: 24, name: 'Butterscotch Beast', hp: 40, attack: 5, reward: 35, tier: 2, emoji: '🐻', ascii: '  |**|\n |***|\n |*_*|' },
+    { id: 7, name: 'Meme Wraith', hp: 45, attack: 6, reward: 50, tier: 3, emoji: '👻', ascii: '  ****\n *    *\n ****' },
+    { id: 8, name: 'Gummy Guardian', hp: 50, attack: 7, reward: 55, tier: 3, emoji: '🛡️', ascii: '  |==|\n |==|\n |==|' },
+    { id: 9, name: 'Fudge Fiend', hp: 48, attack: 7, reward: 52, tier: 3, emoji: '😈', ascii: '  [#_#]\n (#_#)\n [# #]' },
+    { id: 25, name: 'Rock Candy Roller', hp: 55, attack: 6, reward: 58, tier: 3, emoji: '🪨', ascii: '  OOOO\n OOOO\n OOOO' },
+    { id: 26, name: 'Jelly Jester', hp: 42, attack: 8, reward: 48, tier: 3, emoji: '🤡', ascii: '  \\(^_^)/\n  |    |\n  /    \\' },
+    { id: 27, name: 'Marshmallow Mimic', hp: 46, attack: 7, reward: 51, tier: 3, emoji: '⚪', ascii: '  (OoO)\n <(ooo)>\n  (OoO)' },
+    { id: 28, name: 'Sugar Spider', hp: 49, attack: 8, reward: 54, tier: 3, emoji: '🕷️', ascii: '  /\\ /\\ /\\\n  XX-XX-XX\n  \\/ \\/ \\/' },
+    { id: 10, name: 'Cotton Candy Centaur', hp: 70, attack: 8, reward: 85, tier: 4, emoji: '🌸', ascii: '  |O_O|\n /|   |\\\n / |   |' },
+    { id: 11, name: 'Lemon Drop Drake', hp: 75, attack: 8, reward: 90, tier: 4, emoji: '🐉', ascii: '  ~~^~~\n ~(o_o)~\n ~~~~~~~' },
+    { id: 12, name: 'Sugar Siren', hp: 72, attack: 9, reward: 87, tier: 4, emoji: '🧜', ascii: '  /^^\\\n / OO \\\n |    |' },
+    { id: 29, name: 'Caramel Cyclops', hp: 78, attack: 9, reward: 92, tier: 4, emoji: '👁️', ascii: '  [ O ]\n  |   |\n  |___|' },
+    { id: 30, name: 'Peppermint Phantom', hp: 74, attack: 10, reward: 88, tier: 4, emoji: '🌀', ascii: '  (~O~)\n  (#_#)\n  (~_~)' },
+    { id: 31, name: 'Candy Colossus', hp: 85, attack: 8, reward: 95, tier: 4, emoji: '🤖', ascii: '  [===]\n [===]\n [===]' },
+    { id: 32, name: 'Honeycomb Hornet', hp: 68, attack: 11, reward: 82, tier: 4, emoji: '🐝', ascii: '  (o~o)\n  /\\W/\\\n   | |' },
+    { id: 13, name: 'Licorice Lich', hp: 95, attack: 10, reward: 130, tier: 5, emoji: '☠️', ascii: '  [!!]\n  !!!\n [!!]' },
+    { id: 14, name: 'Candy Kraken', hp: 105, attack: 11, reward: 145, tier: 5, emoji: '🐙', ascii: '  ~^^^^~\n  ^^^^^^\n ~^^^^^^~' },
+    { id: 15, name: 'GPT-3.5 Ghost', hp: 100, attack: 10, reward: 140, tier: 5, emoji: '👾', ascii: '  (~)~\n  (~)~\n  (~)~' },
+    { id: 33, name: 'Toffee Titan', hp: 110, attack: 11, reward: 150, tier: 5, emoji: '🗿', ascii: '  |+++|\n |+++|\n |+++|' },
+    { id: 34, name: 'Candy Chimera', hp: 98, attack: 12, reward: 135, tier: 5, emoji: '🦁', ascii: '  /VVV\\\n (ooo)\n  |||' },
+    { id: 35, name: 'Fondant Phoenix', hp: 102, attack: 10, reward: 142, tier: 5, emoji: '🔥', ascii: '  /\\ /\\\n (oo)\n  \\\\/' },
+    { id: 36, name: 'Nougat Nemesis', hp: 108, attack: 13, reward: 148, tier: 5, emoji: '⚡', ascii: '  [***]\n [***]\n [***]' },
+    { id: 16, name: 'Sentient Sweetness', hp: 140, attack: 12, reward: 200, tier: 6, emoji: '✨', ascii: '  (@@@)\n (@@@)\n (@@@)' },
+    { id: 17, name: 'Caramel Colossus', hp: 150, attack: 13, reward: 220, tier: 6, emoji: '💪', ascii: '  |===|\n |===|\n |===|' },
+    { id: 18, name: 'The Candy King', hp: 160, attack: 14, reward: 250, tier: 6, emoji: '👑', ascii: '  /^^^|\n |   |\n |___|' },
+    { id: 37, name: 'Licorice Leviathan', hp: 165, attack: 15, reward: 260, tier: 6, emoji: '🌊', ascii: '  [###]\n [###]\n [###]' },
+    { id: 38, name: 'Sugar Sultan', hp: 155, attack: 14, reward: 240, tier: 6, emoji: '🧞', ascii: '  /\\**/\\\n  ****\n  ****' },
+    { id: 39, name: 'The Lollipop Lord', hp: 170, attack: 16, reward: 280, tier: 6, emoji: '⭐', ascii: '  |*_*|\n |***|\n |***|' },
+    { id: 40, name: 'Candy Constellation', hp: 180, attack: 15, reward: 300, tier: 6, emoji: '💫', ascii: '  ***\n ****\n *****' }
 ];
 
 function getCandyCostPerHp(maxHp) {
@@ -75,6 +75,7 @@ function getDefaultGameState() {
         chocolate: 0,
         chocolateRate: 0,
         chocolateTrees: 0,
+        chocolateTreePositions: [], // state-driven tree positions
         forestUnlocked: false
     };
 }
@@ -90,15 +91,15 @@ class CandyBox3 {
         const main = document.getElementById('main');
         if (!main) return;
         main.innerHTML = `
+            <div id="status-panel" class="panel">
+                <div class="stat-row"><span class="stat-label">Candies:</span><span id="candy-count">0</span></div>
+                <div class="stat-row"><span class="stat-label">Total Eaten:</span><span id="total-eaten">0</span></div>
+                <div class="stat-row"><span class="stat-label">Candy/sec:</span><span id="candy-rate">1.0</span></div>
+                <div class="stat-row"><span class="stat-label">Chocolate:</span><span id="chocolate-count">0</span><span> (+</span><span id="chocolate-rate">0</span><span>/hr)</span></div>
+                <div class="stat-row"><span class="stat-label">Attack:</span><span id="attack-value">5</span></div>
+                <div class="stat-row"><span class="stat-label">HP:</span><span id="hp-bar">[██████████]</span><span id="hp-current">10</span><span>/</span><span id="hp-max">10</span></div>
+            </div>
             <div id="mainView">
-                <div id="status-panel" class="panel">
-                    <div class="stat-row"><span class="stat-label">Candies:</span><span id="candy-count">0</span></div>
-                    <div class="stat-row"><span class="stat-label">Total Eaten:</span><span id="total-eaten">0</span></div>
-                    <div class="stat-row"><span class="stat-label">Candy/sec:</span><span id="candy-rate">1.0</span></div>
-                    <div class="stat-row"><span class="stat-label">Chocolate:</span><span id="chocolate-count">0</span><span> (+</span><span id="chocolate-rate">0</span><span>/hr)</span></div>
-                    <div class="stat-row"><span class="stat-label">Attack:</span><span id="attack-value">5</span></div>
-                    <div class="stat-row"><span class="stat-label">HP:</span><span id="hp-bar">[██████████]</span><span id="hp-current">10</span><span>/</span><span id="hp-max">10</span></div>
-                </div>
                 <div id="actions-panel" class="panel"><div id="action-buttons"></div><div id="quick-actions"><button class="action-btn" data-action="eat">🍬 Eat Candy</button><button class="action-btn" data-action="go-map">🗺️ Map</button></div></div>
                 <div id="combat-display" class="panel" style="display:none;"><div id="enemy-ascii" style="white-space: pre-wrap; font-size: 12px;"></div><div id="enemy-name" style="font-weight: bold; margin-top: 5px;"></div><div id="enemy-hp" style="margin-bottom: 10px;"></div></div>
                 <div id="spells-panel" class="panel" style="display:none;"><h3>Spells</h3><div id="spells-list"></div></div>
@@ -109,7 +110,7 @@ class CandyBox3 {
                 <div id="settings-panel" class="panel"><h3>Options</h3><button class="settings-btn" data-action="export-save">Export Save</button><button class="settings-btn" data-action="import-save">Import Save</button><button class="settings-btn" data-action="new-game">New Game</button></div>
             </div>
             <div id="mapView" style="display:none;"></div>
-            <div id="forestView" style="display:none;"></div>
+            <div id="forestView" style="display:none; position: relative; min-height: 400px;"></div>
         `;
         this.buildUpgrades();
     }
@@ -255,6 +256,7 @@ class CandyBox3 {
         } else if (this.state.view === 'forest') {
             this.buildForestUI();
             this.updateForestDisplay();
+            this.renderForest(); // Render trees from state
         }
     }
 
@@ -280,22 +282,36 @@ class CandyBox3 {
         this.state.chocolateRate += 1;
         this.addLog(`Planted a chocolate tree! (+1 chocolate/hour)`);
 
-        // Add random chocolate ASCII to forest
-        const forest = document.getElementById('forest-content');
-        if (forest) {
-            const el = document.createElement('div');
-            el.textContent = '[###]';
-            el.style.position = 'absolute';
-            el.style.top = Math.random() * 250 + 'px';
-            el.style.left = Math.random() * (forest.offsetWidth - 40) + 'px';
-            el.style.color = '#8B4513';
-            el.style.fontWeight = 'bold';
-            forest.appendChild(el);
-        }
+        // Store tree position (state-driven, not DOM)
+        this.state.chocolateTreePositions.push({
+            x: Math.random(),
+            y: Math.random()
+        });
 
         this.updateForestDisplay();
+        this.renderForest(); // Re-render forest with new tree
         this.updateUI();
         this.doSave();
+    }
+
+    renderForest() {
+        const forestView = document.getElementById('forestView');
+        if (!forestView) return;
+
+        // Clear old trees (keep other content)
+        forestView.querySelectorAll('.forest-tree').forEach(el => el.remove());
+
+        // Render trees from state
+        this.state.chocolateTreePositions.forEach(pos => {
+            const el = document.createElement('div');
+            el.className = 'forest-tree';
+            el.textContent = '🍫';
+            el.style.position = 'absolute';
+            el.style.left = (pos.x * 85) + '%';
+            el.style.top = (pos.y * 70) + '%';
+            el.style.fontSize = '24px';
+            forestView.appendChild(el);
+        });
     }
 
     rebuildMonsterDropdown() {
@@ -360,7 +376,7 @@ class CandyBox3 {
             const a = document.getElementById('enemy-ascii');
             if (a) a.textContent = this.state.enemy.ascii;
             const n = document.getElementById('enemy-name');
-            if (n) n.textContent = `${this.state.enemy.name} (Lv${this.state.enemy.level})`;
+            if (n) n.textContent = `${this.state.enemy.emoji} ${this.state.enemy.name} (Lv${this.state.enemy.level})`;
             const h = document.getElementById('enemy-hp');
             if (h) {
                 const p = Math.max(0, Math.floor((this.state.enemy.hp / this.state.enemy.maxHp) * 10));
@@ -414,13 +430,17 @@ class CandyBox3 {
 
         const inv = document.getElementById('inventory-items');
         if (inv) {
-            const upgs = { 'candy': 'Sugar Engine', 'attack': 'Candy Sword', 'regen': 'Candy Metabolism' };
+            const upgs = {
+              'candy': { name: 'Sugar Engine', emoji: '⚙️' },
+                'attack': { name: 'Candy Sword', emoji: '⚔️' },
+                'regen': { name: 'Candy Metabolism', emoji: '❤️' }
+            };
             let h = '';
             for (let k in upgs) {
                 const lv = this.state.upgradesPurchased[k];
-                if (lv > 0) h += `<div class="inventory-item">✓ ${upgs[k]} Lv${lv}</div>`;
+                if (lv > 0) h += `<div class="inventory-item">${upgs[k].emoji} ${upgs[k].name} +${lv}</div>`;
             }
-            if (this.state.spellsUnlocked) h += `<div class="inventory-item">✓ Spells Unlocked</div>`;
+            if (this.state.spellsUnlocked) h += `<div class="inventory-item">✨ Spells Unlocked</div>`;
             inv.innerHTML = h || '(empty)';
         }
     }
@@ -533,6 +553,7 @@ class CandyBox3 {
         this.state.enemy = {
             id: m.id,
             name: m.name,
+            emoji: m.emoji || '👾',
             hp: m.hp,
             maxHp: m.hp,
             attack: m.attack,
@@ -541,7 +562,7 @@ class CandyBox3 {
             level: m.level || 1
         };
         this.state.inCombat = true;
-        this.addLog(`${m.name} (Lv${m.level || 1}) appears!`);
+        this.addLog(`${m.emoji || '👾'} ${m.name} (Lv${m.level || 1}) appears!`);
     }
 
     fightSelectedMonster() {
