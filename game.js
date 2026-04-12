@@ -88,7 +88,8 @@ function getDefaultGameState() {
         colosseumCurrentTime: 0,
         colosseumBestTime: 0,
         // Colosseum buffs
-        colosseumBuffs: {}
+        colosseumBuffs: {},
+        pendingBuffChoice: null  // Array of 3 choices when milestone reached
     };
 }
 
@@ -101,22 +102,72 @@ const COLOSSEUM_BUFFS = [
     { time: 60, id: "megaBoost", label: "Candy Overload", effect: "all" }
 ];
 
+// Available buff pool for choices
+const BUFF_POOL = [
+    { id: "candyBoost", label: "Sugar Rush", effect: "candyRate" },
+    { id: "attackBoost", label: "Fury", effect: "attack" },
+    { id: "regenBoost", label: "Regeneration", effect: "regenRate" },
+    { id: "hpBoost", label: "Fortitude", effect: "maxHp" }
+];
+
+// Secret buffs with unlock conditions
+const SECRET_BUFFS = [
+    {
+        id: "immortalCandy",
+        label: "Immortal Sugar",
+        unlock: (state) => state.colosseumBestTime >= 60 && state.candies === 0,
+        effect: "regenRate"
+    },
+    {
+        id: "crystallineScale",
+        label: "Crystalline Scale",
+        unlock: (state) => state.inColosseum && state.hp === state.maxHp && state.colosseumSurvivalTime >= 45,
+        effect: "maxHp"
+    }
+];
+
 function applyColosseumBuffs(state) {
+    // Buffs only apply when actively fighting in colosseum
+    if (!state.colosseumRunning) {
+        return {
+            candyMultiplier: 1,
+            attackMultiplier: 1,
+            regenMultiplier: 1,
+            hpMultiplier: 1
+        };
+    }
+
     let candyMultiplier = 1;
     let attackMultiplier = 1;
     let regenMultiplier = 1;
     let hpMultiplier = 1;
 
-    if (state.colosseumBuffs.candyBoost) candyMultiplier += 0.25;
-    if (state.colosseumBuffs.attackBoost) attackMultiplier += 0.25;
-    if (state.colosseumBuffs.regenBoost) regenMultiplier += 0.25;
-    if (state.colosseumBuffs.hpBoost) hpMultiplier += 0.25;
+    // Apply each buff based on level
+    const buffs = state.colosseumBuffs || {};
+    for (const [id, data] of Object.entries(buffs)) {
+        const lvl = data?.level || 0;
+        if (lvl === 0) continue;
 
-    if (state.colosseumBuffs.megaBoost) {
-        candyMultiplier += 0.5;
-        attackMultiplier += 0.5;
-        regenMultiplier += 0.5;
-        hpMultiplier += 0.5;
+        switch (id) {
+            case "candyBoost":
+                candyMultiplier += lvl * 0.15;
+                break;
+            case "attackBoost":
+                attackMultiplier += lvl * 0.15;
+                break;
+            case "regenBoost":
+                regenMultiplier += lvl * 0.15;
+                break;
+            case "hpBoost":
+                hpMultiplier += lvl * 0.15;
+                break;
+            case "immortalCandy":
+                regenMultiplier += lvl * 0.2;
+                break;
+            case "crystallineScale":
+                hpMultiplier += lvl * 0.2;
+                break;
+        }
     }
 
     return {
@@ -125,6 +176,26 @@ function applyColosseumBuffs(state) {
         regenMultiplier,
         hpMultiplier
     };
+}
+
+// Migrate old boolean buff format to new level-based format
+function migrateBuffsToLevels(colosseumBuffs) {
+    const migrated = {};
+    for (const key in colosseumBuffs) {
+        if (colosseumBuffs[key] === true) {
+            migrated[key] = { level: 1 };
+        } else if (colosseumBuffs[key]?.level) {
+            migrated[key] = colosseumBuffs[key]; // already migrated
+        }
+    }
+    return migrated;
+}
+
+// Generate 3 random buff choices for milestone
+function generateBuffChoices(state) {
+    const available = BUFF_POOL.filter(buff => !state.colosseumBuffs[buff.id]);
+    const shuffled = [...available].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(3, shuffled.length));
 }
 
 class CandyBox3 {
@@ -143,6 +214,15 @@ class CandyBox3 {
             this.addLog('🏟️ The Candy Colosseum is now open...');
             this.updateUI();
         }
+    }
+
+    checkSecretBuffs() {
+        SECRET_BUFFS.forEach(buff => {
+            if (!this.state.colosseumBuffs[buff.id] && buff.unlock(this.state)) {
+                this.state.colosseumBuffs[buff.id] = { level: 1 };
+                this.addLog(`🔒 Secret unlocked: ${buff.label}!`);
+            }
+        });
     }
 
     buildUI() {
@@ -406,6 +486,10 @@ class CandyBox3 {
                     <button class="action-btn" data-action="start-colosseum">▶️ Start</button>
                     <button class="action-btn" data-action="stop-colosseum" style="margin-left: 5px;">⏹️ Stop</button>
                 </div>
+                <div id="buffChoices" style="margin: 20px 0; padding: 15px; border: 2px solid #ffd700; background: #f5f5f5; display: none; border-radius: 5px;">
+                    <strong style="display: block; margin-bottom: 10px;">⭐ Reward Unlocked - Choose One:</strong>
+                    <div id="buffChoiceButtons"></div>
+                </div>
                 <div id="colosseum-buffs-display" style="margin: 20px 0; border: 1px solid #ccc; padding: 10px; background: #f5f5f5;">
                     <strong>Active Buffs:</strong>
                     <div id="colosseum-buffs-list" style="margin-top: 8px; font-size: 12px;">
@@ -432,20 +516,17 @@ class CandyBox3 {
             speedSelect.onchange = (e) => {
                 const newSpeed = parseInt(e.target.value);
                 this.state.colosseumSpeed = newSpeed;
-                // Restart combat loop with new speed
-                if (this.colosseumInterval) clearInterval(this.colosseumInterval);
-                const tickRate = 1000 / (10 * this.state.colosseumSpeed);
-                this.colosseumInterval = setInterval(() => this.colosseumTick(), tickRate);
+                // Restart combat loop with new speed if running
+                if (this.state.colosseumRunning) {
+                    if (this.colosseumInterval) clearInterval(this.colosseumInterval);
+                    const tickRate = 1000 / (10 * this.state.colosseumSpeed);
+                    this.colosseumInterval = setInterval(() => this.colosseumTick(), tickRate);
+                }
                 this.addLog('Speed changed to x' + newSpeed);
             };
         }
 
-        // Start combat loop
-        if (this.colosseumInterval) clearInterval(this.colosseumInterval);
-        const tickRate = 1000 / (10 * this.state.colosseumSpeed);
-        this.colosseumInterval = setInterval(() => this.colosseumTick(), tickRate);
-
-        this.addLog('🏟️ Entered the Colosseum!');
+        this.addLog('🏟️ Entered the Colosseum. Click Start to begin!');
     }
 
     spawnColosseumMonster() {
@@ -476,7 +557,7 @@ class CandyBox3 {
     }
 
     colosseumTick() {
-        if (!this.state.inColosseum || !this.state.enemy) return;
+        if (!this.state.colosseumRunning || !this.state.inColosseum) return;
 
         this.state.colosseumSurvivalTime += (10 * this.state.colosseumSpeed) / 1000; // Convert to seconds
 
@@ -536,6 +617,7 @@ class CandyBox3 {
         // Death penalty: lose all candies
         this.state.candies = 0;
         this.addLog(`💀 Fell in the Colosseum after ${this.state.colosseumSurvivalTime.toFixed(1)}s - Lost all candies!`);
+        this.checkSecretBuffs();
         this.state.view = 'main';
         this.updateView();
         this.updateUI();
@@ -561,6 +643,8 @@ class CandyBox3 {
         const bestTimeEl = document.getElementById('colosseum-best-time');
         const chocolateEl = document.getElementById('colosseum-chocolate');
         const buffsListEl = document.getElementById('colosseum-buffs-list');
+        const choicesDiv = document.getElementById('buffChoices');
+        const buttonsDiv = document.getElementById('buffChoiceButtons');
 
         if (NameEl) NameEl.textContent = this.state.enemy.name + ' (Lv' + this.state.enemy.level + ')';
         if (emojiEl) emojiEl.textContent = this.state.enemy.emoji;
@@ -573,16 +657,40 @@ class CandyBox3 {
         if (bestTimeEl) bestTimeEl.textContent = this.state.colosseumBestTime.toFixed(1) + 's';
         if (chocolateEl) chocolateEl.textContent = Math.floor(this.state.chocolate);
 
+        // Update buff choice buttons
+        if (this.state.pendingBuffChoice && buttonsDiv && choicesDiv) {
+            choicesDiv.style.display = 'block';
+            buttonsDiv.innerHTML = '';
+            this.state.pendingBuffChoice.forEach(buff => {
+                const btn = document.createElement('button');
+                btn.className = 'action-btn';
+                btn.dataset.action = 'choose-buff';
+                btn.dataset.id = buff.id;
+                btn.style.display = 'block';
+                btn.style.marginBottom = '8px';
+                btn.style.width = '100%';
+                btn.textContent = `${buff.label} (Effect: ${buff.effect})`;
+                buttonsDiv.appendChild(btn);
+            });
+        } else if (choicesDiv) {
+            choicesDiv.style.display = 'none';
+        }
+
         // Update buff display
         if (buffsListEl) {
             let buffHtml = '';
             let activeCount = 0;
-            COLOSSEUM_BUFFS.forEach(buff => {
-                if (this.state.colosseumBuffs[buff.id]) {
-                    buffHtml += `<div>⭐ ${buff.label} (${buff.effect})</div>`;
+            const allBuffs = [...COLOSSEUM_BUFFS, ...BUFF_POOL, ...SECRET_BUFFS];
+
+            for (const [id, data] of Object.entries(this.state.colosseumBuffs)) {
+                const buffDef = allBuffs.find(b => b.id === id);
+                if (buffDef && data?.level) {
+                    const romanNumerals = ['I', 'II', 'III', 'IV', 'V'];
+                    const roman = romanNumerals[Math.min(data.level - 1, 4)];
+                    buffHtml += `<div>⭐ ${buffDef.label} ${roman}</div>`;
                     activeCount++;
                 }
-            });
+            }
             buffsListEl.innerHTML = activeCount > 0 ? buffHtml : '(none active)';
         }
     }
@@ -746,12 +854,15 @@ class CandyBox3 {
             if (this.state.spellsUnlocked) h += `<div class="inventory-item">✨ Spells Unlocked</div>`;
 
             // Show active colosseum buffs
-            if (this.state.inColosseum) {
-                COLOSSEUM_BUFFS.forEach(buff => {
-                    if (this.state.colosseumBuffs[buff.id]) {
-                        h += `<div class="inventory-item">⭐ ${buff.label}</div>`;
-                    }
-                });
+            const allBuffs = [...COLOSSEUM_BUFFS, ...BUFF_POOL, ...SECRET_BUFFS];
+            const romanNumerals = ['I', 'II', 'III', 'IV', 'V'];
+
+            for (const [id, data] of Object.entries(this.state.colosseumBuffs)) {
+                const buffDef = allBuffs.find(b => b.id === id);
+                if (buffDef && data?.level) {
+                    const roman = romanNumerals[Math.min(data.level - 1, 4)];
+                    h += `<div class="inventory-item">⭐ ${buffDef.label} ${roman}</div>`;
+                }
             }
 
             inv.innerHTML = h || '(empty)';
@@ -1113,6 +1224,12 @@ document.addEventListener('DOMContentLoaded', () => {
     game.state.colosseumCurrentTime = game.state.colosseumCurrentTime || 0;
     game.state.colosseumBestTime = game.state.colosseumBestTime || 0;
     game.state.colosseumBuffs = game.state.colosseumBuffs || {};
+    game.state.pendingBuffChoice = game.state.pendingBuffChoice || null;
+
+    // Migrate old buff format to new level-based format
+    if (game.state.colosseumBuffs && Object.keys(game.state.colosseumBuffs).length > 0) {
+        game.state.colosseumBuffs = migrateBuffsToLevels(game.state.colosseumBuffs);
+    }
 
     game.buildUI();
     game.rebuildMonsterDropdown();
@@ -1188,31 +1305,73 @@ document.addEventListener('DOMContentLoaded', () => {
                     game.addLog('You need at least 1 🍫 to enter the Colosseum.');
                     return;
                 }
+
                 game.state.chocolate -= 1;
                 game.state.view = 'colosseum';
+                game.state.colosseumRunning = false;  // CRITICAL: Not running yet
+                game.state.pendingBuffChoice = null;
+
+                // Clear any lingering interval
+                if (game.colosseumInterval) {
+                    clearInterval(game.colosseumInterval);
+                    game.colosseumInterval = null;
+                }
+
                 game.startColosseum();
                 game.updateView();
                 break;
             case 'start-colosseum':
-                if (!game.state.colosseumRunning) {
+                if (!game.state.colosseumRunning && game.state.inColosseum) {
                     game.state.colosseumRunning = true;
                     game.state.colosseumCurrentTime = 0;
+
+                    // Start combat loop
+                    if (game.colosseumInterval) clearInterval(game.colosseumInterval);
+                    const tickRate = 1000 / (10 * game.state.colosseumSpeed);
+                    game.colosseumInterval = setInterval(() => game.colosseumTick(), tickRate);
+
                     game.addLog('⚔️ Combat started!');
+                    game.updateColosseumUI();
                 }
                 break;
             case 'stop-colosseum':
                 game.stopColosseumCombat();
+
                 if (game.state.colosseumCurrentTime > game.state.colosseumBestTime) {
                     game.state.colosseumBestTime = game.state.colosseumCurrentTime;
-                    // Check for buff unlocks
-                    COLOSSEUM_BUFFS.forEach(buff => {
-                        if (game.state.colosseumBestTime >= buff.time && !game.state.colosseumBuffs[buff.id]) {
-                            game.state.colosseumBuffs[buff.id] = true;
-                            game.addLog('✨ Buff unlocked: ' + buff.label + '!');
-                        }
-                    });
+
+                    // Check if we hit a milestone
+                    const milestone = COLOSSEUM_BUFFS.find(m =>
+                        m.time === Math.floor(game.state.colosseumBestTime) &&
+                        game.state.colosseumBestTime >= m.time
+                    );
+
+                    if (milestone && !game.state.pendingBuffChoice) {
+                        game.state.pendingBuffChoice = generateBuffChoices(game.state);
+                        game.addLog('✨ Choose your reward at ' + milestone.time + 's!');
+                        game.updateColosseumUI();
+                        game.checkSecretBuffs();
+                        game.doSave();
+                        return; // Don't continue below, wait for choice
+                    }
+
                     game.addLog('🏆 New record! ' + game.state.colosseumBestTime.toFixed(1) + 's');
                 }
+
+                game.checkSecretBuffs();
+                game.updateColosseumUI();
+                game.doSave();
+                break;
+            case 'choose-buff':
+                const buffId = e.target.dataset.id;
+                if (game.state.colosseumBuffs[buffId]) {
+                    game.state.colosseumBuffs[buffId].level += 1;
+                    game.addLog(`✨ ${buffId} upgraded to level ${game.state.colosseumBuffs[buffId].level}!`);
+                } else {
+                    game.state.colosseumBuffs[buffId] = { level: 1 };
+                    game.addLog(`✨ ${buffId} unlocked!`);
+                }
+                game.state.pendingBuffChoice = null;
                 game.updateColosseumUI();
                 game.doSave();
                 break;
