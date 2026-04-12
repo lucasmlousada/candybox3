@@ -43,12 +43,16 @@ const MONSTERS = [
     { id: 40, name: 'Candy Constellation', hp: 180, attack: 15, reward: 300, tier: 6, ascii: '  ***\n ****\n *****' }
 ];
 
-function getCandyCostPerHp(hp) {
-    if (hp <= 100) return 10;
-    if (hp <= 200) return 20;
-    if (hp <= 300) return 30;
-    if (hp <= 400) return 50;
-    return 100;
+function getCandyCostPerHp(maxHp) {
+    let cost;
+    if (maxHp <= 100) cost = 10;
+    else if (maxHp <= 200) cost = 20;
+    else if (maxHp <= 300) cost = 30;
+    else if (maxHp <= 400) cost = 50;
+    else cost = 100;
+
+    console.log("[getCandyCostPerHp] maxHp:", maxHp, "-> cost:", cost);
+    return cost;
 }
 
 function getDefaultGameState() {
@@ -208,6 +212,12 @@ class CandyBox3 {
         const percent = Math.max(0, Math.floor((this.state.hp / this.state.maxHp) * 10));
         document.getElementById('hp-bar').textContent = '[' + '█'.repeat(percent) + '░'.repeat(10 - percent) + ']';
 
+        console.log("[updateUI] HP Display:", {
+            hp: Math.floor(this.state.hp),
+            maxHp: this.state.maxHp,
+            hpPercent: percent
+        });
+
         if (this.state.inCombat && this.state.enemy) {
             const d = document.getElementById('combat-display');
             if (d) d.style.display = 'block';
@@ -280,27 +290,49 @@ class CandyBox3 {
     }
 
     eatCandy() {
+        console.log("[eatCandy] TRIGGERED - Initial state:", {
+            candies: this.state.candies,
+            maxHp: this.state.maxHp,
+            hp: this.state.hp
+        });
+
         if (this.state.candies <= 0) {
             this.addLog('No candy to eat!');
+            console.log("[eatCandy] Not enough candies");
             return;
         }
+
         let maxHpGained = 0;
 
         // Convert candies into MAX HP (primary progression)
+        console.log("[eatCandy] Starting conversion loop...");
         while (this.state.candies > 0) {
             const cost = getCandyCostPerHp(this.state.maxHp);
-            if (this.state.candies < cost) break;
+            console.log("[eatCandy] Loop - candies:", this.state.candies, "cost:", cost, "maxHp:", this.state.maxHp);
+
+            if (this.state.candies < cost) {
+                console.log("[eatCandy] Not enough candies for next level");
+                break;
+            }
 
             this.state.candies -= cost;
             this.state.totalCandiesEaten += cost;
             this.state.maxHp += 1;
             maxHpGained += 1;
+
+            console.log("[eatCandy] Converted 1 level - new maxHp:", this.state.maxHp, "candies left:", this.state.candies);
         }
 
+        console.log("[eatCandy] Loop complete - gained:", maxHpGained, "final state:", {
+            candiesLeft: this.state.candies,
+            gainedMaxHp: maxHpGained,
+            newMaxHp: this.state.maxHp
+        });
+
         if (maxHpGained > 0) {
-            // Optional: small heal effect - restore some current HP too
+            // Small heal effect - restore some current HP too
             this.state.hp = Math.min(this.state.hp + maxHpGained, this.state.maxHp);
-            this.addLog(`Converted candies into +${maxHpGained} max HP`);
+            this.addLog(`You converted candies into +${maxHpGained} max HP`);
 
             // Spell unlock threshold based on maxHp
             if (this.state.maxHp >= 500 && !this.state.spellsUnlocked) {
@@ -308,9 +340,14 @@ class CandyBox3 {
                 this.buildSpells();
                 this.addLog('Spells unlocked!');
             }
+        } else {
+            this.addLog('Not enough candies to gain max HP');
         }
+
+        console.log("[eatCandy] Calling updateUI() and doSave()...");
         this.updateUI();
         this.doSave();
+        console.log("[eatCandy] Complete - Final maxHp:", this.state.maxHp);
     }
 
     explore() {
@@ -495,7 +532,10 @@ class CandyBox3 {
         try {
             const enc = btoa(JSON.stringify(this.state));
             document.cookie = `candybox3=${enc}; max-age=31536000; path=/`;
-        } catch (e) {}
+            console.log("[doSave] State saved - maxHp:", this.state.maxHp, "candies:", this.state.candies);
+        } catch (e) {
+            console.error("[doSave] Error:", e);
+        }
     }
 
     loadFromHash() {
@@ -599,8 +639,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', (e) => {
         const act = e.target.dataset.action;
         if (!act) return;
+        console.log("[Click Handler] Action triggered:", act);
         switch(act) {
-            case 'eat': game.eatCandy(); break;
+            case 'eat':
+                console.log("[Click Handler] EAT action - calling game.eatCandy()");
+                game.eatCandy();
+                break;
             case 'explore': game.explore(); break;
             case 'attack': game.playerAttack(); break;
             case 'fight-selected': game.fightSelectedMonster(); break;
