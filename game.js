@@ -284,21 +284,26 @@ class CandyBox3 {
             this.addLog('No candy to eat!');
             return;
         }
-        let hpGained = 0;
-        while (this.state.candies > 0 && this.state.hp < this.state.maxHp) {
-            const costPerHp = getCandyCostPerHp(Math.floor(this.state.hp));
-            if (this.state.candies >= costPerHp) {
-                this.state.candies -= costPerHp;
-                this.state.totalCandiesEaten += costPerHp;
-                this.state.hp += 1;
-                hpGained += 1;
-            } else {
-                break;
-            }
+        let maxHpGained = 0;
+
+        // Convert candies into MAX HP (primary progression)
+        while (this.state.candies > 0) {
+            const cost = getCandyCostPerHp(this.state.maxHp);
+            if (this.state.candies < cost) break;
+
+            this.state.candies -= cost;
+            this.state.totalCandiesEaten += cost;
+            this.state.maxHp += 1;
+            maxHpGained += 1;
         }
-        if (hpGained > 0) {
-            this.addLog(`Ate ${hpGained} HP worth of candy`);
-            if (this.state.hp >= 500 && !this.state.spellsUnlocked) {
+
+        if (maxHpGained > 0) {
+            // Optional: small heal effect - restore some current HP too
+            this.state.hp = Math.min(this.state.hp + maxHpGained, this.state.maxHp);
+            this.addLog(`Converted candies into +${maxHpGained} max HP`);
+
+            // Spell unlock threshold based on maxHp
+            if (this.state.maxHp >= 500 && !this.state.spellsUnlocked) {
                 this.state.spellsUnlocked = true;
                 this.buildSpells();
                 this.addLog('Spells unlocked!');
