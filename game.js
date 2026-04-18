@@ -1614,6 +1614,15 @@ class CandyBox3 {
             }
             buffsListEl.innerHTML = activeCount > 0 ? buffHtml : '(none active)';
         }
+
+        // Lock Exit button while a Colosseum run is active
+        const exitBtn = document.querySelector('#colosseumView [data-action="go-main"]');
+        if (exitBtn) {
+            const running = !!this.state.colosseumRunning;
+            exitBtn.disabled = running;
+            exitBtn.style.opacity = running ? '0.4' : '';
+            exitBtn.style.cursor = running ? 'not-allowed' : '';
+        }
     }
 
     updateColosseumSpeedOptions() {
@@ -1671,8 +1680,8 @@ class CandyBox3 {
         this.state.chocolate += (this.state.chocolateRate + this.getArtifactBonusTotal('chocolateRate')) * (deltaTime / 3600); // per hour
         this.state.lollipops += this.getArtifactBonusTotal('lollipopRate') * deltaTime;
 
-        // HP regen with buff multiplier — paused during combat
-        if (!this.state.inCombat) {
+        // HP regen paused during field combat or active Colosseum run
+        if (!this.state.inCombat && !this.state.colosseumRunning) {
             this.state.hp += this.getEffectiveRegen() * buffs.regenMultiplier * deltaTime;
             if (this.state.hp > this.getEffectiveMaxHp()) {
                 this.state.hp = this.getEffectiveMaxHp();
