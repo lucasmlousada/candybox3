@@ -1671,10 +1671,12 @@ class CandyBox3 {
         this.state.chocolate += (this.state.chocolateRate + this.getArtifactBonusTotal('chocolateRate')) * (deltaTime / 3600); // per hour
         this.state.lollipops += this.getArtifactBonusTotal('lollipopRate') * deltaTime;
 
-        // HP regen with buff multiplier
-        this.state.hp += this.getEffectiveRegen() * buffs.regenMultiplier * deltaTime;
-        if (this.state.hp > this.getEffectiveMaxHp()) {
-            this.state.hp = this.getEffectiveMaxHp();
+        // HP regen with buff multiplier — paused during combat
+        if (!this.state.inCombat) {
+            this.state.hp += this.getEffectiveRegen() * buffs.regenMultiplier * deltaTime;
+            if (this.state.hp > this.getEffectiveMaxHp()) {
+                this.state.hp = this.getEffectiveMaxHp();
+            }
         }
 
         // Track colosseum time only when running
@@ -1743,7 +1745,23 @@ class CandyBox3 {
             m.style.display = (!this.state.inCombat && this.state.hp > 0 && this.state.unlockedMonsters.length > 0) ? 'block' : 'none';
         }
 
-            const defs = [
+            const inFight = !!(this.state.inCombat && this.state.enemy);
+
+        // Disable Eat Candy and Map buttons during combat
+        const eatBtn = document.querySelector('[data-action="eat"]');
+        const mapBtn = document.querySelector('[data-action="go-map"]');
+        if (eatBtn) {
+            eatBtn.disabled = inFight;
+            eatBtn.style.opacity = inFight ? '0.4' : '';
+            eatBtn.style.cursor = inFight ? 'not-allowed' : '';
+        }
+        if (mapBtn) {
+            mapBtn.disabled = inFight;
+            mapBtn.style.opacity = inFight ? '0.4' : '';
+            mapBtn.style.cursor = inFight ? 'not-allowed' : '';
+        }
+
+        const defs = [
             { key: 'candy', baseCost: 10 },
             { key: 'attack', baseCost: 15 },
             { key: 'regen', baseCost: 20 }
@@ -1755,7 +1773,7 @@ class CandyBox3 {
                 const lv = this.state.upgradesPurchased[d.key];
                 const c = getUpgradeCost(d.key, lv);
                 cost.textContent = ` (Lv ${lv} → ${lv + 1}) - ${c}`;
-                btn.disabled = this.state.candies < c;
+                btn.disabled = inFight || this.state.candies < c;
             }
         }
 
