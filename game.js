@@ -1492,7 +1492,7 @@ class CandyBox3 {
         for (let speed = 1; speed < 100; speed++) {
             const next = speed + 1;
             if (this.state.colosseumUnlockedSpeeds.includes(next)) continue;
-            const required = speed * 10;
+            const required = 10;
             const spent = this.state.colosseumTimeBySpeed[speed] || 0;
             if (spent >= required) {
                 this.state.colosseumUnlockedSpeeds.push(next);
@@ -2461,12 +2461,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     game.state.chocolate -= 1;
-                    game.state.colosseumSessionPaid = true;
-                    game.addLog('🍫 You enter the arena...');
-                }
+                game.state.colosseumSessionPaid = true;
+                game.addLog('🍫 You enter the arena...');
+            }
 
-                game.state.colosseumRunning = true;
-                game.state.colosseumCurrentTime = 0;
+            // Capture whatever speed the player has selected in the dropdown right now
+            const selectedSpeed = parseInt(document.getElementById('colosseumSpeedSelect')?.value || '1');
+            if (!isNaN(selectedSpeed) && selectedSpeed >= 1) {
+                game.state.colosseumSpeed = selectedSpeed;
+            }
+
+            game.state.colosseumRunning = true;
+            game.state.colosseumCurrentTime = 0;
 
                 // Start combat loop
                 if (game.colosseumInterval) clearInterval(game.colosseumInterval);
