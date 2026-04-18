@@ -928,6 +928,8 @@ class CandyBox3 {
     }
 
     buildMuseumUI() {
+        this.state.museumRendered = false;
+        if (this.state.museumRendered) return;
         const museum = document.getElementById('museumView');
         if (!museum) return;
         const cells = ARTIFACT_DEFS.map((artifact, index) => {
@@ -948,6 +950,7 @@ class CandyBox3 {
                 <div style="margin-top:20px;"><button class="action-btn" data-action="go-map">🗺️ Back to Map</button></div>
             </div>
         `;
+        this.state.museumRendered = true;
     }
 
     buildVillageUI() {
@@ -1119,15 +1122,73 @@ class CandyBox3 {
         }).join('');
     }
 
+    // Building specific render functions - only refresh current view
+    renderForgeUI() {
+        const forgeContainer = document.querySelector('#villageView .panel');
+        if (!forgeContainer) return;
+        
+        // Update only the weapon shop section
+        const shopContainer = forgeContainer.querySelector('div:nth-last-of-type(2)');
+        if (shopContainer) {
+            shopContainer.innerHTML = this.renderVillageWeaponShop();
+        }
+    }
+
+    renderMarketUI() {
+        const marketContainer = document.querySelector('#villageView .panel');
+        if (!marketContainer) return;
+        
+        // Update only the armor shop section
+        const shopContainer = marketContainer.querySelector('div:nth-last-of-type(2)');
+        if (shopContainer) {
+            shopContainer.innerHTML = this.renderVillageArmorShop();
+        }
+    }
+
+    renderLibraryUI() {
+        const libraryContainer = document.querySelector('#villageView .panel');
+        if (!libraryContainer) return;
+        
+        // Update only the skill shop section
+        const shopContainer = libraryContainer.querySelector('div:nth-last-of-type(2)');
+        if (shopContainer) {
+            shopContainer.innerHTML = this.renderVillageSkillShop();
+        }
+    }
+
+    refreshCurrentBuildingUI() {
+        // Only refresh if we're in village view
+        if (this.state.view !== 'village') return;
+        
+        switch(this.state.villagePlace) {
+            case 'forge':
+                this.renderForgeUI();
+                break;
+            case 'market':
+                this.renderMarketUI();
+                break;
+            case 'library':
+                this.renderLibraryUI();
+                break;
+        }
+    }
+
     assignVillageQuest(villagerId) {
         const villager = VILLAGERS.find(v => v.id === villagerId);
         if (!villager) return;
 
-        const pool = this.state.unlockedMonsters.length > 0
-            ? this.state.unlockedMonsters
-            : this.monsters.filter(monster => monster.tier === 1).map(monster => ({ id: monster.id, name: monster.name, level: 1 }));
+        // Only use monsters the player has already unlocked/encountered
+        const pool = this.state.unlockedMonsters;
+        
+        // If no monsters are unlocked, do not generate a quest
+        if (pool.length === 0) {
+            this.addLog(`${villager.name} has no quests available right now.`);
+            return;
+        }
+        
         const target = pool[Math.floor(Math.random() * pool.length)];
-        const targetLevel = Math.max(1, (target.level || 1) + 1 + Math.floor(Math.random() * 5));
+        // Use the monster's actual current level from game state
+        const targetLevel = target.level || 1;
 
         this.state.activeVillageQuest = {
             villagerId,
@@ -1746,8 +1807,6 @@ class CandyBox3 {
         const hiddenAcademy = document.getElementById('academy-panel');
         if (hiddenArsenal) hiddenArsenal.style.display = 'none';
         if (hiddenAcademy) hiddenAcademy.style.display = 'none';
-        if (this.state.view === 'village') this.buildVillageUI();
-        if (this.state.view === 'museum') this.buildMuseumUI();
     }
 
     eatCandy() {
@@ -2346,7 +2405,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'village-place':
                 game.state.villagePlace = e.target.dataset.place;
-                game.updateView();
+                // NO full page reload when opening Forge/Library/Market
+                // Page will only reload when you actually click BUY/EQUIP/UP+ button
+                game.buildVillageUI();
                 break;
             case 'go-colosseum':
                 game.state.view = 'colosseum';
@@ -2440,24 +2501,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'buy-weapon':
                 game.buyWeapon(e.target.dataset.weaponId);
+                game.refreshCurrentBuildingUI();
                 break;
             case 'equip-weapon':
                 game.equipWeapon(e.target.dataset.weaponId);
+                game.refreshCurrentBuildingUI();
                 break;
             case 'buy-armor':
                 game.buyArmor(e.target.dataset.armorId);
+                game.refreshCurrentBuildingUI();
                 break;
             case 'equip-armor':
                 game.equipArmor(e.target.dataset.armorId);
+                game.refreshCurrentBuildingUI();
                 break;
             case 'learn-skill':
                 game.learnSkill(e.target.dataset.skillId);
+                game.refreshCurrentBuildingUI();
                 break;
             case 'upgrade-skill':
                 game.upgradeSkill(e.target.dataset.skillId);
+                game.refreshCurrentBuildingUI();
                 break;
             case 'upgrade-gear':
                 game.upgradeGear(e.target.dataset.gearId);
+                game.refreshCurrentBuildingUI();
                 break;
             case 'talk-villager':
                 game.assignVillageQuest(e.target.dataset.villagerId);
