@@ -890,6 +890,7 @@ class CandyBox3 {
     buildMapUI() {
         const map = document.getElementById('mapView');
         if (!map) return;
+        const _scrollY = window.scrollY;
 
         const forestLink = this.state.forestUnlocked
             ? '<span data-action="go-forest" class="clickable">Chocolate Forest</span>'
@@ -907,7 +908,7 @@ class CandyBox3 {
         map.innerHTML = `
             <div class="panel" style="position:relative;">
                 <h2>🗺️ World Map</h2>
-                <pre id="asciiMap" style="font-family: monospace; margin: 20px 0; text-align: center;">
+                <pre id="asciiMap" style="font-family: monospace; margin: 20px 0; text-align: center; max-width: 100%; overflow-x: auto;">
         ┌──────────────────────┐      ┌──────────────────────┐
         │                      │      │                      │
         │  <span data-action="go-main" class="clickable">🏭 Candy Factory</span>  │──────│   ${colosseumLink}   │
@@ -930,6 +931,7 @@ class CandyBox3 {
                 ${this.renderArtifactHotspots('map')}
             </div>
         `;
+        requestAnimationFrame(() => window.scrollTo(0, _scrollY));
     }
 
     buildMuseumUI() {
@@ -961,6 +963,7 @@ class CandyBox3 {
     buildVillageUI() {
         const village = document.getElementById('villageView');
         if (!village) return;
+        const _scrollY = window.scrollY;
 
         const place = this.state.villagePlace || 'square';
         const square = `
@@ -1200,6 +1203,7 @@ class CandyBox3 {
         if (logPanel) {
             logPanel.style.display = place === 'lookout' ? 'block' : 'none';
         }
+        requestAnimationFrame(() => window.scrollTo(0, _scrollY));
     }
 
     renderVillageWeaponShop() {

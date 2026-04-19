@@ -11,11 +11,13 @@ body {
     font-size: 13px;
     line-height: 1.5;
     padding: 10px;
+    overflow-x: hidden;
 }
 
 #container {
     max-width: 900px;
     margin: 0 auto;
+    overflow-x: hidden;
 }
 
 header {
@@ -305,20 +307,56 @@ footer {
 @media (max-width: 600px) {
     body {
         font-size: 12px;
+        padding: 5px;
+        overflow-x: hidden;
+    }
+
+    #container {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    #main {
+        gap: 8px;
     }
 
     header h1 {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     #action-buttons,
     #quick-actions {
         gap: 5px;
+        flex-wrap: wrap;
     }
 
     .action-btn {
         padding: 5px 8px;
         font-size: 11px;
+        min-width: 70px;
+    }
+
+    /* ASCII art: shrink font and allow horizontal scroll within the element only */
+    pre, #asciiMap {
+        font-size: 7px !important;
+        line-height: 1.1;
+        overflow-x: auto;
+        max-width: 100%;
+        white-space: pre;
+    }
+
+    /* Village square icon map */
+    div[style*="white-space: pre-wrap"][style*="font-size: 12px"] {
+        font-size: 9px !important;
+    }
+
+    .panel {
+        padding: 8px;
+    }
+
+    .panel h2, .panel h3 {
+        font-size: 12px;
     }
 }
 

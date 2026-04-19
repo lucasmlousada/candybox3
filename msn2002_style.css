@@ -414,10 +414,29 @@ body.time-warp [data-action="toggle-time-warp"] {
     animation: warp-pulse 2s ease-in-out infinite;
 }
 
-@keyframes
 @keyframes warp-pulse {
     0%, 100% { box-shadow: 0 0 4px #ffaa00; }
     50%       { box-shadow: 0 0 10px #ff6600, 0 0 20px #ffaa00; }
+}
+
+@media (max-width: 600px) {
+    body.time-warp pre,
+    body.time-warp #asciiMap {
+        font-size: 7px !important;
+        line-height: 1.1;
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    body.time-warp header::before,
+    body.time-warp header::after {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+
+    body.time-warp #container::before {
+        font-size: 9px;
+    }
 }
 
 /* ============================================================
