@@ -991,10 +991,6 @@ class CandyBox3 {
             <div class="panel" style="position:relative;">
                 <h2>🏛️ Town Hall</h2>
                 <div style="white-space: pre-wrap; font-family: monospace; margin: 15px 0; font-size: 12px;">
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
                                                  ....                                               
                                                   ..                                                
                                                  .%                                                 
@@ -1026,9 +1022,6 @@ class CandyBox3 {
        . ..%.    .... ..*::::*%%%%%%::::::#=-.%:++++=:..%=:::::::*%%#%%-::::-.... =#.  #..... :*    
          ..#. .  ..% .==*::::+:::::#:::==:%-#:::::::::::+.::=#:::%:::::%::::-==.  .#%..#+..: =*=*.  
                               .            ..                    .                        .-***. .  
-                                                                                          *=#.. .   
-                                                                                         .. .       
-                                                                                                    
 
                 </div>
                 <div>
