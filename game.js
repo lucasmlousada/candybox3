@@ -205,7 +205,10 @@ function getDefaultGameState() {
         // Colosseum buffs
         colosseumBuffs: {},
         pendingBuffChoice: null,  // Array of 3 choices when milestone reached
-        colosseumSessionPaid: false  // Whether chocolate was paid for current session
+        colosseumSessionPaid: false,  // Whether chocolate was paid for current session
+        laboratoryUnlocked: false,
+        darkModeEnabled: false,
+        villagerQuestCounts: {}
     };
 }
 
@@ -641,6 +644,7 @@ class CandyBox3 {
                 <div class="stat-row"><span class="stat-label">Lollipops:</span><span id="lollipop-count">0</span></div>
                 <div class="stat-row"><span class="stat-label">Attack:</span><span id="attack-value">5</span></div>
                 <div class="stat-row"><span class="stat-label">HP:</span><span id="hp-bar">[██████████]</span><span id="hp-current">10</span><span>/</span><span id="hp-max">10</span></div>
+                <div class="stat-row"><span class="stat-label">Active Quest:</span><span id="active-quest-display">none</span></div>
             </div>
             <div id="mainView">
                 <div id="actions-panel" class="panel" style="position:relative;"><div id="action-buttons"></div><div id="quick-actions"><button class="action-btn" data-action="eat">🍬 Eat Candy</button><button class="action-btn" data-action="go-map">🗺️ Map</button></div>${this.renderArtifactHotspots('main')}</div>
@@ -649,7 +653,7 @@ class CandyBox3 {
                 <div id="monster-select-panel" class="panel" style="display:none;"><div style="margin-bottom: 10px;"><strong>Face Known Monster:</strong></div><select id="monster-select"><option value="">-- Select Monster --</option></select><button class="action-btn" data-action="fight-selected" style="margin-left: 5px;">Fight</button></div>
                 <div id="upgrades-panel" class="panel"><h3>Upgrades</h3><div id="upgrades-list"></div></div>
                 <div id="inventory-panel" class="panel"><h3>Inventory</h3><div id="inventory-items">(empty)</div></div>
-                <div id="settings-panel" class="panel"><h3>Options</h3><button class="settings-btn" data-action="export-save">Export Save</button><button class="settings-btn" data-action="import-save">Import Save</button><button class="settings-btn" data-action="new-game">New Game</button></div>
+                <div id="settings-panel" class="panel"><h3>Options</h3><button class="settings-btn" data-action="export-save">Export Save</button><button class="settings-btn" data-action="import-save">Import Save</button><button class="settings-btn" data-action="new-game">New Game</button><div id="dark-mode-section" style="margin-top:10px;"></div></div>
             </div>
             <div id="mapView" style="display:none;"></div>
             <div id="forestView" style="display:none; position: relative; min-height: 400px;"></div>
@@ -957,30 +961,25 @@ class CandyBox3 {
         const village = document.getElementById('villageView');
         if (!village) return;
 
-        const quest = this.state.activeVillageQuest;
-        const questHtml = quest
-            ? `<div><strong>Active Quest:</strong> ${quest.targetMonsterName} at Lv ${quest.targetLevel} for ${quest.villagerName}</div>`
-            : '<div><strong>Active Quest:</strong> none</div>';
-
         const place = this.state.villagePlace || 'square';
         const square = `
             <div class="panel" style="position:relative;">
                 <h2>🏘️ Sweet Village</h2>
                 <div style="white-space: pre-wrap; font-family: monospace; margin: 20px 0; font-size: 12px;">
     [Town Hall]   [Forge]   [Lookout]
-       🏠           🏠         🏠
-
-          [Library]      [Market]
-             🏠             🏠
+       🏛️           🔥         🔭
+                                                                                                            [Laboratory]
+          [Library]      [Market]                                                                                🔬 
+             📚             🛒
                 </div>
-                <div style="margin: 15px 0;">${questHtml}</div>
                 <div style="margin: 15px 0;"><strong>Lollipops:</strong> ${this.state.lollipops}</div>
                 <div style="margin-top: 10px;">
                     <button class="action-btn" data-action="village-place" data-place="townhall">🏛️ Town Hall</button>
-                    <button class="action-btn" data-action="village-place" data-place="forge">🔥 Forge</button>
-                    <button class="action-btn" data-action="village-place" data-place="lookout">🔭 Lookout</button>
-                    <button class="action-btn" data-action="village-place" data-place="library">📚 Library</button>
-                    <button class="action-btn" data-action="village-place" data-place="market">🛒 Market</button>
+                    ${this.isBuildingUnlocked('forge') ? '<button class="action-btn" data-action="village-place" data-place="forge">🔥 Forge</button>' : '<button class="action-btn" disabled style="opacity:0.4;cursor:not-allowed;">🔥 Forge (locked)</button>'}
+                    ${this.isBuildingUnlocked('lookout') ? '<button class="action-btn" data-action="village-place" data-place="lookout">🔭 Lookout</button>' : '<button class="action-btn" disabled style="opacity:0.4;cursor:not-allowed;">🔭 Lookout (locked)</button>'}
+                    ${this.isBuildingUnlocked('library') ? '<button class="action-btn" data-action="village-place" data-place="library">📚 Library</button>' : '<button class="action-btn" disabled style="opacity:0.4;cursor:not-allowed;">📚 Library (locked)</button>'}
+                    ${this.isBuildingUnlocked('market') ? '<button class="action-btn" data-action="village-place" data-place="market">🛒 Market</button>' : '<button class="action-btn" disabled style="opacity:0.4;cursor:not-allowed;">🛒 Market (locked)</button>'}
+                    ${this.state.laboratoryUnlocked ? '<button class="action-btn" data-action="village-place" data-place="laboratory">🔬 Laboratory</button>' : ''}
                 </div>
                 <div style="margin-top: 20px;">
                     <button class="action-btn" data-action="go-map">🗺️ Back to Map</button>
@@ -992,14 +991,50 @@ class CandyBox3 {
             <div class="panel" style="position:relative;">
                 <h2>🏛️ Town Hall</h2>
                 <div style="white-space: pre-wrap; font-family: monospace; margin: 15px 0; font-size: 12px;">
-   _____________
-  |  TOWN HALL |
-  |  [ o  o ]  |
-  |  "Quests!" |
-  |____________|
+-------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------####-------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------*---------------------------------------------------------
+--------------------------------------------------------=*%--------------------------------------------------------
+--------------------------------------------------------%**#-------------------------------------------------------
+-------------------------------------------------------******------------------------------------------------------
+------------------------------------------------------******#*-----------------------------------------------------
+-----------------------------------------------------#********#----------------------------------------------------
+-----------------------------------------------------=========#----------------------------------------------------
+------------------------------------------------------=======-#----------------------------------------------------
+------------------------------------------------------=#---+=-#----------------------------------------------------
+------------------------------------------------------=#---*=-#----------------------------------------------------
+------------------------------------------------------=======-#----------------------------------------------------
+-----------------------------------------------------=========%----------------------------------------------------
+-------------------------------------%***************=========%####***********#------------------------------------
+-----------------------------------******************===-++-==%###***************----------------------------------
+---------------------------------***%%%#*************%-======-%##***********%%%%***--------------------------------
+-------------------------------*****%##-***********-%===%--+===*+***********=%#%*****------------------------------
+-----------------------------********************-=======*-======+-********************----------------------------
+---------------------------********************%%%%%############%%###********************--------------------------
+----------------------------###################==------------------==###################---------------------------
+------------------------=---=%###==%%%%*=%%%%*===-=#**%-%###-%###--==+#%%%%=#%%%%=+%%%%=---------------------------
+-------------------=--------=+--===*--===#---====--#%#%-%%%--+#%%--==++===#===-=#===-=#=----=----------------------
+-----------------------=----=+=%===*=#===#=*=====--=%=%-*==--+=+=--==++===#=====#===#=#====------------------------
+------------=--------=------=+*+*==**+*==#*+#====--=%=%-*==--+=+=--==+++-+#==+=*%==+++#=--=------------=-----------
+-------------------=--------=#****=#****=%*###===----%#*=%*%#-*#=--==+*+++#=*+++%=*+++#=---------------------------
+----------------------=-----====================###**@%#*%%%%+#%+***=+==================---------------------------
+-------------*--------=-----=====================----%---------*---==+==================---------------------------
+-------------*---------------+=%=--*=#=--#=*==-==----%-+=====--*---===+=-=#--===%--=+=%--+#------------------------
+-------------+-----------++--+=%=--*=#=--#=*=--==--#-%=%%%%%%=-*#--===+=-=*--===#-==+=%-+++------------------------
+---------==--+---=-=#*--++++#+=%=--*=#=--#=*=+%==----%=%=*+=*=-*---==%+=-=*--===%--=+=%+++++*---*------------------
+---------=-=-*------+*--#+++=====%-====*-===%++*=-+%%%=******=-%++-=++++==--=====-*====-++++----*%-----------=-----
+--------=-==-*-----=#*----*-======******%=========++-%=******=-*++-========#******======------%%=----+-------------
+-------------+-----#==---**%=====#%%%%%%%====**==-+==============*-==**====%%%%%%%*=====#**----#+----+------++*#---
+----------++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++=-+##+-----
+--------------------------------------------------------------------------------------------------------++#*=-+----
+-------------------------------------------------------------------------------------------------------+###--------
+-------------------------------------------------------------------------------------------------------------------
                 </div>
-                <div style="margin: 15px 0;">${questHtml}</div>
-                <div>${VILLAGERS.map(v => `<button class="action-btn" data-action="talk-villager" data-villager-id="${v.id}" style="margin-right:8px; margin-bottom:8px;">${v.emoji} ${v.name}</button>`).join('')}</div>
+                <div>
+                    ${VILLAGERS.filter(v => !this.isVillagerMoved(v.id)).map(v => `<button class="action-btn" data-action="talk-villager" data-villager-id="${v.id}" style="margin-right:8px; margin-bottom:8px;">${v.emoji} ${v.name}</button>`).join('')}
+                    ${!this.state.laboratoryUnlocked && this.state.candies >= 500000 ? `<button class="action-btn" data-action="hire-sweet-scientist" style="margin-right:8px; margin-bottom:8px;">🧑‍🔬 Sweet Scientist</button>` : ''}
+                </div>
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
                 ${this.renderArtifactHotspots('village-townhall')}
             </div>
@@ -1008,10 +1043,62 @@ class CandyBox3 {
             <div class="panel" style="position:relative;">
                 <h2>🔥 Forge</h2>
                 <pre style="font-family: monospace; margin: 15px 0;">  (====)
- [ Forge ]
-   \\o_o/
-   /|_|\\   "I sell and upgrade Weapons."</pre>
+                                                                ..........                          
+                                                                -####-==...                         
+                                                         .......:----##==..........                 
+                                                        ..:----------==:.:##*..%%%..                
+                                                       ..---------===..    ...%%%-.                 
+                                                     ...-----======-..     ..%%%:.                  
+                                                     ..###########*...+*=..  .....                  
+                                                     .-##########==.:******#:.                      
+                                                     ..-::::======+*********##...                   
+                                                      .::::::====#%%%******###:..                   
+                                                      ..:::::-==****%%%%%%%%%#.                     
+                                                      ..::::::*****-==+--***=#.                     
+                                                        .:::::************####..                    
+                                                        ..::::***********####==:..                  
+                                                         ..::-***********#####=---.                 
+                                                          ..:===#****########=-----.                
+                                                           .:==#=+########=#-::-----..              
+                                                          ..==#===========#:::::----.               
+                                                          ..=########%*==*:::::::---..              
+                                                          ..############-::::::::---.               
+                                                           .###############:::::---.                
+                                         +###%#-....      ..######*------=+###----:.                
+                             .......    .#########*.      ..####----------==###--..                 
+                             ...=...    .###%#####:.      .:#+-----------===*#+==.                  
+                                        .####%%%%#.   ....:-----------======#*===.                  
+                                       .:###%%#%##.....:----------======*##====#*..                 
+                   ..--:.....          .##########...*#--------=+############=====.                 
+                    ..++++++++=:........#########*. ...------=+##%####%#####===----.                
+                     ........-++++----.:::##+###%...=++....+################===-----..              
+                .::::::::::::::::::::-+=============+-:--:.=################+==-----:..             
+                 .:**********************************####..-#################==------..             
+             ....   .-**********-***************#######.. ..#################==--=**..              
+           ..-+=-.    ...:*************########+#####:.   ..##################*******..             
+           ..+--..       ..#%%#%###################+.     ..##################*******..             
+       ... ..##-.          .%%%%#################:.       ..###################*******.             
+       .*+*-=*#...          ....:%%%%#+%###%#%#...        ..###################*******..            
+       ....-*#=#++.             ......=%%%%.....           .###################********.            
+          .+-=.....                  .#%%%%.               .=###################*******:..          
+         ..++=.#-*..             .....%####%....            .###################********..          
+        ..-++.*---+=+:+++++++++++##############++++++++-.   .##############%#***********:.          
+        .:-=+*-------+*#*******************************#..  ..+********:......*****++****..         
+       ..-=-#------==--==#******************************..   .:********..    ..:**++++++*..         
+       .--*+------=-------+-#***************************..   ..+++****..       ..*++++++++.         
+      ..-=-+-----=-----------*=#************************+.    .++++**=.          ..+++++++..        
+      .--*#-----=------------*-#*************************...  .++++**.             .:++++++.        
+     ..---=----=------------=*#**************************.    .=++++..              ..+++++.        
+     .+=*-*---=-----------*=#****************************..   ..++++.                 ..++++..      
+     -++==*-------------*-##*****************************-.   ..+++..                  ...++..      
+     :++++-----------=+=##********************************.   ..++..                     ..++..     
+     .++:.**++++**=-*##***********************************......++.                       ..++..... 
+     .:...*#####*-..**************************************..-+++++.                        ..++++.. 
+                                                      ....                                          
+  
+                "I sell and upgrade Weapons."</pre>
                 <div>${this.renderVillageWeaponShop()}</div>
+                ${this.isVillagerMoved('smithPop') ? `<div style="margin: 10px 0;"><button class="action-btn" data-action="talk-villager" data-villager-id="smithPop" style="margin-right:8px;">🧑‍🏭 Smith Pop — Get Quest</button></div>` : ''}
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
                 ${this.renderArtifactHotspots('village-forge')}
             </div>
@@ -1024,6 +1111,7 @@ class CandyBox3 {
    \\^_^/
    /|_|\\   "I sell and upgrade Armors."</pre>
                 <div>${this.renderVillageArmorShop()}</div>
+                ${this.isVillagerMoved('elderMint') ? `<div style="margin: 10px 0;"><button class="action-btn" data-action="talk-villager" data-villager-id="elderMint" style="margin-right:8px;">🧓 Elder Mint — Get Quest</button></div>` : ''}
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
                 ${this.renderArtifactHotspots('village-market')}
             </div>
@@ -1036,6 +1124,7 @@ class CandyBox3 {
    /@_@\\
    /|_|\\   "I sell and upgrade Skills."</pre>
                 <div>${this.renderVillageSkillShop()}</div>
+                ${this.isVillagerMoved('sageFizz') ? `<div style="margin: 10px 0;"><button class="action-btn" data-action="talk-villager" data-villager-id="sageFizz" style="margin-right:8px;">🧙 Sage Fizz — Get Quest</button></div>` : ''}
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
                 ${this.renderArtifactHotspots('village-library')}
             </div>
@@ -1048,8 +1137,57 @@ class CandyBox3 {
   [____]
    \\o_o/  "I keep the log."</pre>
                 <div id="lookout-log-mount"></div>
+                ${this.isVillagerMoved('scoutGum') ? `<div style="margin: 10px 0;"><button class="action-btn" data-action="talk-villager" data-villager-id="scoutGum" style="margin-right:8px;">🧑‍🌾 Scout Gum — Get Quest</button></div>` : ''}
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
                 ${this.renderArtifactHotspots('village-lookout')}
+            </div>
+        `;
+
+        const laboratory = `
+            <div class="panel" style="position:relative;">
+                <h2>🔬 Laboratory</h2>
+                <pre style="font-family: monospace; margin: 15px 0;"> 
+****************+++++=============-----------------------------==============++++++++***********####
+**++++++**++*+++-+++============-----------------------------------============+++++++***+****=#####
+++++++++++++++++++++========--=-----------:-------:-------------------=========+=+++++++*********###
+++++++++++++++++++==========---------:-:---===+++++**-::---------------=========+=+++++++********###
++++++===================:--------------:-====::::::+*+*::::::--:----------========+++++++++*=******#
+++++===================------------:-:::--=::::::::::****::::::::----------=======+++++++:++*+*****#
++++=========-----====-----------*+++=::-=-..:::.::...:-***===+=+:::----------=======+++++++++******#
+++=======---------------------===+++*****:........:-::--***..:=+++=:------:---========++=++++**+***#
+++=======-----------------------::::+++*****+...::::.....*##...::***:-----------======++++++++******
++=======----------:::::----:-:--:::...:=+++***#=:.........*#*:::::**:::-:.---:---======-+++++++*****
++=======--------::::::.::::::::::::........+++***#.........###.:::##-:--:------=======+++++-++******
++========---------:::::::::::::::::...........++*****......###=:::##+----=-:--======++++=+++********
++++++=======---------:::::::::::::::............+++**-+#:::####:-##%=========--=++++=+++**********##
+**++++++++======-=--------::::::............ .. ...=+****.::###-##%%=++++++++++***********##########
+*******+*++++++======-------:::::..............  ....++***#:###+%%%++++++++++*****###########%%%%%%%
+####****+*+++++=======--+==-:.................    .....:++***#####:=+##===+++*+****#######%%%%%%%%%%
+####*+**++++++=======----***++++++.:++........+=.....:...++****#####%%%--====++++*****######%%%%%%*%
+##*****+++++-=======------+**###***************************##########::----=====+++++*****######%%%%
+*+****+++++=========-------::::##-.#######%###%#######%%%%%%%%#%%%::::::------=====+++++*****#######
+***++++++++===-====-:---.-::::==-.......:...............+%%%%%%%%%%#::----------=====++=+++******###
+***++++++++=====-=-----:::..:.===.:....::.........:..:####%:@@@:%%@%------------======++++++*******#
+*+++++++========--=---:-:::.:.==.......:::..........###%#=-%%%#::%%@---=:=-===-=======++++++++**+***
+*+++++=+=+=======----:-::...::===:......:::.....:.######::-##%+***#==================++++++++++*****
+*+++++++=========--------::::::==::...:..:--..***###.:::::###--=-========+=+=+++++++++++++++********
+*++++=++========-=-:-----:::::.:=+++:..++*******#......::+##--========+=+++++++++++++++++***********
++++++++==+-========------:-:-:::::-+++*+*****=-.......::**#----==:==+=+++++++++**+++**************##
+++++++++=+======-=----------:-::::::::::::::::=====:+++**::-----=====++++++++*****************######
++++++++++++=========------------:::::::::::::::::==+++::::::-----====+++++***********##*############
+*++++++++++++=========---------:--:::-::::::::::::::::::::::-----======+++*********#################
+*.**+++++++++++=======-------------:::::::::::::::::::::::--------:======+*******#######%%%%%%%%%%%%
+
+            </pre>
+                <div style="margin: 15px 0;">
+                    <p>🧑‍🔬 <strong>Sweet Scientist</strong> says:</p>
+                    <p style="margin: 10px 0; font-style: italic;">"Thanks to you, we can harvest the power of the sun."</p>
+                    ${this.state.darkModeEnabled
+                        ? `<button class="action-btn" data-action="lab-light-mode">☀️ Stop this madness</button>`
+                        : `<button class="action-btn" data-action="lab-dark-mode">🌙 Harvest power of the sun</button>`
+                    }
+                </div>
+                <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
             </div>
         `;
 
@@ -1059,7 +1197,8 @@ class CandyBox3 {
             forge,
             market,
             library,
-            lookout
+            lookout,
+            laboratory
         })[place] || square;
 
         const logPanel = document.getElementById('log-panel');
@@ -1122,55 +1261,26 @@ class CandyBox3 {
         }).join('');
     }
 
-    // Building specific render functions - only refresh current view
-    renderForgeUI() {
-        const forgeContainer = document.querySelector('#villageView .panel');
-        if (!forgeContainer) return;
-        
-        // Update only the weapon shop section
-        const shopContainer = forgeContainer.querySelector('div:nth-last-of-type(2)');
-        if (shopContainer) {
-            shopContainer.innerHTML = this.renderVillageWeaponShop();
-        }
-    }
-
-    renderMarketUI() {
-        const marketContainer = document.querySelector('#villageView .panel');
-        if (!marketContainer) return;
-        
-        // Update only the armor shop section
-        const shopContainer = marketContainer.querySelector('div:nth-last-of-type(2)');
-        if (shopContainer) {
-            shopContainer.innerHTML = this.renderVillageArmorShop();
-        }
-    }
-
-    renderLibraryUI() {
-        const libraryContainer = document.querySelector('#villageView .panel');
-        if (!libraryContainer) return;
-        
-        // Update only the skill shop section
-        const shopContainer = libraryContainer.querySelector('div:nth-last-of-type(2)');
-        if (shopContainer) {
-            shopContainer.innerHTML = this.renderVillageSkillShop();
-        }
-    }
-
     refreshCurrentBuildingUI() {
-        // Only refresh if we're in village view
         if (this.state.view !== 'village') return;
-        
-        switch(this.state.villagePlace) {
-            case 'forge':
-                this.renderForgeUI();
-                break;
-            case 'market':
-                this.renderMarketUI();
-                break;
-            case 'library':
-                this.renderLibraryUI();
-                break;
-        }
+        this.buildVillageUI();
+    }
+
+    isVillagerMoved(villagerId) {
+        return (this.state.villagerQuestCounts?.[villagerId] || 0) >= 3;
+    }
+
+    isBuildingUnlocked(place) {
+        if (place === 'laboratory') return !!this.state.laboratoryUnlocked;
+        const buildingMap = {
+            forge:   'smithPop',
+            lookout: 'scoutGum',
+            library: 'sageFizz',
+            market:  'elderMint'
+        };
+        const vid = buildingMap[place];
+        if (!vid) return true; // townhall and square always unlocked
+        return this.isVillagerMoved(vid);
     }
 
     assignVillageQuest(villagerId) {
@@ -1211,6 +1321,27 @@ class CandyBox3 {
 
         this.state.lollipops += 1;
         this.addLog(`🍭 Quest complete for ${quest.villagerName}. You gain 1 lollipop.`);
+
+        // Track quest count per villager
+        const vid = quest.villagerId;
+        this.state.villagerQuestCounts = this.state.villagerQuestCounts || {};
+        this.state.villagerQuestCounts[vid] = (this.state.villagerQuestCounts[vid] || 0) + 1;
+
+        // Check if villager just moved (exactly hit 3)
+        if (this.state.villagerQuestCounts[vid] === 3) {
+            const moveMap = {
+                elderMint:  { place: 'market',  label: 'Market 🛒' },
+                smithPop:   { place: 'forge',   label: 'Forge 🔥' },
+                scoutGum:   { place: 'lookout', label: 'Lookout 🔭' },
+                sageFizz:   { place: 'library', label: 'Library 📚' }
+            };
+            const dest = moveMap[vid];
+            if (dest) {
+                const villager = VILLAGERS.find(v => v.id === vid);
+                this.addLog(`${villager ? villager.emoji + ' ' + villager.name : vid} has moved to the ${dest.label}!`);
+            }
+        }
+
         this.state.activeVillageQuest = null;
     }
 
@@ -1383,11 +1514,11 @@ class CandyBox3 {
                     <button class="action-btn" data-action="start-colosseum">▶️ Start</button>
                     <button class="action-btn" data-action="stop-colosseum" style="margin-left: 5px;">⏹️ Stop</button>
                 </div>
-                <div id="buffChoices" style="margin: 20px 0; padding: 15px; border: 2px solid #ffd700; background: #f5f5f5; display: none; border-radius: 5px;">
+                <div id="buffChoices" style="margin: 20px 0; padding: 15px; border: 2px solid #ffd700; display: none; border-radius: 5px;">
                     <strong style="display: block; margin-bottom: 10px;">⭐ Reward Unlocked - Choose One:</strong>
                     <div id="buffChoiceButtons"></div>
                 </div>
-                <div id="colosseum-buffs-display" style="margin: 20px 0; border: 1px solid #ccc; padding: 10px; background: #f5f5f5;">
+                <div id="colosseum-buffs-display" style="margin: 20px 0; border: 1px solid #ccc; padding: 10px;">
                     <strong>Active Buffs:</strong>
                     <div id="colosseum-buffs-list" style="margin-top: 8px; font-size: 12px;">
                         (none active)
@@ -1545,13 +1676,16 @@ class CandyBox3 {
         this.doSave();
     }
 
-    stopColosseumCombat() {
-        if (this.state.colosseumRunning) {
-            this.state.colosseumRunning = false;
-            if (this.colosseumInterval) clearInterval(this.colosseumInterval);
-            this.addLog(`⏹️ Stopped at ${this.state.colosseumCurrentTime.toFixed(1)}s`);
-        }
+stopColosseumCombat() {
+    if (this.state.colosseumRunning) {
+        this.state.colosseumRunning = false;
+        if (this.colosseumInterval) clearInterval(this.colosseumInterval);
+        this.addLog(`⏹️ Stopped at ${this.state.colosseumCurrentTime.toFixed(1)}s`);
+        this.state.colosseumCurrentTime = 0;
+        this.state.colosseumSurvivalTime = 0;
+        this.updateColosseumUI();
     }
+}
 
     updateColosseumUI() {
         if (!this.state.inColosseum || !this.state.enemy) return;
@@ -1834,6 +1968,13 @@ class CandyBox3 {
         const hiddenAcademy = document.getElementById('academy-panel');
         if (hiddenArsenal) hiddenArsenal.style.display = 'none';
         if (hiddenAcademy) hiddenAcademy.style.display = 'none';
+
+        // Always show active quest in status panel
+        const questEl = document.getElementById('active-quest-display');
+        if (questEl) {
+            const q = this.state.activeVillageQuest;
+            questEl.textContent = q ? `${q.targetMonsterName} Lv${q.targetLevel} for ${q.villagerName}` : 'none';
+        }
     }
 
     eatCandy() {
@@ -2338,6 +2479,13 @@ document.addEventListener('DOMContentLoaded', () => {
     game.state.artifactsFound = game.state.artifactsFound || {};
     game.state.museumUnlocked = game.state.museumUnlocked || Object.keys(game.state.artifactsFound).length > 0;
     game.state.combatFlags = game.state.combatFlags || getDefaultGameState().combatFlags;
+    game.state.laboratoryUnlocked = game.state.laboratoryUnlocked || game.state.darkModeUnlocked || false;
+    game.state.darkModeEnabled = game.state.darkModeEnabled || false;
+
+    if (game.state.darkModeEnabled) {
+        document.body.classList.add('dark-mode');
+    }
+    game.state.villagerQuestCounts = game.state.villagerQuestCounts || {};
 
     // Migrate old buff format to new level-based format
     if (game.state.colosseumBuffs && Object.keys(game.state.colosseumBuffs).length > 0) {
@@ -2430,12 +2578,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.state.view = 'museum';
                 game.updateView();
                 break;
-            case 'village-place':
-                game.state.villagePlace = e.target.dataset.place;
+            case 'village-place': {
+                const place = e.target.dataset.place;
+                if (!game.isBuildingUnlocked(place)) return;
+                game.state.villagePlace = place;
                 // NO full page reload when opening Forge/Library/Market
                 // Page will only reload when you actually click BUY/EQUIP/UP+ button
                 game.buildVillageUI();
                 break;
+            }
             case 'go-colosseum':
                 game.state.view = 'colosseum';
                 game.state.colosseumRunning = false;
@@ -2562,6 +2713,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'talk-villager':
                 game.assignVillageQuest(e.target.dataset.villagerId);
+                break;
+            case 'hire-sweet-scientist':
+                if (!game.state.laboratoryUnlocked && game.state.candies >= 500000) {
+                    game.state.candies -= 500000;
+                    game.state.laboratoryUnlocked = true;
+                    game.state.darkModeEnabled = true;
+                    document.body.classList.add('dark-mode');
+                    game.state.view = 'village';
+                    game.state.villagePlace = 'laboratory';
+                    game.addLog('🧑‍🔬 Sweet Scientist has built the Laboratory! Dark Mode activated.');
+                    game.updateView();
+                    game.updateUI();
+                    game.doSave();
+                }
+                break;
+            case 'lab-light-mode':
+                if (game.state.laboratoryUnlocked) {
+                    game.state.darkModeEnabled = false;
+                    document.body.classList.remove('dark-mode');
+                    game.state.villagePlace = 'laboratory';
+                    game.buildVillageUI();
+                    game.doSave();
+                }
+                break;
+            case 'lab-dark-mode':
+                if (game.state.laboratoryUnlocked) {
+                    game.state.darkModeEnabled = true;
+                    document.body.classList.add('dark-mode');
+                    game.state.villagePlace = 'laboratory';
+                    game.buildVillageUI();
+                    game.doSave();
+                }
                 break;
             case 'find-artifact':
                 game.findArtifact(e.target.dataset.artifactId);

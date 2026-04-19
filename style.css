@@ -321,3 +321,88 @@ footer {
         font-size: 11px;
     }
 }
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+body.dark-mode .panel {
+    background-color: #111111;
+    border-color: #ffffff;
+}
+
+body.dark-mode #status-panel {
+    background-color: #111111;
+    border-color: #ffffff;
+}
+
+body.dark-mode .action-btn,
+body.dark-mode .settings-btn,
+body.dark-mode .upgrade-btn {
+    background-color: #111111;
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+body.dark-mode .action-btn:hover,
+body.dark-mode .settings-btn:hover,
+body.dark-mode .upgrade-btn:hover:not(:disabled) {
+    background-color: #222222;
+}
+
+body.dark-mode .upgrade-item {
+    border-left-color: #ffffff;
+}
+
+body.dark-mode .upgrade-cost {
+    color: #cccccc;
+}
+
+body.dark-mode .clickable {
+    color: #ffffff;
+}
+
+body.dark-mode .clickable:hover {
+    color: #ffff66;
+    background-color: #333300;
+}
+
+body.dark-mode .locked {
+    color: #666666;
+}
+
+body.dark-mode #monster-select-panel select {
+    background-color: #111111;
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: #222222;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: #ffffff;
+}
+
+body.dark-mode header {
+    border-bottom-color: #ffffff;
+}
+
+body.dark-mode footer {
+    border-top-color: #ffffff;
+    color: #999999;
+}
+
+body.dark-mode #buffChoices {
+    background: #111111;
+    border-color: #ffd700;
+    color: #ffffff;
+}
+
+body.dark-mode #colosseum-buffs-display {
+    background: #111111;
+    border-color: #ffffff;
+}
