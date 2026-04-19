@@ -208,6 +208,7 @@ function getDefaultGameState() {
         colosseumSessionPaid: false,  // Whether chocolate was paid for current session
         laboratoryUnlocked: false,
         darkModeEnabled: false,
+        timeWarpEnabled: false,
         villagerQuestCounts: {}
     };
 }
@@ -990,7 +991,7 @@ class CandyBox3 {
         const townHall = `
             <div class="panel" style="position:relative;">
                 <h2>🏛️ Town Hall</h2>
-                <div style="white-space: pre-wrap; font-family: monospace; margin: 15px 0; font-size: 12px;">
+                <pre style="font-family: monospace; margin: 15px 0;"> 
                                                  ....                                               
                                                   ..                                                
                                                  .%                                                 
@@ -1022,9 +1023,8 @@ class CandyBox3 {
        . ..%.    .... ..*::::*%%%%%%::::::#=-.%:++++=:..%=:::::::*%%#%%-::::-.... =#.  #..... :*    
          ..#. .  ..% .==*::::+:::::#:::==:%-#:::::::::::+.::=#:::%:::::%::::-==.  .#%..#+..: =*=*.  
                               .            ..                    .                        .-***. .  
-
-                </div>
-                <div>
+                </pre>
+            <div style="margin: 15px 0;">
                     ${VILLAGERS.filter(v => !this.isVillagerMoved(v.id)).map(v => `<button class="action-btn" data-action="talk-villager" data-villager-id="${v.id}" style="margin-right:8px; margin-bottom:8px;">${v.emoji} ${v.name}</button>`).join('')}
                     ${!this.state.laboratoryUnlocked && this.state.candies >= 500000 ? `<button class="action-btn" data-action="hire-sweet-scientist" style="margin-right:8px; margin-bottom:8px;">🧑‍🔬 Sweet Scientist</button>` : ''}
                 </div>
@@ -1035,7 +1035,7 @@ class CandyBox3 {
         const forge = `
             <div class="panel" style="position:relative;">
                 <h2>🔥 Forge</h2>
-                <pre style="font-family: monospace; margin: 15px 0;">  (====)
+                <pre style="font-family: monospace; margin: 15px 0;">
                                                                 ..........                          
                                                                 -####-==...                         
                                                          .......:----##==..........                 
@@ -1087,8 +1087,6 @@ class CandyBox3 {
      :++++-----------=+=##********************************.   ..++..                     ..++..     
      .++:.**++++**=-*##***********************************......++.                       ..++..... 
      .:...*#####*-..**************************************..-+++++.                        ..++++.. 
-                                                      ....                                          
-  
                 "I sell and upgrade Weapons."</pre>
                 <div>${this.renderVillageWeaponShop()}</div>
                 ${this.isVillagerMoved('smithPop') ? `<div style="margin: 10px 0;"><button class="action-btn" data-action="talk-villager" data-villager-id="smithPop" style="margin-right:8px;">🧑‍🏭 Smith Pop — Get Quest</button></div>` : ''}
@@ -1170,14 +1168,18 @@ class CandyBox3 {
 +++++++++++=========------------:::::::::::::::::==+++::::::-----====+++++***********##*############
 *++++++++++++=========---------:--:::-::::::::::::::::::::::-----======+++*********#################
 *.**+++++++++++=======-------------:::::::::::::::::::::::--------:======+*******#######%%%%%%%%%%%%
-
-            </pre>
+                </pre>
                 <div style="margin: 15px 0;">
                     <p>🧑‍🔬 <strong>Sweet Scientist</strong> says:</p>
                     <p style="margin: 10px 0; font-style: italic;">"Thanks to you, we can harvest the power of the sun."</p>
                     ${this.state.darkModeEnabled
                         ? `<button class="action-btn" data-action="lab-light-mode">☀️ Stop this madness</button>`
                         : `<button class="action-btn" data-action="lab-dark-mode">🌙 Harvest power of the sun</button>`
+                    }
+                    <br><br>
+                    ${this.state.timeWarpEnabled
+                        ? `<button class="action-btn" data-action="toggle-time-warp" style="margin-top:8px;">🕰️ Return to Present</button>`
+                        : `<button class="action-btn" data-action="toggle-time-warp" style="margin-top:8px;">⏳ Time Warp</button>`
                     }
                 </div>
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
@@ -2474,9 +2476,13 @@ document.addEventListener('DOMContentLoaded', () => {
     game.state.combatFlags = game.state.combatFlags || getDefaultGameState().combatFlags;
     game.state.laboratoryUnlocked = game.state.laboratoryUnlocked || game.state.darkModeUnlocked || false;
     game.state.darkModeEnabled = game.state.darkModeEnabled || false;
+    game.state.timeWarpEnabled = game.state.timeWarpEnabled || false;
 
     if (game.state.darkModeEnabled) {
         document.body.classList.add('dark-mode');
+    }
+    if (game.state.timeWarpEnabled) {
+        document.body.classList.add('time-warp');
     }
     game.state.villagerQuestCounts = game.state.villagerQuestCounts || {};
 
@@ -2734,6 +2740,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (game.state.laboratoryUnlocked) {
                     game.state.darkModeEnabled = true;
                     document.body.classList.add('dark-mode');
+                    game.state.villagePlace = 'laboratory';
+                    game.buildVillageUI();
+                    game.doSave();
+                }
+                break;
+            case 'toggle-time-warp':
+                if (game.state.laboratoryUnlocked) {
+                    game.state.timeWarpEnabled = !game.state.timeWarpEnabled;
+                    if (game.state.timeWarpEnabled) {
+                        document.body.classList.add('time-warp');
+                        game.addLog('⏳ Time Warp activated! Welcome to the internet, circa 2002.');
+                    } else {
+                        document.body.classList.remove('time-warp');
+                        game.addLog('🕰️ Returned to the present.');
+                    }
                     game.state.villagePlace = 'laboratory';
                     game.buildVillageUI();
                     game.doSave();
