@@ -209,6 +209,8 @@ function getDefaultGameState() {
         laboratoryUnlocked: false,
         darkModeEnabled: false,
         timeWarpEnabled: false,
+        timeWarpUnlocked: false,
+        darkModeCandies: 0,
         villagerQuestCounts: {}
     };
 }
@@ -221,6 +223,8 @@ const COLOSSEUM_BUFFS = [
     { time: 45, id: "hpBoost", label: "Fortitude", effect: "maxHp" },
     { time: 60, id: "megaBoost", label: "Candy Overload", effect: "all" }
 ];
+
+let DARK_ENERGY_REQUIRED = 1000000;
 
 // Available buff pool for choices
 const BUFF_POOL = [
@@ -324,6 +328,53 @@ class CandyBox3 {
         this.lastUpdate = Date.now();
         this.monsters = MONSTERS;
         this.colosseumInterval = null; // Track colosseum combat interval
+        this.uiInterval = null;
+    }
+
+    updateDarkEnergyBar() {
+        const value = Math.floor(this.state.darkModeCandies);
+        const max = DARK_ENERGY_REQUIRED;
+
+        const percent = Math.min(100, (value / max) * 100);
+
+        const fill = document.getElementById("dark-energy-fill");
+        const text = document.getElementById("dark-energy-text");
+        
+        if (fill) fill.style.width = percent + "%";
+        if (text) text.textContent = `${value.toLocaleString()} / ${max.toLocaleString()}`;
+    }
+
+    addDarkEnergy(amount) {
+        this.state.darkModeCandies += amount;
+        this.updateDarkEnergyBar();
+    }
+
+    updateCandyBar() {
+        const countEl = document.getElementById("candy-count");
+        const rateEl = document.getElementById("candy-rate");
+        
+        if (countEl) countEl.textContent = Math.floor(this.state.candies);
+        if (rateEl) rateEl.textContent = this.state.candyRate.toFixed(1);
+    }
+
+    updateHpBar() {
+        const barEl = document.getElementById("hp-bar");
+        const currentEl = document.getElementById("hp-current");
+        const maxEl = document.getElementById("hp-max");
+        
+        const maxHp = this.getEffectiveMaxHp();
+        const percent = Math.min(100, Math.max(0, (this.state.hp / maxHp) * 100));
+        const filled = Math.ceil(percent / 10);
+        const bar = "[" + "█".repeat(filled) + "░".repeat(10 - filled) + "]";
+        
+        if (barEl) barEl.textContent = bar;
+        if (currentEl) currentEl.textContent = Math.floor(this.state.hp);
+        if (maxEl) maxEl.textContent = Math.floor(maxHp);
+    }
+
+    addCandies(amount) {
+        this.state.candies += amount;
+        this.updateCandyBar();
     }
 
     getWeaponDef(id = this.state.equippedWeapon) {
@@ -346,6 +397,8 @@ class CandyBox3 {
         this.state.museumUnlocked = this.state.museumUnlocked || Object.keys(this.state.artifactsFound).length > 0;
         this.state.colosseumTimeBySpeed = this.state.colosseumTimeBySpeed || { 1: 0 };
         this.state.combatFlags = { ...defaults.combatFlags, ...(this.state.combatFlags || {}) };
+        this.state.timeWarpUnlocked = this.state.timeWarpUnlocked || false;
+        this.state.darkModeCandies = this.state.darkModeCandies || 0;
     }
 
     getArmorDef(id = this.state.equippedArmor) {
@@ -1174,16 +1227,46 @@ class CandyBox3 {
                 </pre>
                 <div style="margin: 15px 0;">
                     <p>🧑‍🔬 <strong>Sweet Scientist</strong> says:</p>
-                    <p style="margin: 10px 0; font-style: italic;">"Thanks to you, we can harvest the power of the sun."</p>
+                    ${(() => {
+                        if (this.state.timeWarpUnlocked) {
+                            return `<p style="margin: 10px 0; font-style: italic;">"Eureka!"</p>`;
+                        } else if (this.state.darkModeCandies >= 1000000) {
+                            return `<p style="margin: 10px 0; font-style: italic;">"We have enough Dark Energy, I need candies to finish my latest invention"</p>`;
+                        } else {
+                            return `<p style="margin: 10px 0; font-style: italic;">"We need more Dark Energy..."</p>`;
+                        }
+                    })()}
+                    
+                    ${this.state.darkModeEnabled ? `
+                    <div style="margin: 10px 0;">
+                        <div style="height: 20px; border: 1px solid #ccc; width: 100%; background: #222;">
+                            <div id="dark-energy-fill" style="height: 100%; background: #800080; width: 0%"></div>
+                        </div>
+                        <div id="dark-energy-text" style="font-size: 12px; margin-top: 4px;">0 / 1,000,000 Dark Energy</div>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="margin: 10px 0;">
                     ${this.state.darkModeEnabled
                         ? `<button class="action-btn" data-action="lab-light-mode">☀️ Stop this madness</button>`
                         : `<button class="action-btn" data-action="lab-dark-mode">🌙 Harvest power of the sun</button>`
                     }
-                    <br><br>
+                    </div>
+                    
+                    ${(this.state.darkModeCandies >= 1000000 && !this.state.timeWarpUnlocked) ? `
+                    <div style="margin: 10px 0;">
+                        <button class="action-btn" data-action="help-scientist">Help the Scientist</button>
+                    </div>
+                    ` : ''}
+                    
+                    ${this.state.timeWarpUnlocked ? `
+                    <div style="margin-top:8px;">
                     ${this.state.timeWarpEnabled
-                        ? `<button class="action-btn" data-action="toggle-time-warp" style="margin-top:8px;">🕰️ Return to Present</button>`
-                        : `<button class="action-btn" data-action="toggle-time-warp" style="margin-top:8px;">⏳ Time Warp</button>`
+                        ? `<button class="action-btn" data-action="toggle-time-warp">🕰️ Return to Present</button>`
+                        : `<button class="action-btn" data-action="toggle-time-warp">⏳ Time Warp</button>`
                     }
+                    </div>
+                    ` : ''}
                 </div>
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
             </div>
@@ -1352,6 +1435,9 @@ class CandyBox3 {
 
         const reward = Math.max(1, Math.floor(baseReward * multiplier));
         this.state.candies += reward;
+        if (this.state.darkModeEnabled) {
+            this.addDarkEnergy(reward);
+        }
 
         const healRatio = this.getHealOnKillRatio();
         if (healRatio > 0) {
@@ -1809,7 +1895,11 @@ stopColosseumCombat() {
         const buffs = applyColosseumBuffs(this.state);
 
         // Candy generation with buff multiplier
-        this.state.candies += (this.state.candyRate + this.getArtifactBonusTotal('candyRate')) * buffs.candyMultiplier * deltaTime;
+        const candyGained = (this.state.candyRate + this.getArtifactBonusTotal('candyRate')) * buffs.candyMultiplier * deltaTime;
+        this.state.candies += candyGained;
+        if (this.state.darkModeEnabled) {
+            this.addDarkEnergy(candyGained);
+        }
         this.state.chocolate += (this.state.chocolateRate + this.getArtifactBonusTotal('chocolateRate')) * (deltaTime / 3600); // per hour
         this.state.lollipops += this.getArtifactBonusTotal('lollipopRate') * deltaTime;
 
@@ -2041,22 +2131,31 @@ stopColosseumCombat() {
         if (this.state.inCombat || this.state.hp <= 0) return;
         const roll = Math.random() * 100;
         if (roll < 50) {
-            const g = 1 + Math.floor(Math.random() * 5);
-            this.state.candies += g;
-            this.addLog(`Found ${g} candies`);
+        const g = 1 + Math.floor(Math.random() * 5);
+        this.state.candies += g;
+        if (this.state.darkModeEnabled) {
+            this.addDarkEnergy(g);
+        }
+        this.addLog(`Found ${g} candies`);
         } else if (roll < 85) {
             this.spawnRandomMonster();
             this.updateUI();
             this.doSave();
             return;
         } else if (roll < 95) {
-            const g = 100 + Math.floor(Math.random() * 101);
-            this.state.candies += g;
-            this.addLog(`Lucky! Found ${g}`);
+        const g = 100 + Math.floor(Math.random() * 101);
+        this.state.candies += g;
+        if (this.state.darkModeEnabled) {
+            this.addDarkEnergy(g);
+        }
+        this.addLog(`Lucky! Found ${g}`);
         } else {
-            const g = 1000 + Math.floor(Math.random() * 1001);
-            this.state.candies += g;
-            this.addLog(`JACKPOT! Found ${g}`);
+        const g = 1000 + Math.floor(Math.random() * 1001);
+        this.state.candies += g;
+        if (this.state.darkModeEnabled) {
+            this.addDarkEnergy(g);
+        }
+        this.addLog(`JACKPOT! Found ${g}`);
         }
         this.updateUI();
         this.doSave();
@@ -2505,9 +2604,18 @@ document.addEventListener('DOMContentLoaded', () => {
     game.checkColosseumUnlock(); // Check if colosseum should be unlocked
     game.checkSweetVillageUnlock();
 
+    // Stable UI update interval - only update changing values without full re-render
     setInterval(() => {
         game.tick();
-        game.updateUI();
+        game.updateCandyBar();
+        game.updateHpBar();
+        
+        if (game.state.darkModeEnabled) {
+            game.updateDarkEnergyBar();
+        }
+        
+        // Only run full updateUI() when necessary (state changes that need UI layout changes)
+        // Dynamic values are updated directly via targeted functions for performance
     }, 100);
 
     setInterval(() => {
@@ -2762,6 +2870,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     game.state.villagePlace = 'laboratory';
                     game.buildVillageUI();
                     game.doSave();
+                }
+                break;
+            case 'help-scientist':
+                if (game.state.darkModeCandies >= DARK_ENERGY_REQUIRED && !game.state.timeWarpUnlocked) {
+                    if (game.state.candies >= 1000000) {
+                        game.state.candies -= 1000000;
+                        game.state.timeWarpUnlocked = true;
+                        // Increase Dark Energy cap to 10 million after Time Warp unlock
+                        DARK_ENERGY_REQUIRED = 10000000;
+                        game.state.villagePlace = 'laboratory';
+                        game.buildVillageUI();
+                        game.updateDarkEnergyBar();
+                        game.addLog('🧑‍🔬 Eureka! Time Warp is now available!');
+                        game.addLog('⚠️ Dark Energy capacity increased to 10,000,000!');
+                        game.updateUI();
+                        game.doSave();
+                    } else {
+                        const messages = [
+                            "Where are all the candies? We need more candies!",
+                            "Stop wasting my candies, I need those candies to finish my project",
+                            "That won't do, we need more candies"
+                        ];
+                        game.addLog(`🧑‍🔬 "${messages[Math.floor(Math.random() * messages.length)]}"`);
+                    }
                 }
                 break;
             case 'find-artifact':
