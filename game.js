@@ -226,6 +226,24 @@ const COLOSSEUM_BUFFS = [
 
 let DARK_ENERGY_REQUIRED = 1000000;
 
+function updateDarkEnergyBar() {
+    const value = Math.floor(player.darkEnergyCandies);
+    const max = DARK_ENERGY_REQUIRED;
+
+    const percent = Math.min(100, (value / max) * 100);
+
+    const fill = document.getElementById("dark-energy-fill");
+    const text = document.getElementById("dark-energy-text");
+    
+    if (fill) fill.style.width = percent + "%";
+    if (text) text.textContent = `${value} / ${max}`;
+}
+
+function addDarkEnergy(amount) {
+    player.darkEnergyCandies += amount;
+    updateDarkEnergyBar();
+}
+
 // Available buff pool for choices
 const BUFF_POOL = [
     { id: "candyBoost", label: "Sugar Rush", effect: "candyRate" },
@@ -2592,6 +2610,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Migrate old buff format to new level-based format
     if (game.state.colosseumBuffs && Object.keys(game.state.colosseumBuffs).length > 0) {
         game.state.colosseumBuffs = migrateBuffsToLevels(game.state.colosseumBuffs);
+    }
+
+    // Auto-upgrade Dark Energy cap for players who already unlocked Time Warp
+    if (game.state.timeWarpUnlocked) {
+        DARK_ENERGY_REQUIRED = 10000000;
     }
 
     game.buildUI();
