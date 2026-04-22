@@ -1610,7 +1610,7 @@ class CandyBox3 {
                     </div>
                 </div>
                 <div style="text-align: center; margin: 20px 0;">
-                    <button class="action-btn" data-action="go-main">Exit Colosseum</button>
+                    <button class="action-btn" data-action="go-map">🗺️ Exit Colosseum</button>
                 </div>
                 ${this.renderArtifactHotspots('colosseum')}
             </div>
