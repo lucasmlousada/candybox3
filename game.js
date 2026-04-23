@@ -268,8 +268,18 @@ class CandyBox3 {
         const countEl = document.getElementById("candy-count");
         const rateEl = document.getElementById("candy-rate");
         
+        const baseCPS = this.state.candyRate;
+        const effectiveCPS = this.getEffectiveCPS();
+        const bonus = effectiveCPS - baseCPS;
+        
         if (countEl) countEl.textContent = Math.floor(this.state.candies);
-        if (rateEl) rateEl.textContent = this.state.candyRate.toFixed(1);
+        if (rateEl) {
+            if (bonus > 0) {
+                rateEl.textContent = `${effectiveCPS.toFixed(1)} (+${bonus.toFixed(1)})`;
+            } else {
+                rateEl.textContent = effectiveCPS.toFixed(1);
+            }
+        }
     }
 
     updateHpBar() {
@@ -456,6 +466,12 @@ class CandyBox3 {
     getHealOnKillRatio() {
         const armor = this.getArmorDef();
         return armor ? this.getScaledValue(armor, 'healOnKill') : 0;
+    }
+
+    getEffectiveCPS() {
+        const baseCPS = this.state.candyRate;
+        const artifactFlatBonus = this.getArtifactBonusTotal('candyRate');
+        return baseCPS + artifactFlatBonus;
     }
 
     getColosseumTickMs(speed = this.state.colosseumSpeed) {
@@ -957,8 +973,6 @@ class CandyBox3 {
             <div class="panel" style="position:relative;">
                 <h2>🏛️ Town Hall</h2>
                 <pre style="font-family: monospace; margin: 15px 0;"> 
-                                                 ....                                               
-                                                  ..                                                
                                                  .%                                                 
                                                 .%+-                                                
                                                 *++%.                                               
@@ -982,12 +996,6 @@ class CandyBox3 {
            .     .      +:..::*.:.+:....::%.%.%#:*.+=.%=#.::-....:=...::...%-.    .   ...           
            ..     ..  : ::::::::::::::::::.................:-::::::::::::::::. ..   ....+           
        ....:. .   .   . +%###..###..###%.:#...%.*:::.. ...:::####.=###..###.:..   .   ........      
-          .-         .-+++##%..*.*..#%*:.:%*..%::::::....:::::##...#@#..#:#.#-- ..  ....     .      
-       :.. -.     = .----+:=*:::.:::=*:=::%+*.%:::=:+: :#:::--::.:::%::::-::----. ..  .      .      
-        ..:-  .  %=  ---@::::.-.::-.:::--*##-+%-+++++:.%-=:=--:::.=:::..:::%----...-. .    ..       
-       . ..%.    .... ..*::::*%%%%%%::::::#=-.%:++++=:..%=:::::::*%%#%%-::::-.... =#.  #..... :*    
-         ..#. .  ..% .==*::::+:::::#:::==:%-#:::::::::::+.::=#:::%:::::%::::-==.  .#%..#+..: =*=*.  
-                              .            ..                    .                        .-***. .  
                 </pre>
             <div style="margin: 15px 0;">
                     ${VILLAGERS.filter(v => !this.isVillagerMoved(v.id)).map(v => `<button class="action-btn" data-action="talk-villager" data-villager-id="${v.id}" style="margin-right:8px; margin-bottom:8px;">${v.emoji} ${v.name}</button>`).join('')}
@@ -1062,10 +1070,29 @@ class CandyBox3 {
         const market = `
             <div class="panel" style="position:relative;">
                 <h2>🛒 Market</h2>
-                <pre style="font-family: monospace; margin: 15px 0;">  _______
- [ Market ]
-   \\^_^/
-   /|_|\\   "I sell and upgrade Armors."</pre>
+                <pre style="font-family: monospace; margin: 15px 0;">
+                                 @.::.::.::.::.::.::.::.::.::.::.-%                                 
+                                 @---:- M. A:- R:: K - E: -T-:-===@                                 
+                                 @:--::  : -  ::: -  -- --:-======@                                 
+                                 @---.:::-:-::====================@                                 
+                             @:==   -==#  -==@  @==@  @==*  #=+*   :==@                             
+                    :--:--:-@-=+   @++@  @=+=   @++@   :+=@  @==@   :==@--:--:-:                    
+                    @@@@@@@@==+   @==+   @++@   @=+@   @+=@   :+=@   :+=@@@@@@@@                    
+                    @@@@@@@+**@:::+**@:::=**@:::@**@:::@***:::@***:::@***@@@@@@@                    
+                     @     @**@::@@**@::@@**@::=@**@+::@**@@::@**@@::@**@     @                     
+                     @      :: ::  :: ::  :: ::  ::  :: ::  :: ::  :: ::      @                     
+               @ :::-@  @@@@@@  :::::::::  @::::::::::::@  :::::::::  @@@@@@  @ :::-@               
+              @ :::::@  ..  ::  .:   :.. . @:.::.::.::..@ ...   :.    ::...   @:::::-@              
+              @::::::@  .   ::     ...  .. @..:..:..::..@ .   ..:  .  :::  .  @:::::-@              
+              @ ::@::@    ..::  ...:. .... @..:..:.....:@ ...:.. ...  ::  ..  @::@::=@              
+               ::@@::@ +@@@@@@ @           @:.:.@:.@:..:@           @ @@@@@@* @:@@:::-              
+               :::@@:@ :@@@@@@ .:@@:::::@@ @....:..::...@ ::::::::::. @@@@@@: @::@@::-              
+              @:::@:-@ -#@@#@@+   @@@#     @.::......:..@            %+@      @::@:==@              
+                *@@@@@     @@@:@= %@@*:    @.::.:::..::.@           @+-.      @@@@@*                
+                  @  @      :: @           @......:.....@           @.        @  @                  
+                  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.  @@@@@@@@@@@                 
+              #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                                        
+               "I sell and upgrade Armors."</pre>
                 <div>${this.renderVillageArmorShop()}</div>
                 ${this.isVillagerMoved('elderMint') ? `<div style="margin: 10px 0;"><button class="action-btn" data-action="talk-villager" data-villager-id="elderMint" style="margin-right:8px;">🧓 Elder Mint — Get Quest</button></div>` : ''}
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
@@ -1076,9 +1103,67 @@ class CandyBox3 {
             <div class="panel" style="position:relative;">
                 <h2>📚 Library</h2>
                 <pre style="font-family: monospace; margin: 15px 0;">  ________
- [Library]
-   /@_@\\
-   /|_|\\   "I sell and upgrade Skills."</pre>
+                                                
+                                           ;mmfmm#                                                  
+                                          @vJ#v#vJ#                                                 
+                                         vvvv  >vmmm                                                
+                                        #vv#m   ##mm>                                               
+                                         mvJ>  >m-vm   1                                            
+                                     v > v>1J   ;@J#                                                
+                     Jv                 m# ;      > J                                               
+                    >Jf     -m           m'   >                                                     
+                    mmmmmmmmm1                  m  k#                  ''  vm#                      
+                     mmmvJmmm#-          #kk; vf kkk#                   @mfJ#                       
+                      mmvJmJmm-           kk@;  Jkkk#                     k#  f                     
+                       mmJJmJmm-          kk# -m >kk m                   k#                         
+                       #mmmmmJm#J       kkk#m  v    k#                   -k                         
+                      >  >Jmmmmm>   kkkkkkkm@v#;1fvJ k##                 >                          
+                        @ #mmmmmm  kkkkkkkmk>m '>;; #k#k                 f                          
+                        ;m >       J#kkkkkmmmkk     Jk#                 >@                          
+                        f ->m#     kkkkk#kkmm#kk    kkk                 @                           
+                         k#mmmm    k#kkk#kkmm#kkk##kk#                  @                           
+                          mmmmmm   kkkk# kk@m@kkk@kkk#                 ;@                           
+                           k#mkkkk@kkk#   kkm#kkk@kkk#                  -                           
+                             kkkkk#kk#   kkkm#kkk ;kk##kkkkmmmmmmf>v    J>                          
+                              kkkkk##   kkkkm#@#@kk1@###kkkmmmmmm>11> ->                            
+                               ;kkk#  #kkkkkmkkkkkkfk####kk#mmkk#v->  @@                            
+                                     kkkkkkk#kkkkkk;k#                @                             
+                                    @kkkkkkkkkkkkkkkkk#               @                             
+                                   'kkkkkkk#kkkkkkkkvk#              ;@                             
+                                   kkkkkkkkk##kkk##kkJ##             @J                             
+                                  @kkkkkkk#kkkk##kkkkk#k             @                              
+                                  kkkkkkk@kkkk##kkkkkk#              @                              
+                                 @kkkkkk@kkkkk##kkkkkkk             @@                              
+                                 kkkkkk#kkkkkk##kkkkkk@             #                               
+                                 kkkkk##kkkkkk##kkkkk#              @                               
+                                 kkkk@#kkkkkkk@##kkkk>              @                               
+                                vkkk@#kkkkkkkk@##kkk#              @@                               
+                                #kkkm@kkkkkkkk@###k#               v                                
+                                kkmJJkkkkkkkk######J               @                                
+                                 @JJJJ@kkkkkk##k###                @                                
+                                 JJJJJJkkkkkk###k#                @                                 
+                                 JJJJJJ1kkkkk####k                @                                 
+                                 JJJJJ  #kkkk#####                @                                 
+                                 JJJJm  @kkk##kkk                k@                                 
+                                 JJJJ  kk#kkk###k                @                                  
+                                  JJ   kkkkkkk@##                @                                  
+                                  Jm   kkkkkkkk#@                @                                  
+                                    #kkkkkkmmmkkkkk             @#                                  
+                                   k@@mmmmmmmmkkkmmk            #                                   
+                                    mmmmmmmmmmkkkmm             @                                   
+                                    #mmmmmmmmmkkkmm@            @                                   
+                                     mmmmmmmmm@kkmmk           @                                    
+                                     mmmmmm@kk@kkmm@           '                                    
+                                        kkkkkkk                f                                    
+                                        kmmkkkk               fk                                    
+                                        mmmkkkk                                                     
+                                        mmm#kkkk              >                                     
+                                      'mmmm#kkkmkk@           f                                     
+                      '''''';'''''';''mmmmm@kkkkmmmkk''''''''Jv''''''                               
+                   ''''''''''''''''''mkmmmkkkkkkmmmmmmmk''''''''''''''''''                          
+                       '''''''''''''mmmmmmkk'''''''''''''''''''''''''''''                           
+                                  '''''''''''''''''''''''''''''                                     
+               "I sell and upgrade Skills."</pre>
                 <div>${this.renderVillageSkillShop()}</div>
                 ${this.isVillagerMoved('sageFizz') ? `<div style="margin: 10px 0;"><button class="action-btn" data-action="talk-villager" data-villager-id="sageFizz" style="margin-right:8px;">🧙 Sage Fizz — Get Quest</button></div>` : ''}
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
@@ -1089,9 +1174,9 @@ class CandyBox3 {
             <div class="panel" style="position:relative;">
                 <h2>🔭 Lookout</h2>
                 <pre style="font-family: monospace; margin: 15px 0;">    /\\
-   /  \\
-  [____]
-   \\o_o/  "I keep the log."</pre>
+    /  \\
+   [____]
+   \\o_o/  "I just keep the logs."</pre>
                 <div id="lookout-log-mount"></div>
                 ${this.isVillagerMoved('scoutGum') ? `<div style="margin: 10px 0;"><button class="action-btn" data-action="talk-villager" data-villager-id="scoutGum" style="margin-right:8px;">🧑‍🌾 Scout Gum — Get Quest</button></div>` : ''}
                 <div style="margin-top: 15px;"><button class="action-btn" data-action="village-place" data-place="square">⬅️ Village Square</button></div>
