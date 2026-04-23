@@ -100,12 +100,12 @@ const ARMOR_DEFS = [
 ];
 
 const SKILL_DEFS = [
-    { id: 'sugarRush', name: 'Sugar Rush', candyCost: 250, description: 'Passive: +15% attack above 70% HP.', requires: { eaten: 150 } },
-    { id: 'parryField', name: 'Parry Field', candyCost: 700, description: 'Passive: 20% chance to halve incoming hits.', requires: { tier: 3 } },
-    { id: 'stasisHex', name: 'Stasis Hex', candyCost: 900, active: true, useCost: 130, description: 'Active: freeze the next enemy attack.', requires: { spells: true } },
-    { id: 'astralEcho', name: 'Astral Echo', candyCost: 1500, chocolateCost: 2, description: 'Passive: first hit each fight deals +75% damage.', requires: { forest: true } },
-    { id: 'novaPulse', name: 'Nova Pulse', candyCost: 2800, chocolateCost: 3, active: true, useCost: 260, description: 'Active: unleash a max-HP-scaled blast.', requires: { spells: true, tier: 5 } },
-    { id: 'secondWind', name: 'Second Wind', candyCost: 5000, chocolateCost: 6, description: 'Passive: survive one lethal hit per fight.', requires: { colosseum: true } }
+    { id: 'sugarRush', name: 'Sugar Rush', candyCost: 250, baseEffect: 0.15, effectPerUpgrade: 0.10, descriptionTemplate: 'Passive: +{value}% attack above 70% HP.', requires: { eaten: 150 } },
+    { id: 'parryField', name: 'Parry Field', candyCost: 700, baseEffect: 0.20, effectPerUpgrade: 0.05, descriptionTemplate: 'Passive: {value}% chance to halve incoming hits.', requires: { tier: 3 } },
+    { id: 'stasisHex', name: 'Stasis Hex', candyCost: 900, active: true, useCost: 130, useCostPerUpgrade: 10, descriptionTemplate: 'Active: freeze the next enemy attack.', requires: { spells: true } },
+    { id: 'astralEcho', name: 'Astral Echo', candyCost: 1500, chocolateCost: 2, baseEffect: 0.75, effectPerUpgrade: 0.15, descriptionTemplate: 'Passive: first hit each fight deals +{value}% damage.', requires: { forest: true } },
+    { id: 'novaPulse', name: 'Nova Pulse', candyCost: 2800, chocolateCost: 3, active: true, useCost: 260, useCostPerUpgrade: 25, descriptionTemplate: 'Active: unleash a max-HP-scaled blast.', requires: { spells: true, tier: 5 } },
+    { id: 'secondWind', name: 'Second Wind', candyCost: 5000, chocolateCost: 6, baseEffect: 0.25, effectPerUpgrade: 0.10, descriptionTemplate: 'Passive: survive one lethal hit per fight, heal {value}% HP.', requires: { colosseum: true } }
 ];
 
 const VILLAGERS = [
@@ -340,10 +340,37 @@ class CandyBox3 {
         return this.getEquipmentUpgradeLevel(id);
     }
 
+    /**
+     * Calculate dynamic skill effectiveness with 10% boost per level
+     * @param {string} skillId - The skill identifier
+     * @param {number} basePower - Base effectiveness value (default 1.0 for percentage multipliers)
+     * @returns {number} Scaled effectiveness value
+     */
+    getSkillEffectiveness(skillId, basePower = 1.0) {
+        const level = this.getSkillUpgradeLevel(skillId);
+        return basePower * (1 + (level * 0.10));
+    }
+
     getScaledValue(def, key) {
         const base = def?.[key] || 0;
         const step = def?.[`${key}PerUpgrade`] || 0;
         return base + (step * this.getEquipmentUpgradeLevel(def.id));
+    }
+
+    getSkillDescription(skillDef) {
+        if (!skillDef.descriptionTemplate) {
+            return skillDef.description || '';
+        }
+        
+        if (skillDef.baseEffect === undefined) {
+            return skillDef.descriptionTemplate;
+        }
+        
+        const level = this.getSkillUpgradeLevel(skillDef.id);
+        const currentValue = skillDef.baseEffect + (level * skillDef.effectPerUpgrade);
+        const displayValue = Math.round(currentValue * 100);
+        
+        return skillDef.descriptionTemplate.replace('{value}', displayValue);
     }
 
     getItemBonusSummary(def) {
@@ -426,7 +453,7 @@ class CandyBox3 {
         const weapon = this.getWeaponDef();
         let attack = this.state.attack + (weapon ? this.getScaledValue(weapon, 'attackBonus') : 0) + this.getArtifactBonusTotal('attack');
         if (this.hasSkill('sugarRush') && this.state.hp / this.getEffectiveMaxHp() >= 0.7) {
-            attack *= 1.15 + (this.getSkillUpgradeLevel('sugarRush') * 0.05);
+            attack *= this.getSkillEffectiveness('sugarRush', 1.15);
         }
         return Math.floor(attack);
     }
@@ -542,7 +569,7 @@ class CandyBox3 {
         }
 
         if (this.state.combatFlags.astralEchoReady) {
-            damage = Math.floor(damage * (1.75 + (this.getSkillUpgradeLevel('astralEcho') * 0.25)));
+            damage = Math.floor(damage * this.getSkillEffectiveness('astralEcho', 1.75));
             this.state.combatFlags.astralEchoReady = false;
             this.addLog('Astral Echo amplifies the first blow.');
         }
@@ -568,7 +595,7 @@ class CandyBox3 {
         }
 
         let damage = baseDamage;
-        if (this.hasSkill('parryField') && Math.random() < (0.2 + this.getSkillUpgradeLevel('parryField') * 0.05)) {
+        if (this.hasSkill('parryField') && Math.random() < this.getSkillEffectiveness('parryField', 0.2)) {
             damage = Math.max(1, Math.floor(damage / 2));
             this.addLog('Parry Field softens the hit.');
         }
@@ -579,7 +606,7 @@ class CandyBox3 {
 
         if (this.state.hp <= 0 && this.hasSkill('secondWind') && !this.state.combatFlags.secondWindUsed) {
             this.state.combatFlags.secondWindUsed = true;
-            this.state.hp = Math.max(1, Math.floor(this.getEffectiveMaxHp() * (0.25 + this.getSkillUpgradeLevel('secondWind') * 0.1)));
+            this.state.hp = Math.max(1, Math.floor(this.getEffectiveMaxHp() * this.getSkillEffectiveness('secondWind', 0.25)));
             this.addLog('Second Wind pulls you back from defeat.');
             return;
         }
@@ -846,7 +873,7 @@ class CandyBox3 {
             const unlocked = this.meetsRequirements(def);
             const costText = `${this.getCostLabel(def)}${def.active ? ` | use: ${def.useCost}🍬` : ''} | upgrade ${this.getSkillUpgradeCost(def.id)}🍭`;
             info.textContent = unlocked
-                ? ` [+${this.getSkillUpgradeLevel(def.id)}] ${def.description} | ${costText}`
+                ? ` [+${this.getSkillUpgradeLevel(def.id)}] ${this.getSkillDescription(def)} | ${costText}`
                 : ` ${this.getRequirementText(def)}`;
 
             if (!unlocked) {
@@ -1328,9 +1355,10 @@ class CandyBox3 {
             const level = this.getSkillUpgradeLevel(def.id);
             const upCost = level + 1;
             const costText = `${this.getCostLabel(def)}${def.active ? ` | use: ${def.useCost}🍬` : ''}`;
+            
             return `<div class="upgrade-item">
                 <span class="upgrade-name">${def.name}</span>
-                <span class="upgrade-cost"> [${level}] ${def.description} | ${unlocked ? costText : this.getRequirementText(def)}</span>
+                <span class="upgrade-cost"> [${level}] ${this.getSkillDescription(def)} | ${unlocked ? costText : this.getRequirementText(def)}</span>
                 <button class="upgrade-btn" ${(!unlocked || learned || !this.canAfford(def)) ? 'disabled' : ''} data-action="learn-skill" data-skill-id="${def.id}">${learned ? 'LEARNED' : 'LEARN'}</button>
                 <button class="upgrade-btn" ${(learned && this.state.lollipops >= upCost) ? '' : 'disabled'} data-action="upgrade-skill" data-skill-id="${def.id}">UP+ ${upCost}🍭</button>
             </div>`;
