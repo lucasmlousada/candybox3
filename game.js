@@ -116,26 +116,26 @@ const VILLAGERS = [
 ];
 
 const ARTIFACT_DEFS = [
-    { id: 'factoryCog', name: 'Factory Cog', emoji: '⚙️', page: 'main', top: '10%', left: '14%', description: '+10.5 candy/sec', bonus: { candyRate: 10.5 } },
+    { id: 'factoryCog', name: 'Factory Cog', emoji: '⚙️', page: 'main', top: '10%', left: '14%', description: '+10 candy/sec', bonus: { candyRate: 10 } },
     { id: 'sugarLens', name: 'Sugar Lens', emoji: '🔍', page: 'main', top: '68%', left: '82%', description: '+20 attack', bonus: { attack: 20 } },
-    { id: 'mapPin', name: 'Map Pin', emoji: '📍', page: 'map', top: '22%', left: '77%', description: '+200 max HP', bonus: { maxHp: 20 } },
-    { id: 'blankStamp', name: 'Blank Stamp', emoji: '🪪', page: 'map', top: '74%', left: '11%', description: '+1.2 regen', bonus: { regen: 1.2 } },
+    { id: 'mapPin', name: 'Map Pin', emoji: '📍', page: 'map', top: '22%', left: '77%', description: '+200 max HP', bonus: { maxHp: 200 } },
+    { id: 'blankStamp', name: 'Blank Stamp', emoji: '🪪', page: 'map', top: '74%', left: '11%', description: '+1.0 regen', bonus: { regen: 1.0 } },
     { id: 'cocoaSeed', name: 'Cocoa Seed', emoji: '🌰', page: 'forest', top: '29%', left: '17%', description: '+5 chocolate/hour', bonus: { chocolateRate: 5 } },
     { id: 'sapCharm', name: 'Sap Charm', emoji: '🧿', page: 'forest', top: '58%', left: '71%', description: '+20% candy from monsters', bonus: { candyDrop: 0.20 } },
-    { id: 'mayorSeal', name: 'Mayor Seal', emoji: '📜', page: 'village-townhall', top: '18%', left: '59%', description: '+0.05 lollipops/sec', bonus: { lollipopRate: 0.05 } },
+    { id: 'mayorSeal', name: 'Mayor Seal', emoji: '📜', page: 'village-townhall', top: '18%', left: '59%', description: '+5 lollipops/sec', bonus: { lollipopRate: 5 } },
     { id: 'questBell', name: 'Quest Bell', emoji: '🔔', page: 'village-townhall', top: '66%', left: '23%', description: '+150 max HP', bonus: { maxHp: 150 } },
     { id: 'forgeSpark', name: 'Forge Spark', emoji: '✨', page: 'village-forge', top: '24%', left: '28%', description: '+30 attack', bonus: { attack: 30 } },
     { id: 'anvilRune', name: 'Anvil Rune', emoji: '🪓', page: 'village-forge', top: '60%', left: '76%', description: '+10% skill damage', bonus: { skillDamage: 0.10 } },
-    { id: 'marketToken', name: 'Market Token', emoji: '🪙', page: 'village-market', top: '19%', left: '64%', description: '+0.8 regen', bonus: { regen: 0.8 } },
+    { id: 'marketToken', name: 'Market Token', emoji: '🪙', page: 'village-market', top: '19%', left: '64%', description: '+1.0 regen', bonus: { regen: 1.0 } },
     { id: 'satinPatch', name: 'Satin Patch', emoji: '🧵', page: 'village-market', top: '71%', left: '38%', description: '-5 damage taken', bonus: { damageReduction: 5 } },
     { id: 'libraryDust', name: 'Library Dust', emoji: '📚', page: 'village-library', top: '25%', left: '71%', description: '+6% skill damage', bonus: { skillDamage: 0.06 } },
-    { id: 'inkDrop', name: 'Ink Drop', emoji: '🖋️', page: 'village-library', top: '70%', left: '19%', description: '+5.3 candy/sec', bonus: { candyRate: 5.3 } },
+    { id: 'inkDrop', name: 'Ink Drop', emoji: '🖋️', page: 'village-library', top: '70%', left: '19%', description: '+5 candy/sec', bonus: { candyRate: 5 } },
     { id: 'spyglassShard', name: 'Spyglass Shard', emoji: '🔭', page: 'village-lookout', top: '17%', left: '52%', description: '+15% candy from monsters', bonus: { candyDrop: 0.15 } },
-    { id: 'windPennant', name: 'Wind Pennant', emoji: '🎏', page: 'village-lookout', top: '73%', left: '82%', description: '+0.05 lollipops/sec', bonus: { lollipopRate: 0.05 } },
+    { id: 'windPennant', name: 'Wind Pennant', emoji: '🎏', page: 'village-lookout', top: '73%', left: '82%', description: '+5 lollipops/sec', bonus: { lollipopRate: 5 } },
     { id: 'villagePebble', name: 'Village Pebble', emoji: '🪨', page: 'village-square', top: '83%', left: '51%', description: '+100 max HP', bonus: { maxHp: 100 } },
-    { id: 'hiddenRibbon', name: 'Hidden Ribbon', emoji: '🎀', page: 'village-square', top: '34%', left: '8%', description: '+1.1 regen', bonus: { regen: 1.1 } },
+    { id: 'hiddenRibbon', name: 'Hidden Ribbon', emoji: '🎀', page: 'village-square', top: '34%', left: '8%', description: '+1.0 regen', bonus: { regen: 1.0 } },
     { id: 'arenaEye', name: 'Arena Eye', emoji: '👁️', page: 'colosseum', top: '22%', left: '49%', description: '+10 attack', bonus: { attack: 10 } },
-    { id: 'glassRelic', name: 'Glass Relic', emoji: '🏺', page: 'colosseum', top: '86%', left: '9%', description: '+1.5 chocolate/hour', bonus: { chocolateRate: 1.5 } }
+    { id: 'glassRelic', name: 'Glass Relic', emoji: '🏺', page: 'colosseum', top: '86%', left: '9%', description: '+5 chocolate/hour', bonus: { chocolateRate: 1.5 } }
 ];
 
 function getCandyCostPerHp(maxHp) {
@@ -216,7 +216,7 @@ function getDefaultGameState() {
 }
 
 
-let DARK_ENERGY_REQUIRED = 1000000;
+let DARK_ENERGY_REQUIRED = 10000000
 
 function updateDarkEnergyBar() {
     const value = Math.floor(player.darkEnergyCandies);
@@ -1251,7 +1251,7 @@ class CandyBox3 {
                     ${(() => {
                         if (this.state.timeWarpUnlocked) {
                             return `<p style="margin: 10px 0; font-style: italic;">"Eureka!"</p>`;
-                        } else if (this.state.darkModeCandies >= 1000000) {
+                        } else if (this.state.darkModeCandies >= 10000000) {
                             return `<p style="margin: 10px 0; font-style: italic;">"We have enough Dark Energy, I need candies to finish my latest invention"</p>`;
                         } else {
                             return `<p style="margin: 10px 0; font-style: italic;">"We need more Dark Energy..."</p>`;
@@ -1263,7 +1263,7 @@ class CandyBox3 {
                         <div style="height: 20px; border: 1px solid #ccc; width: 100%; background: #222;">
                             <div id="dark-energy-fill" style="height: 100%; background: #800080; width: 0%"></div>
                         </div>
-                        <div id="dark-energy-text" style="font-size: 12px; margin-top: 4px;">0 / 1,000,000 Dark Energy</div>
+                        <div id="dark-energy-text" style="font-size: 12px; margin-top: 4px;">0 / 10,000,000 Dark Energy</div>
                     </div>
                     ` : ''}
                     
@@ -1274,7 +1274,7 @@ class CandyBox3 {
                     }
                     </div>
                     
-                    ${(this.state.darkModeCandies >= 1000000 && !this.state.timeWarpUnlocked) ? `
+                    ${(this.state.darkModeCandies >= 10000000 && !this.state.timeWarpUnlocked) ? `
                     <div style="margin: 10px 0;">
                         <button class="action-btn" data-action="help-scientist">Help the Scientist</button>
                     </div>
@@ -2554,7 +2554,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-upgrade Dark Energy cap for players who already unlocked Time Warp
     if (game.state.timeWarpUnlocked) {
-        DARK_ENERGY_REQUIRED = 10000000;
+        DARK_ENERGY_REQUIRED = 100000000;
     }
 
     game.buildUI();
@@ -2823,16 +2823,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'help-scientist':
                 if (game.state.darkModeCandies >= DARK_ENERGY_REQUIRED && !game.state.timeWarpUnlocked) {
-                    if (game.state.candies >= 1000000) {
-                        game.state.candies -= 1000000;
+                    if (game.state.candies >= 10000000) {
+                        game.state.candies -= 10000000;
                         game.state.timeWarpUnlocked = true;
-                        // Increase Dark Energy cap to 10 million after Time Warp unlock
+                        // Increase Dark Energy cap to 100 million after Time Warp unlock
                         DARK_ENERGY_REQUIRED = 10000000;
                         game.state.villagePlace = 'laboratory';
                         game.buildVillageUI();
                         game.updateDarkEnergyBar();
                         game.addLog('🧑‍🔬 Eureka! Time Warp is now available!');
-                        game.addLog('⚠️ Dark Energy capacity increased to 10,000,000!');
+                        game.addLog('⚠️ Dark Energy capacity increased to 100,000,000!');
                         game.updateUI();
                         game.doSave();
                     } else {
