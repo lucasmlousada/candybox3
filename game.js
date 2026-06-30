@@ -1,86 +1,411 @@
 // CANDY BOX 3 - Fixed: New Game Reset, Stable Layout, Structured Log
 
 const MONSTERS = [
-    { id: 1, name: 'Sugar Goblin', hp: 15, attack: 2, reward: 10, tier: 1, emoji: '👹', ascii: '  \\O_\n   |\n  / \\' },
-    { id: 2, name: 'Caramel Slime', hp: 12, attack: 2, reward: 8, tier: 1, emoji: '💧', ascii: '  ~°~\n  (~)~\n   ~' },
-    { id: 3, name: 'Chocolate Bat', hp: 16, attack: 3, reward: 12, tier: 1, emoji: '🦇', ascii: '  \\||\n   ||\n  /||\\' },
-    { id: 19, name: 'Mint Drop', hp: 14, attack: 2, reward: 9, tier: 1, emoji: '🟢', ascii: '  (o)\n  /d\n   l' },
-    { id: 20, name: 'Candy Ant', hp: 13, attack: 2, reward: 8, tier: 1, emoji: '🐜', ascii: '  /W\\\n ( )\n  U' },
-    { id: 4, name: 'Lollipop Knight', hp: 30, attack: 4, reward: 25, tier: 2, emoji: '⚔️', ascii: '  |O|\n  /||\\\n  / \\' },
-    { id: 5, name: 'Neural Nougat', hp: 35, attack: 4, reward: 30, tier: 2, emoji: '🧠', ascii: '  [==]\n [====]\n [==]' },
-    { id: 6, name: 'Candy Crab', hp: 32, attack: 5, reward: 28, tier: 2, emoji: '🦀', ascii: '  <(o)>\n  <(0)>\n   / \\' },
-    { id: 21, name: 'Taffy Troll', hp: 38, attack: 5, reward: 32, tier: 2, emoji: '👺', ascii: '  /^V^\\\n  MMEM\n  |||||' },
-    { id: 22, name: 'Gumball Goblin', hp: 33, attack: 4, reward: 27, tier: 2, emoji: '👹', ascii: '  <O_O>\n  (ooo)\n   ^^^' },
-    { id: 23, name: 'Lemon Imp', hp: 28, attack: 6, reward: 24, tier: 2, emoji: '🍋', ascii: '  (^_^)\n  /| |\\\n   | |' },
-    { id: 24, name: 'Butterscotch Beast', hp: 40, attack: 5, reward: 35, tier: 2, emoji: '🐻', ascii: '  |**|\n |***|\n |*_*|' },
-    { id: 7, name: 'Meme Wraith', hp: 45, attack: 6, reward: 50, tier: 3, emoji: '👻', ascii: '  ****\n *    *\n ****' },
-    { id: 8, name: 'Gummy Guardian', hp: 50, attack: 7, reward: 55, tier: 3, emoji: '🛡️', ascii: '  |==|\n |==|\n |==|' },
-    { id: 9, name: 'Fudge Fiend', hp: 48, attack: 7, reward: 52, tier: 3, emoji: '😈', ascii: '  [#_#]\n (#_#)\n [# #]' },
-    { id: 25, name: 'Rock Candy Roller', hp: 55, attack: 6, reward: 58, tier: 3, emoji: '🪨', ascii: '  OOOO\n OOOO\n OOOO' },
-    { id: 26, name: 'Jelly Jester', hp: 42, attack: 8, reward: 48, tier: 3, emoji: '🤡', ascii: '  \\(^_^)/\n  |    |\n  /    \\' },
-    { id: 27, name: 'Marshmallow Mimic', hp: 46, attack: 7, reward: 51, tier: 3, emoji: '⚪', ascii: '  (OoO)\n <(ooo)>\n  (OoO)' },
-    { id: 28, name: 'Sugar Spider', hp: 49, attack: 8, reward: 54, tier: 3, emoji: '🕷️', ascii: '  /\\ /\\ /\\\n  XX-XX-XX\n  \\/ \\/ \\/' },
-    { id: 10, name: 'Cotton Candy Centaur', hp: 70, attack: 8, reward: 85, tier: 4, emoji: '🌸', ascii: '  |O_O|\n /|   |\\\n / |   |' },
-    { id: 11, name: 'Lemon Drop Drake', hp: 75, attack: 8, reward: 90, tier: 4, emoji: '🐉', ascii: '  ~~^~~\n ~(o_o)~\n ~~~~~~~' },
-    { id: 12, name: 'Sugar Siren', hp: 72, attack: 9, reward: 87, tier: 4, emoji: '🧜', ascii: '  /^^\\\n / OO \\\n |    |' },
-    { id: 29, name: 'Caramel Cyclops', hp: 78, attack: 9, reward: 92, tier: 4, emoji: '👁️', ascii: '  [ O ]\n  |   |\n  |___|' },
-    { id: 30, name: 'Peppermint Phantom', hp: 74, attack: 10, reward: 88, tier: 4, emoji: '🌀', ascii: '  (~O~)\n  (#_#)\n  (~_~)' },
-    { id: 31, name: 'Candy Colossus', hp: 85, attack: 8, reward: 95, tier: 4, emoji: '🤖', ascii: '  [===]\n [===]\n [===]' },
-    { id: 32, name: 'Honeycomb Hornet', hp: 68, attack: 11, reward: 82, tier: 4, emoji: '🐝', ascii: '  (o~o)\n  /\\W/\\\n   | |' },
-    { id: 13, name: 'Licorice Lich', hp: 95, attack: 10, reward: 130, tier: 5, emoji: '☠️', ascii: '  [!!]\n  !!!\n [!!]' },
-    { id: 14, name: 'Candy Kraken', hp: 105, attack: 11, reward: 145, tier: 5, emoji: '🐙', ascii: '  ~^^^^~\n  ^^^^^^\n ~^^^^^^~' },
-    { id: 15, name: 'GPT-3.5 Ghost', hp: 100, attack: 10, reward: 140, tier: 5, emoji: '👾', ascii: '  (~)~\n  (~)~\n  (~)~' },
-    { id: 33, name: 'Toffee Titan', hp: 110, attack: 11, reward: 150, tier: 5, emoji: '🗿', ascii: '  |+++|\n |+++|\n |+++|' },
-    { id: 34, name: 'Candy Chimera', hp: 98, attack: 12, reward: 135, tier: 5, emoji: '🦁', ascii: '  /VVV\\\n (ooo)\n  |||' },
-    { id: 35, name: 'Fondant Phoenix', hp: 102, attack: 10, reward: 142, tier: 5, emoji: '🔥', ascii: '  /\\ /\\\n (oo)\n  \\\\/' },
-    { id: 36, name: 'Nougat Nemesis', hp: 108, attack: 13, reward: 148, tier: 5, emoji: '⚡', ascii: '  [***]\n [***]\n [***]' },
-    { id: 16, name: 'Sentient Sweetness', hp: 140, attack: 12, reward: 200, tier: 6, emoji: '✨', ascii: '  (@@@)\n (@@@)\n (@@@)' },
-    { id: 17, name: 'Caramel Colossus', hp: 150, attack: 13, reward: 220, tier: 6, emoji: '💪', ascii: '  |===|\n |===|\n |===|' },
-    { id: 18, name: 'The Candy King', hp: 160, attack: 14, reward: 250, tier: 6, emoji: '👑', ascii: '  /^^^|\n |   |\n |___|' },
-    { id: 37, name: 'Licorice Leviathan', hp: 165, attack: 15, reward: 260, tier: 6, emoji: '🌊', ascii: '  [###]\n [###]\n [###]' },
-    { id: 38, name: 'Sugar Sultan', hp: 155, attack: 14, reward: 240, tier: 6, emoji: '🧞', ascii: '  /\\**/\\\n  ****\n  ****' },
-    { id: 39, name: 'The Lollipop Lord', hp: 170, attack: 16, reward: 280, tier: 6, emoji: '⭐', ascii: '  |*_*|\n |***|\n |***|' },
-    { id: 40, name: 'Candy Constellation', hp: 180, attack: 15, reward: 300, tier: 6, emoji: '💫', ascii: '  ***\n ****\n *****' },
-    { id: 41, name: 'Syrup Serpent', hp: 188, attack: 16, reward: 315, tier: 7, emoji: '🐍', ascii: '  /^\\/^\n / oo \\\n \\_==_/' },
-    { id: 42, name: 'Bubblegum Berserker', hp: 195, attack: 17, reward: 325, tier: 7, emoji: '😡', ascii: '  \\@@/\n /(())\\\n  /  \\' },
-    { id: 43, name: 'Praline Parasite', hp: 190, attack: 18, reward: 320, tier: 7, emoji: '🪲', ascii: '  /MM\\\n (oooo)\n  \\/\\/' },
-    { id: 44, name: 'Nougat Nautilus', hp: 205, attack: 16, reward: 330, tier: 7, emoji: '🐚', ascii: '  @@@@\n @@()@@\n  @@@' },
-    { id: 45, name: 'Candy Cannoneer', hp: 210, attack: 17, reward: 340, tier: 7, emoji: '💣', ascii: ' [====]\n  ||||\n  /  \\' },
-    { id: 46, name: 'Wafer Warlock', hp: 198, attack: 19, reward: 335, tier: 7, emoji: '🧙', ascii: '  /##\\\n  |<>|\n  /  \\' },
-    { id: 47, name: 'Jelly Juggernaut', hp: 220, attack: 16, reward: 350, tier: 7, emoji: '🟣', ascii: ' (####)\n |####|\n |____|' },
-    { id: 48, name: 'Marzipan Marauder', hp: 214, attack: 18, reward: 345, tier: 7, emoji: '🏴', ascii: '  /VV\\\n (====)\n  /  \\' },
-    { id: 49, name: 'Peppermint Paladin', hp: 228, attack: 18, reward: 365, tier: 8, emoji: '🛡️', ascii: '  [##]\n /||||\\\n  /  \\' },
-    { id: 50, name: 'Rock Candy Rhino', hp: 235, attack: 19, reward: 380, tier: 8, emoji: '🦏', ascii: '  /^^\\\n (____)\n  /  \\' },
-    { id: 51, name: 'Frosting Fury', hp: 230, attack: 20, reward: 375, tier: 8, emoji: '❄️', ascii: '  *==*\n *====*\n  *==*' },
-    { id: 52, name: 'Buttermint Basilisk', hp: 242, attack: 19, reward: 390, tier: 8, emoji: '🦎', ascii: '  /==\\\\\n ( o  )\n  \\==/' },
-    { id: 53, name: 'Truffle Tempest', hp: 238, attack: 21, reward: 385, tier: 8, emoji: '🌪️', ascii: '  ////\n (====)\n  \\\\//' },
-    { id: 54, name: 'Cupcake Crusader', hp: 246, attack: 20, reward: 400, tier: 8, emoji: '🧁', ascii: '  {##}\n [====]\n  /  \\' },
-    { id: 55, name: 'Molasses Minotaur', hp: 255, attack: 20, reward: 410, tier: 8, emoji: '🐂', ascii: '  /MM\\\n (||||)\n  /  \\' },
-    { id: 56, name: 'Toffee Templar', hp: 250, attack: 22, reward: 405, tier: 8, emoji: '✝️', ascii: '  [##]\n /_||_\\\n  /  \\' },
-    { id: 57, name: 'Celestial Candyfin', hp: 265, attack: 22, reward: 430, tier: 9, emoji: '🐟', ascii: '  /\\~~\n < oo>\n  \\/__' },
-    { id: 58, name: 'Obsidian Oreo', hp: 272, attack: 23, reward: 440, tier: 9, emoji: '⚫', ascii: '  @@@@\n @ __ @\n  @@@@' },
-    { id: 59, name: 'Star Syrup Djinn', hp: 268, attack: 24, reward: 435, tier: 9, emoji: '🧞', ascii: '  /\\**/\\\n ( **** )\n   ||||' },
-    { id: 60, name: 'Glazed Gargoyle', hp: 280, attack: 22, reward: 450, tier: 9, emoji: '🗿', ascii: '  [@@]\n <||||>\n  /  \\' },
-    { id: 61, name: 'Candied Chimney', hp: 276, attack: 25, reward: 445, tier: 9, emoji: '🏭', ascii: '  ||||\n [====]\n [====]' },
-    { id: 62, name: 'Mallow Meteor', hp: 285, attack: 24, reward: 460, tier: 9, emoji: '☄️', ascii: "  .--.\n (====)\n  '--" },
-    { id: 63, name: 'Cosmic Cracker', hp: 290, attack: 23, reward: 470, tier: 9, emoji: '🌌', ascii: '  [**]\n [****]\n  [**]' },
-    { id: 64, name: 'Sour Starreaver', hp: 282, attack: 26, reward: 465, tier: 9, emoji: '⭐', ascii: '  \\**/\n <====>\n  /  \\' },
-    { id: 65, name: 'Lollipop Leviathan', hp: 305, attack: 26, reward: 500, tier: 10, emoji: '🐋', ascii: '  /VVV\\\n (=====)\n  \\___/' },
-    { id: 66, name: 'Nebula Nougat', hp: 298, attack: 27, reward: 490, tier: 10, emoji: '🌠', ascii: '  .::.\n (::==::)\n  \'::\'' },
-    { id: 67, name: 'Caramel Cataclysm', hp: 315, attack: 25, reward: 515, tier: 10, emoji: '🌋', ascii: '  /~~\\\n (====)\n /____\\' },
-    { id: 68, name: 'Fudge Overmind', hp: 308, attack: 28, reward: 505, tier: 10, emoji: '🧠', ascii: '  [####]\n [######]\n  [####]' },
-    { id: 69, name: 'Taffy Tyrant', hp: 320, attack: 27, reward: 520, tier: 10, emoji: '👑', ascii: '  /^^\\\n [====]\n  ||||' },
-    { id: 70, name: 'Prism Puff Dragon', hp: 325, attack: 28, reward: 530, tier: 10, emoji: '🐲', ascii: '  /\\__/\\\\\n ( o  o )\n  \\_==_/' },
-    { id: 71, name: 'Chocolate Comet King', hp: 332, attack: 29, reward: 540, tier: 10, emoji: '☄️', ascii: '  .--.\n (====)\n /_||_\\' },
-    { id: 72, name: 'Licorice Eclipse', hp: 340, attack: 27, reward: 550, tier: 10, emoji: '🌑', ascii: '  @@@@@\n @@   @@\n  @@@@@' },
-    { id: 73, name: 'Gummy Galaxy Hydra', hp: 348, attack: 30, reward: 565, tier: 10, emoji: '🐉', ascii: '  /V\\/V\\\n ( oooo )\n  ||||||' },
-    { id: 74, name: 'Astral Affogato', hp: 336, attack: 31, reward: 555, tier: 10, emoji: '☕', ascii: '  {==}\n [====]\n  ||||' },
-    { id: 75, name: 'Candybox Revenant', hp: 355, attack: 29, reward: 575, tier: 10, emoji: '👻', ascii: '  .--.\n ( oo )\n (____)' },
-    { id: 76, name: 'Sweet Singularity', hp: 362, attack: 31, reward: 590, tier: 10, emoji: '🌀', ascii: '  .**.\n **==**\n  \'**\'' },
-    { id: 77, name: 'Omega Marsh Warden', hp: 370, attack: 30, reward: 600, tier: 10, emoji: '🛡️', ascii: ' [====]\n<======>\n  /  \\' },
-    { id: 78, name: 'Void Bonbon', hp: 366, attack: 32, reward: 595, tier: 10, emoji: '⚫', ascii: '  (####)\n <######>\n  (####)' },
-    { id: 79, name: 'Candy Crown Devourer', hp: 378, attack: 33, reward: 615, tier: 10, emoji: '👑', ascii: '  /\\**/\\\n [======]\n  \\____/' },
-    { id: 80, name: 'The Final Sweet', hp: 390, attack: 34, reward: 640, tier: 10, emoji: '✨', ascii: '  <****>\n <******>\n  <****>' }
+    { id: 1, name: 'Sugar Goblin', hp: 15, attack: 2, reward: 10, tier: 1, emoji: '👹', ascii: `  /^v^\\
+ ( o  o )
+ |vvvvv|
+  |   |
+  /   \\` },
+    { id: 2, name: 'Caramel Slime', hp: 12, attack: 2, reward: 8, tier: 1, emoji: '💧', ascii: `  .~~~.
+ (~ooo~)
+(~~~~~~~)
+ (~ooo~)
+  '~~~'` },
+    { id: 3, name: 'Chocolate Bat', hp: 16, attack: 3, reward: 12, tier: 1, emoji: '🦇', ascii: ` /V\\  /V\\
+((oo)(oo))
+  \\ vv /
+   \\--/
+   /  \\` },
+    { id: 19, name: 'Mint Drop', hp: 14, attack: 2, reward: 9, tier: 1, emoji: '🟢', ascii: `  .---.
+ /ooooo\\
+| ooooo |
+ \\ooooo/
+  '---'` },
+    { id: 20, name: 'Candy Ant', hp: 13, attack: 2, reward: 8, tier: 1, emoji: '🐜', ascii: `  o O o
+ / o_o \\
+( (   ) )
+ \\W | W/
+  |   |` },
+    { id: 4, name: 'Lollipop Knight', hp: 30, attack: 4, reward: 25, tier: 2, emoji: '⚔️', ascii: `  [O_O]
+ /|===|\\
+  |===|
+  | | |
+ /|___|\\` },
+    { id: 5, name: 'Neural Nougat', hp: 35, attack: 4, reward: 30, tier: 2, emoji: '🧠', ascii: `   _____
+  /~|~|~\\
+ (~|~|~|~)
+  (~|~|~)
+   ~~~~~` },
+    { id: 6, name: 'Candy Crab', hp: 32, attack: 5, reward: 28, tier: 2, emoji: '🦀', ascii: `  \\<(o)>/
+ <=======|
+<((_____))>
+  </ \\>
+   /   \\` },
+    { id: 21, name: 'Taffy Troll', hp: 38, attack: 5, reward: 32, tier: 2, emoji: '👺', ascii: `  /^_^\\
+ (O   O)
+ [MMMMM]
+  |||||
+  /   \\` },
+    { id: 22, name: 'Gumball Goblin', hp: 33, attack: 4, reward: 27, tier: 2, emoji: '👹', ascii: `  /^^\\
+ ( @ @ )
+ (ooooo)
+ |^^^^^|
+ /     \\` },
+    { id: 23, name: 'Lemon Imp', hp: 28, attack: 6, reward: 24, tier: 2, emoji: '🍋', ascii: `  .~~~.
+ / ^_^ \\
+|( --- )|
+ \\  ~  /
+  '---'` },
+    { id: 24, name: 'Butterscotch Beast', hp: 40, attack: 5, reward: 35, tier: 2, emoji: '🐻', ascii: `  /UU\\
+ (o    o)
+ ( ___ )
+  |   |
+  U   U` },
+    { id: 7, name: 'Meme Wraith', hp: 45, attack: 6, reward: 50, tier: 3, emoji: '👻', ascii: `  .~~~~.
+ /  oo  \\
+|(  --  )|
+(        )
+ \\_/ \\_/\\` },
+    { id: 8, name: 'Gummy Guardian', hp: 50, attack: 7, reward: 55, tier: 3, emoji: '🛡️', ascii: `  /----\\
+ | [||] |
+ | [||] |
+ | [||] |
+  \\----/` },
+    { id: 9, name: 'Fudge Fiend', hp: 48, attack: 7, reward: 52, tier: 3, emoji: '😈', ascii: `  /\\ /\\
+ ( >_< )
+ [#####]
+  | | |
+ /|   |\\` },
+    { id: 25, name: 'Rock Candy Roller', hp: 55, attack: 6, reward: 58, tier: 3, emoji: '🪨', ascii: `  ______
+ /#######\\
+|#########|
+|#########|
+ \\#######/` },
+    { id: 26, name: 'Jelly Jester', hp: 42, attack: 8, reward: 48, tier: 3, emoji: '🤡', ascii: `  /O_O\\
+ (=^_^=)
+  |ooo|
+  |___|
+ /     \\` },
+    { id: 27, name: 'Marshmallow Mimic', hp: 46, attack: 7, reward: 51, tier: 3, emoji: '⚪', ascii: `   ____
+  / oo \\
+ |( OO )|
+  \\ -- /
+   ----` },
+    { id: 28, name: 'Sugar Spider', hp: 49, attack: 8, reward: 54, tier: 3, emoji: '🕷️', ascii: `\\  |x|  /
+ \\ |_| /
+--(o   o)--
+ / |_| \\
+/  |x|  \\` },
+    { id: 10, name: 'Cotton Candy Centaur', hp: 70, attack: 8, reward: 85, tier: 4, emoji: '🌸', ascii: `  ( ^o^ )
+  /=====\\
+ //  |  \\\\
+ \\\\  |  //
+  \\_ | _/` },
+    { id: 11, name: 'Lemon Drop Drake', hp: 75, attack: 8, reward: 90, tier: 4, emoji: '🐉', ascii: `  .~^~.
+ (@ - @)
+ <=====|>
+ /|   |\\
+ \\|___|/` },
+    { id: 12, name: 'Sugar Siren', hp: 72, attack: 9, reward: 87, tier: 4, emoji: '🧜', ascii: `  /~~\\
+ ( o.o )
+ ( ~~~ )
+  \\~~~\\/
+   /\\ /` },
+    { id: 29, name: 'Caramel Cyclops', hp: 78, attack: 9, reward: 92, tier: 4, emoji: '👁️', ascii: `  .-----.
+ /  OOO  \\
+| ((_O_)) |
+ \\       /
+  '-----'` },
+    { id: 30, name: 'Peppermint Phantom', hp: 74, attack: 10, reward: 88, tier: 4, emoji: '🌀', ascii: `  (~~~~)
+ (~~~~~)
+(~(o_o)~)
+ (~~~~~)
+  (~~~~)` },
+    { id: 31, name: 'Candy Colossus', hp: 85, attack: 8, reward: 95, tier: 4, emoji: '🤖', ascii: `[========]
+|[()  ()]|
+|[------]|
+ |  ||  |
+/|__|__|\\` },
+    { id: 32, name: 'Honeycomb Hornet', hp: 68, attack: 11, reward: 82, tier: 4, emoji: '🐝', ascii: `   /^^\\
+  (o -- o)
+ |=|===|=|
+  \\\\  //
+  /|  |\\` },
+    { id: 13, name: 'Licorice Lich', hp: 95, attack: 10, reward: 130, tier: 5, emoji: '☠️', ascii: `   _____
+  /X   X\\
+ ( ----- )
+  \\ XXX /
+   XX|XX` },
+    { id: 14, name: 'Candy Kraken', hp: 105, attack: 11, reward: 145, tier: 5, emoji: '🐙', ascii: `  (~~~~~~)
+ ((  oo  ))
+((( ---- )))
+ ||| ~~ |||
+/|/      \\|\\` },
+    { id: 15, name: 'GPT-3.5 Ghost', hp: 100, attack: 10, reward: 140, tier: 5, emoji: '👾', ascii: ` _|_|_|_
+|O |_| O|
+|_______|
+  |   |
+  /   \\` },
+    { id: 33, name: 'Toffee Titan', hp: 110, attack: 11, reward: 150, tier: 5, emoji: '🗿', ascii: `  ______
+ /------\\
+|   --   |
+|  [  ]  |
+|________|` },
+    { id: 34, name: 'Candy Chimera', hp: 98, attack: 12, reward: 135, tier: 5, emoji: '🦁', ascii: `  /VVV\\
+ ( o  o )
+ ( ----- )
+ /|     |\\
+/ |_____|\\` },
+    { id: 35, name: 'Fondant Phoenix', hp: 102, attack: 10, reward: 142, tier: 5, emoji: '🔥', ascii: `  /\\ /\\
+ /##\\/##\\
+/########\\
+  \\ /\\ /
+  /    \\` },
+    { id: 36, name: 'Nougat Nemesis', hp: 108, attack: 13, reward: 148, tier: 5, emoji: '⚡', ascii: `   ####
+  ####
+ ####
+######
+  ###
+   ##` },
+    { id: 16, name: 'Sentient Sweetness', hp: 140, attack: 12, reward: 200, tier: 6, emoji: '✨', ascii: ` *  .  *
+.  * * .
+* *.*.* *
+.  * * .
+ *  .  *` },
+    { id: 17, name: 'Caramel Colossus', hp: 150, attack: 13, reward: 220, tier: 6, emoji: '💪', ascii: `    ___
+   /   \\
+  | ))) |
+ /|     |\\
+/ |_____|\\` },
+    { id: 18, name: 'The Candy King', hp: 160, attack: 14, reward: 250, tier: 6, emoji: '👑', ascii: `  /\\^/\\
+ / /^\\ \\
+[  | |  ]
+ \\ | | /
+  \\___/` },
+    { id: 37, name: 'Licorice Leviathan', hp: 165, attack: 15, reward: 260, tier: 6, emoji: '🌊', ascii: `  ~~~~~~~
+ ~~~o~~~~
+~~~ooo~~~
+ ~~~o~~~~
+  ~~~~~~~` },
+    { id: 38, name: 'Sugar Sultan', hp: 155, attack: 14, reward: 240, tier: 6, emoji: '🧞', ascii: `  /~~~~\\
+ ( O  O )
+  \\ -- /
+ /|~~~~|\\
+/  \\__/  \\` },
+    { id: 39, name: 'The Lollipop Lord', hp: 170, attack: 16, reward: 280, tier: 6, emoji: '⭐', ascii: `    ***
+  *  *  *
+ * *.*.* *
+  *  *  *
+    ***` },
+    { id: 40, name: 'Candy Constellation', hp: 180, attack: 15, reward: 300, tier: 6, emoji: '💫', ascii: `*  .  *  .
+ . *** . *
+* ***** *
+ . *** . *
+*  .  *  .` },
+    { id: 41, name: 'Syrup Serpent', hp: 188, attack: 16, reward: 315, tier: 7, emoji: '🐍', ascii: `  /SSS\\
+ ( ooo )
+  >SSS>
+ <SSS<
+  \\SSS/` },
+    { id: 42, name: 'Bubblegum Berserker', hp: 195, attack: 17, reward: 325, tier: 7, emoji: '😡', ascii: `  /-_-\\
+ (>   <)
+  |###|
+  |___|
+  /   \\` },
+    { id: 43, name: 'Praline Parasite', hp: 190, attack: 18, reward: 320, tier: 7, emoji: '🪲', ascii: `   /^^\\
+  ((oo))
+  /====\\
+ |======|
+  \\====/` },
+    { id: 44, name: 'Nougat Nautilus', hp: 205, attack: 16, reward: 330, tier: 7, emoji: '🐚', ascii: `   .@@.
+  @@@@@
+ @@(())@
+ @@@@@@@
+  .@@@.` },
+    { id: 45, name: 'Candy Cannoneer', hp: 210, attack: 17, reward: 340, tier: 7, emoji: '💣', ascii: `  [===]
+ [=====]
+  O---O
+  | | |
+ / |_| \\` },
+    { id: 46, name: 'Wafer Warlock', hp: 198, attack: 19, reward: 335, tier: 7, emoji: '🧙', ascii: `   /\\
+  /##\\
+ (o  o)
+ [####]
+  /  \\` },
+    { id: 47, name: 'Jelly Juggernaut', hp: 220, attack: 16, reward: 350, tier: 7, emoji: '🟣', ascii: `  (####)
+ (######)
+(########)
+ (######)
+  (####)` },
+    { id: 48, name: 'Marzipan Marauder', hp: 214, attack: 18, reward: 345, tier: 7, emoji: '🏴', ascii: `  _____
+ |#####|
+ |#####|
+ |_____|
+    |` },
+    { id: 49, name: 'Peppermint Paladin', hp: 228, attack: 18, reward: 365, tier: 8, emoji: '🛡️', ascii: `  [====]
+ /[####]\\
+|[######]|
+ \\[####]/
+  [====]` },
+    { id: 50, name: 'Rock Candy Rhino', hp: 235, attack: 19, reward: 380, tier: 8, emoji: '🦏', ascii: `   /--\\
+  /(##)\\
+ |/    \\|
+ |/ /\\ \\|
+  \\____/` },
+    { id: 51, name: 'Frosting Fury', hp: 230, attack: 20, reward: 375, tier: 8, emoji: '❄️', ascii: `    *
+   /|\\
+  / | \\
+*---+---*
+  \\ | /
+   \\|/
+    *` },
+    { id: 52, name: 'Buttermint Basilisk', hp: 242, attack: 19, reward: 390, tier: 8, emoji: '🦎', ascii: `    __
+   /o \\
+  |  ==|
+   \\__/====>
+      \\_____` },
+    { id: 53, name: 'Truffle Tempest', hp: 238, attack: 21, reward: 385, tier: 8, emoji: '🌪️', ascii: `   ~~~~
+  ~~~~~~
+ ~~~~~~~~
+   ~~~~
+    ~~` },
+    { id: 54, name: 'Cupcake Crusader', hp: 246, attack: 20, reward: 400, tier: 8, emoji: '🧁', ascii: `  ~~~~
+ /####\\
+|######|
+ \\----/
+  /  \\` },
+    { id: 55, name: 'Molasses Minotaur', hp: 255, attack: 20, reward: 410, tier: 8, emoji: '🐂', ascii: `  /MM\\
+ ( o  o )
+  [---]
+  | | |
+ /|   |\\` },
+    { id: 56, name: 'Toffee Templar', hp: 250, attack: 22, reward: 405, tier: 8, emoji: '✝️', ascii: `  [---]
+  | | |
+[-+---+-]
+  | | |
+  | | |` },
+    { id: 57, name: 'Celestial Candyfin', hp: 265, attack: 22, reward: 430, tier: 9, emoji: '🐟', ascii: `   ><>
+  >>o>>
+ >>ooo>>
+  >>o>>
+   ><>` },
+    { id: 58, name: 'Obsidian Oreo', hp: 272, attack: 23, reward: 440, tier: 9, emoji: '⚫', ascii: `  ######
+ #------#
+#---()---#
+ #------#
+  ######` },
+    { id: 59, name: 'Star Syrup Djinn', hp: 268, attack: 24, reward: 435, tier: 9, emoji: '🧞', ascii: `  /~~~~\\
+ (  **  )
+( * ** * )
+ \\  **  /
+  /|  |\\` },
+    { id: 60, name: 'Glazed Gargoyle', hp: 280, attack: 22, reward: 450, tier: 9, emoji: '🗿', ascii: `  ______
+ /======\\
+| [O  O] |
+|  ----  |
+|________|` },
+    { id: 61, name: 'Candied Chimney', hp: 276, attack: 25, reward: 445, tier: 9, emoji: '🏭', ascii: `  | | |
+  |||||
+ [=====]
+ [=====]
+[=======]` },
+    { id: 62, name: 'Mallow Meteor', hp: 285, attack: 24, reward: 460, tier: 9, emoji: '☄️', ascii: `     *
+    ***
+   *####*
+  *######*
+ **####***` },
+    { id: 63, name: 'Cosmic Cracker', hp: 290, attack: 23, reward: 470, tier: 9, emoji: '🌌', ascii: ` .  *  .
+* . * . *
+. * * * .
+* . * . *
+ .  *  .` },
+    { id: 64, name: 'Sour Starreaver', hp: 282, attack: 26, reward: 465, tier: 9, emoji: '⭐', ascii: `    *
+   ***
+  ** **
+ **   **
+  ** **
+   ***
+    *` },
+    { id: 65, name: 'Lollipop Leviathan', hp: 305, attack: 26, reward: 500, tier: 10, emoji: '🐋', ascii: `  ~~~~~~~~~~
+ /  ~  ~  ~ \\
+| ~ (O)   ~  |
+ \\__________/
+   \\\\  ||  //` },
+    { id: 66, name: 'Nebula Nougat', hp: 298, attack: 27, reward: 490, tier: 10, emoji: '🌠', ascii: `    .*.
+   .***. ---->
+  .*****.
+ .*******.
+    ***` },
+    { id: 67, name: 'Caramel Cataclysm', hp: 315, attack: 25, reward: 515, tier: 10, emoji: '🌋', ascii: `    /\\
+   /##\\
+  /####\\
+ /------\\
+/~~~~~~~~~~\\` },
+    { id: 68, name: 'Fudge Overmind', hp: 308, attack: 28, reward: 505, tier: 10, emoji: '🧠', ascii: `  _______
+ /~|~|~|~\\
+(~|~|~|~|~)
+(~|~|~|~|~)
+ \\_______/` },
+    { id: 69, name: 'Taffy Tyrant', hp: 320, attack: 27, reward: 520, tier: 10, emoji: '👑', ascii: `  /\\^/\\
+ / /^\\ \\
+[========]
+ [######]
+  | || |` },
+    { id: 70, name: 'Prism Puff Dragon', hp: 325, attack: 28, reward: 530, tier: 10, emoji: '🐲', ascii: `  /\\__/\\
+ ( *  * )
+  \\ -- /
+  /====\\
+ /|    |\\` },
+    { id: 71, name: 'Chocolate Comet King', hp: 332, attack: 29, reward: 540, tier: 10, emoji: '☄️', ascii: `    *
+  *****
+ #######*
+######### **
+ #######*` },
+    { id: 72, name: 'Licorice Eclipse', hp: 340, attack: 27, reward: 550, tier: 10, emoji: '🌑', ascii: `  ######
+ ########
+##(    )##
+ ########
+  ######` },
+    { id: 73, name: 'Gummy Galaxy Hydra', hp: 348, attack: 30, reward: 565, tier: 10, emoji: '🐉', ascii: ` /\\ /\\ /\\
+(oo)(oo)(oo)
+ \\v--v--v/
+   |||||
+  /|   |\\` },
+    { id: 74, name: 'Astral Affogato', hp: 336, attack: 31, reward: 555, tier: 10, emoji: '☕', ascii: `  ......
+ /######\\
+|  ~~~~  |
+|  ~~~~  |
+ \\------/` },
+    { id: 75, name: 'Candybox Revenant', hp: 355, attack: 29, reward: 575, tier: 10, emoji: '👻', ascii: `  .~~~~.
+ /  oo  \\
+|(~~~~~~)|
+|        |
+ \\_/ \\_/\\` },
+    { id: 76, name: 'Sweet Singularity', hp: 362, attack: 31, reward: 590, tier: 10, emoji: '🌀', ascii: `    ....
+  .~~~~~~.
+ (~(~~~~)~)
+  .~~~~~~.
+    ....` },
+    { id: 77, name: 'Omega Marsh Warden', hp: 370, attack: 30, reward: 600, tier: 10, emoji: '🛡️', ascii: `  /========\\
+ /[##########]\\
+|[############]|
+ \\[##########]/
+  \\==========/` },
+    { id: 78, name: 'Void Bonbon', hp: 366, attack: 32, reward: 595, tier: 10, emoji: '⚫', ascii: `  (######)
+ (########)
+(##(  )####)
+ (########)
+  (######)` },
+    { id: 79, name: 'Candy Crown Devourer', hp: 378, attack: 33, reward: 615, tier: 10, emoji: '👑', ascii: `  /\\/\\/\\
+ / CROWN \\
+|  |   |  |
+|  |   |  |
+ \\_______/` },
+    { id: 80, name: 'The Final Sweet', hp: 390, attack: 34, reward: 640, tier: 10, emoji: '✨', ascii: `* . *** . *
+. ***** . *
+** . . . **
+. ***** . *
+* . *** . *` }
 ];
 
 const WEAPON_DEFS = [
@@ -135,7 +460,19 @@ const ARTIFACT_DEFS = [
     { id: 'villagePebble', name: 'Village Pebble', emoji: '🪨', page: 'village-square', top: '83%', left: '51%', description: '+100 max HP', bonus: { maxHp: 100 } },
     { id: 'hiddenRibbon', name: 'Hidden Ribbon', emoji: '🎀', page: 'village-square', top: '34%', left: '8%', description: '+1.0 regen', bonus: { regen: 1.0 } },
     { id: 'arenaEye', name: 'Arena Eye', emoji: '👁️', page: 'colosseum', top: '22%', left: '49%', description: '+10 attack', bonus: { attack: 10 } },
-    { id: 'glassRelic', name: 'Glass Relic', emoji: '🏺', page: 'colosseum', top: '86%', left: '9%', description: '+5 chocolate/hour', bonus: { chocolateRate: 1.5 } }
+    { id: 'glassRelic', name: 'Glass Relic', emoji: '🏺', page: 'colosseum', top: '86%', left: '9%', description: '+5 chocolate/hour', bonus: { chocolateRate: 1.5 } },
+    { id: 'cauldronSpark', name: 'Cauldron Spark', emoji: '🔥', page: 'cauldron', top: '15%', left: '85%', description: 'Doubles brew duration', bonus: {} }
+];
+
+const RECIPE_DEFS = [
+    { id: 'sugarRushBrew',   name: 'Sugar Rush Brew',    candy: 100,  choc: 0,  lolly: 0,  type: 'cps',     value: 3,   duration: 60000, combatOnly: false, secret: false, desc: '3× CPS for 60s' },
+    { id: 'battleDraught',   name: 'Battle Draught',      candy: 50,   choc: 2,  lolly: 0,  type: 'attack',  value: 50,  duration: 0,     combatOnly: true,  secret: false, desc: '+50 attack for one fight' },
+    { id: 'luckElixir',      name: 'Luck Elixir',         candy: 0,    choc: 0,  lolly: 5,  type: 'drop',    value: 2,   duration: 90000, combatOnly: false, secret: false, desc: '2× candy drops for 90s' },
+    { id: 'mysticRegen',     name: 'Mystic Regen',        candy: 200,  choc: 1,  lolly: 1,  type: 'regen',   value: 5,   duration: 30000, combatOnly: false, secret: false, desc: '5× regen for 30s' },
+    { id: 'candyStormFlask', name: 'Candy Storm Flask',   candy: 500,  choc: 5,  lolly: 0,  type: 'autowin', value: 1,   duration: 0,     combatOnly: true,  secret: false, desc: 'Auto-win next combat' },
+    { id: 'sweetTruth',      name: 'The Sweet Truth',     candy: 1000, choc: 10, lolly: 10, type: 'reveal',  value: 1,   duration: 0,     combatOnly: false, secret: false, desc: 'Reveals a hidden artifact location' },
+    { id: 'ancientFormula',  name: 'The Ancient Formula', candy: 9999, choc: 99, lolly: 9,  type: 'permhp',  value: 500, duration: 0,     combatOnly: false, secret: true,  desc: '+500 max HP (permanent, one-time)' },
+    { id: 'perfectCandy',    name: 'The Perfect Candy',   candy: 0,    choc: 0,  lolly: 1,  type: 'cosmetic', value: 1,  duration: 0,     combatOnly: false, secret: true,  desc: 'Something stirs in the void...' },
 ];
 
 function getCandyCostPerHp(maxHp) {
@@ -211,7 +548,14 @@ function getDefaultGameState() {
         timeWarpEnabled: false,
         timeWarpUnlocked: false,
         darkModeCandies: 0,
-        villagerQuestCounts: {}
+        villagerQuestCounts: {},
+        // Candy Cauldron system
+        cauldronFound: false,
+        activePotions: [],
+        discoveredRecipes: [],
+        cauldronLog: [],
+        cauldronAnimFrame: 0,
+        candyTitle: false
     };
 }
 
@@ -326,6 +670,11 @@ class CandyBox3 {
         this.state.combatFlags = { ...defaults.combatFlags, ...(this.state.combatFlags || {}) };
         this.state.timeWarpUnlocked = this.state.timeWarpUnlocked || false;
         this.state.darkModeCandies = this.state.darkModeCandies || 0;
+        this.state.cauldronFound = this.state.cauldronFound || false;
+        this.state.activePotions = Array.isArray(this.state.activePotions) ? this.state.activePotions : [];
+        this.state.discoveredRecipes = Array.isArray(this.state.discoveredRecipes) ? this.state.discoveredRecipes : [];
+        this.state.cauldronLog = Array.isArray(this.state.cauldronLog) ? this.state.cauldronLog : [];
+        this.state.candyTitle = this.state.candyTitle || false;
     }
 
     getArmorDef(id = this.state.equippedArmor) {
@@ -451,7 +800,7 @@ class CandyBox3 {
 
     getEffectiveAttack() {
         const weapon = this.getWeaponDef();
-        let attack = this.state.attack + (weapon ? this.getScaledValue(weapon, 'attackBonus') : 0) + this.getArtifactBonusTotal('attack');
+        let attack = this.state.attack + (weapon ? this.getScaledValue(weapon, 'attackBonus') : 0) + this.getArtifactBonusTotal('attack') + this.getPotionAttackBonus();
         if (this.hasSkill('sugarRush') && this.state.hp / this.getEffectiveMaxHp() >= 0.7) {
             attack *= this.getSkillEffectiveness('sugarRush', 1.15);
         }
@@ -461,10 +810,10 @@ class CandyBox3 {
     getEffectiveRegen() {
         const weapon = this.getWeaponDef();
         const armor = this.getArmorDef();
-        return this.state.regenRate +
+        return (this.state.regenRate +
             (weapon ? this.getScaledValue(weapon, 'regenBonus') : 0) +
             (armor ? this.getScaledValue(armor, 'regenBonus') : 0) +
-            this.getArtifactBonusTotal('regen');
+            this.getArtifactBonusTotal('regen')) * this.getPotionMultiplier('regen');
     }
 
     getDamageReduction() {
@@ -484,10 +833,10 @@ class CandyBox3 {
     getCandyDropMultiplier() {
         const weapon = this.getWeaponDef();
         const armor = this.getArmorDef();
-        return 1 +
+        return (1 +
             (weapon ? this.getScaledValue(weapon, 'candyDropBonus') : 0) +
             (armor ? this.getScaledValue(armor, 'candyDropBonus') : 0) +
-            this.getArtifactBonusTotal('candyDrop');
+            this.getArtifactBonusTotal('candyDrop')) * this.getPotionMultiplier('drop');
     }
 
     getHealOnKillRatio() {
@@ -498,7 +847,7 @@ class CandyBox3 {
     getEffectiveCPS() {
         const baseCPS = this.state.candyRate;
         const artifactFlatBonus = this.getArtifactBonusTotal('candyRate');
-        return baseCPS + artifactFlatBonus;
+        return (baseCPS + artifactFlatBonus) * this.getPotionMultiplier('cps');
     }
 
     getColosseumTickMs(speed = this.state.colosseumSpeed) {
@@ -643,7 +992,7 @@ class CandyBox3 {
         if (!main) return;
         main.innerHTML = `
             <div id="status-panel" class="panel">
-                <div class="stat-row"><span class="stat-label">Candies:</span><span id="candy-count">0</span></div>
+                <div class="stat-row"><span class="stat-label">Candies:</span><span id="candy-count">0</span><span id="candy-title" style="display:none; color:#c8a; font-size:0.9em;"> ✨</span></div>
                 <div class="stat-row"><span class="stat-label">Total Eaten:</span><span id="total-eaten">0</span></div>
                 <div class="stat-row"><span class="stat-label">Candy/sec:</span><span id="candy-rate">1.0</span></div>
                 <div class="stat-row"><span class="stat-label">Chocolate:</span><span id="chocolate-count">0</span><span> (+</span><span id="chocolate-rate">0</span><span>/hr)</span></div>
@@ -651,6 +1000,7 @@ class CandyBox3 {
                 <div class="stat-row"><span class="stat-label">Attack:</span><span id="attack-value">5</span></div>
                 <div class="stat-row"><span class="stat-label">HP:</span><span id="hp-bar">[██████████]</span><span id="hp-current">10</span><span>/</span><span id="hp-max">10</span></div>
                 <div class="stat-row"><span class="stat-label">Active Quest:</span><span id="active-quest-display">none</span></div>
+                <div class="stat-row"><span class="stat-label">Potions:</span><span id="potion-status">none</span></div>
             </div>
             <div id="mainView">
                 <div id="actions-panel" class="panel" style="position:relative;"><div id="action-buttons"></div><div id="quick-actions"><button class="action-btn" data-action="eat">🍬 Eat Candy</button><button class="action-btn" data-action="go-map">🗺️ Map</button></div>${this.renderArtifactHotspots('main')}</div>
@@ -666,6 +1016,7 @@ class CandyBox3 {
             <div id="villageView" style="display:none;"></div>
             <div id="museumView" style="display:none;"></div>
             <div id="colosseumView" style="display:none; position: relative; min-height: 500px;"></div>
+            <div id="cauldronView" style="display:none;"></div>
             <div id="arsenal-panel" class="panel" style="display:none;"><h3>Arsenal</h3><div id="arsenal-list"></div></div>
             <div id="academy-panel" class="panel" style="display:none;"><h3>Skills</h3><div id="academy-list"></div></div>
             <div id="log-panel" class="panel" style="display:none; max-height: 200px; overflow-y: auto;"><h3>Log</h3><div id="game-log"></div></div>
@@ -721,7 +1072,8 @@ class CandyBox3 {
             .filter(def => def.active && this.hasSkill(def.id))
             .map(def => {
                 const level = this.getSkillUpgradeLevel(def.id);
-                return { key: def.id, name: `${def.name} +${level}`, cost: def.useCost, effect: def.description.replace('Active: ', ''), isSkill: true };
+                const desc = (def.descriptionTemplate || def.description || '').replace('Active: ', '');
+        return { key: def.id, name: `${def.name} +${level}`, cost: def.useCost, effect: desc, isSkill: true };
             });
         for (let spell of [...spells, ...activeSkills]) {
             const div = document.createElement('div');
@@ -898,41 +1250,64 @@ class CandyBox3 {
         const _scrollY = window.scrollY;
 
         const forestLink = this.state.forestUnlocked
-            ? '<span data-action="go-forest" class="clickable">Chocolate Forest</span>'
-            : '<span class="locked">??? (locked)</span>';
+            ? '<span data-action="go-forest" class="clickable">🌲 Chocolate Forest</span>'
+            : '<span class="locked">🌲 ??? (locked)</span>';
         const villageLink = this.state.sweetVillageUnlocked
-            ? '<span data-action="go-village" class="clickable">Sweet Village</span>'
-            : '<span class="locked">Quiet road (locked)</span>';
+            ? '<span data-action="go-village" class="clickable">🏘️ Sweet Village</span>'
+            : '<span class="locked">🏘️ Quiet road (locked)</span>';
         const colosseumLink = this.state.colosseumUnlocked
-            ? '<span data-action="go-colosseum" class="clickable">Candy Colosseum</span>'
-            : '<span class="locked">Arena gate (locked)</span>';
+            ? '<span data-action="go-colosseum" class="clickable">🏟️ Candy Colosseum</span>'
+            : '<span class="locked">🏟️ Arena gate (locked)</span>';
         const museumLink = this.state.museumUnlocked
-            ? '<span data-action="go-museum" class="clickable">Museum</span>'
-            : '<span class="locked">Museum (locked)</span>';
+            ? '<span data-action="go-museum" class="clickable">🏛️ Museum</span>'
+            : '<span class="locked">🏛️ Museum (locked)</span>';
+
+        const box = 'border:1px solid #888; padding:10px 18px; text-align:center; white-space:nowrap;';
+        const connH = '<td style="text-align:center;padding:0 8px;vertical-align:middle;font-family:monospace;white-space:nowrap;">────</td>';
+        const blank = '<td></td>';
+        const cauldronRows = this.state.cauldronFound ? `
+                    <tr>
+                        <td style="text-align:center;font-family:monospace;padding:2px 0;">│</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td style="${box}"><span data-action="go-cauldron" class="clickable">🧪 Candy Cauldron</span></td>
+                        <td></td>
+                        <td></td>
+                    </tr>` : '';
 
         map.innerHTML = `
             <div class="panel" style="position:relative;">
                 <h2>🗺️ World Map</h2>
-                <pre id="asciiMap" style="font-family: monospace; margin: 20px 0; text-align: center; max-width: 100%; overflow-x: auto;">
-        ┌──────────────────────┐      ┌──────────────────────┐
-        │                      │      │                      │
-        │  <span data-action="go-main" class="clickable">🏭 Candy Factory</span>  │──────│   ${colosseumLink}   │
-        │                      │      │                      │
-        └───────────┬──────────┘      └──────────────────────┘
-                    │
-        ┌───────────▼──────────┐      ┌──────────────────────┐
-        │                      │      │                      │
-        │  ${forestLink}  │──────│   ${villageLink}   │
-        │                      │      │                      │
-        └──────────────────────┘      └──────────────────────┘
-
-                 ┌──────────────────────┐
-                 │    ${museumLink}    │
-                 └──────────────────────┘
-                </pre>
-                <div style="text-align: center; margin: 20px 0;">
-                    <button class="action-btn" data-action="go-main">Return to Factory</button>
-                </div>
+                <table style="border-collapse:separate;border-spacing:0;margin:20px auto;">
+                    <tr>
+                        <td style="${box}"><span data-action="go-main" class="clickable">🏭 Candy Factory</span></td>
+                        ${connH}
+                        <td style="${box}">${colosseumLink}</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:center;font-family:monospace;padding:2px 0;">│</td>
+                        ${blank}
+                        ${blank}
+                    </tr>
+                    <tr>
+                        <td style="${box}">${forestLink}</td>
+                        ${connH}
+                        <td style="${box}">${villageLink}</td>
+                    </tr>
+                    <tr>
+                        ${blank}
+                        <td style="text-align:center;font-family:monospace;padding:2px 0;">│</td>
+                        ${blank}
+                    </tr>
+                    <tr>
+                        ${blank}
+                        <td style="${box}">${museumLink}</td>
+                        ${blank}
+                    </tr>
+                    ${cauldronRows}
+                </table>
                 ${this.renderArtifactHotspots('map')}
             </div>
         `;
@@ -940,8 +1315,6 @@ class CandyBox3 {
     }
 
     buildMuseumUI() {
-        this.state.museumRendered = false;
-        if (this.state.museumRendered) return;
         const museum = document.getElementById('museumView');
         if (!museum) return;
         const cells = ARTIFACT_DEFS.map((artifact, index) => {
@@ -962,7 +1335,6 @@ class CandyBox3 {
                 <div style="margin-top:20px;"><button class="action-btn" data-action="go-map">🗺️ Back to Map</button></div>
             </div>
         `;
-        this.state.museumRendered = true;
     }
 
     buildVillageUI() {
@@ -1500,6 +1872,7 @@ class CandyBox3 {
                     <button class="action-btn" data-action="go-map" style="margin-left: 10px;">🗺️ Back to Map</button>
                 </div>
                 ${this.renderArtifactHotspots('forest')}
+                ${!this.state.cauldronFound ? '<button data-action="find-cauldron" style="position:absolute;bottom:10%;left:8%;width:40px;height:40px;opacity:0;cursor:pointer;" aria-label="hidden cauldron"></button>' : ''}
             </div>
         `;
     }
@@ -1511,6 +1884,7 @@ class CandyBox3 {
         const villageView = document.getElementById('villageView');
         const museumView = document.getElementById('museumView');
         const colosseumView = document.getElementById('colosseumView');
+        const cauldronView = document.getElementById('cauldronView');
         const logPanel = document.getElementById('log-panel');
 
         // Show/hide views based on current view
@@ -1520,10 +1894,13 @@ class CandyBox3 {
         villageView.style.display = this.state.view === 'village' ? 'block' : 'none';
         museumView.style.display = this.state.view === 'museum' ? 'block' : 'none';
         colosseumView.style.display = this.state.view === 'colosseum' ? 'block' : 'none';
+        if (cauldronView) cauldronView.style.display = this.state.view === 'cauldron' ? 'block' : 'none';
         if (logPanel && this.state.view !== 'village') logPanel.style.display = 'none';
 
-        // Build map, forest, or colosseum UI when entering those views
-        if (this.state.view === 'map') {
+        // Build view-specific UI when entering each view
+        if (this.state.view === 'main') {
+            this.updateUI();
+        } else if (this.state.view === 'map') {
             this.buildMapUI();
         } else if (this.state.view === 'forest') {
             this.buildForestUI();
@@ -1536,6 +1913,8 @@ class CandyBox3 {
         } else if (this.state.view === 'colosseum') {
             this.buildColosseumUI();
             this.updateColosseumSpeedOptions();
+        } else if (this.state.view === 'cauldron') {
+            this.buildCauldronUI();
         }
     }
 
@@ -1770,6 +2149,10 @@ class CandyBox3 {
         this.doSave();
     }
 
+    checkSecretBuffs() {
+        // Legacy colosseum buff system removed; stub kept to avoid TypeError on stop
+    }
+
 stopColosseumCombat() {
     if (this.state.colosseumRunning) {
         this.state.colosseumRunning = false;
@@ -1808,7 +2191,7 @@ stopColosseumCombat() {
 
 
         // Lock Exit button while a Colosseum run is active
-        const exitBtn = document.querySelector('#colosseumView [data-action="go-main"]');
+        const exitBtn = document.querySelector('#colosseumView [data-action="go-map"]');
         if (exitBtn) {
             const running = !!this.state.colosseumRunning;
             exitBtn.disabled = running;
@@ -1858,6 +2241,184 @@ stopColosseumCombat() {
         container.parentElement.scrollTop = container.parentElement.scrollHeight;
     }
 
+    addCauldronLog(msg) {
+        if (!Array.isArray(this.state.cauldronLog)) this.state.cauldronLog = [];
+        this.state.cauldronLog.unshift(msg);
+        if (this.state.cauldronLog.length > 20) this.state.cauldronLog.length = 20;
+        const logEl = document.getElementById('cauldron-log-entries');
+        if (logEl) {
+            const div = document.createElement('div');
+            div.style.cssText = 'padding:3px 0; border-bottom:1px solid #333;';
+            div.textContent = msg;
+            logEl.prepend(div);
+            while (logEl.children.length > 20) logEl.removeChild(logEl.lastChild);
+        }
+    }
+
+    getCauldronArt(frame) {
+        const bubbles = ['  · · ·  ', '  o · o  ', '  O o O  ', '  ° O °  '];
+        return `     (       )
+   (  ${bubbles[frame % 4]}  )
+  /~~~~~~~~~~~~~~~\\
+ |                 |
+  \\_____________/
+       |   |`;
+    }
+
+    buildCauldronUI() {
+        const view = document.getElementById('cauldronView');
+        if (!view) return;
+        const totalKnown = RECIPE_DEFS.filter(r => !r.secret).length;
+        const scroll = this.state.discoveredRecipes.length === 0
+            ? '<div class="inventory-item" style="color:#888;">No recipes discovered yet. Try combining ingredients...</div>'
+            : this.state.discoveredRecipes.map(id => {
+                const r = RECIPE_DEFS.find(r => r.id === id);
+                if (!r) return '';
+                const parts = [r.candy ? `${r.candy}🍬` : '', r.choc ? `${r.choc}🍫` : '', r.lolly ? `${r.lolly}🍭` : ''].filter(Boolean);
+                const cost = parts.length ? parts.join(' + ') : '(nothing)';
+                return `<div class="inventory-item">🧪 <strong>${r.name}</strong>: ${cost} → ${r.desc}</div>`;
+            }).join('');
+        view.innerHTML = `
+            <div class="panel" style="position:relative;">
+                <h2>🧪 Candy Cauldron</h2>
+                <pre id="cauldron-art" style="font-family:monospace; text-align:center; margin:15px 0; font-size:13px; line-height:1.4;">${this.getCauldronArt(this.state.cauldronAnimFrame || 0)}</pre>
+                <div style="margin:15px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <span>🍬</span><input id="brew-candy" type="number" min="0" value="0" style="width:80px; padding:4px;">
+                    <span>🍫</span><input id="brew-choc" type="number" min="0" value="0" style="width:60px; padding:4px;">
+                    <span>🍭</span><input id="brew-lolly" type="number" min="0" value="0" style="width:60px; padding:4px;">
+                    <button class="action-btn" data-action="brew">Brew</button>
+                </div>
+                <div style="margin:20px 0;">
+                    <strong>📜 Recipe Scroll</strong> (${this.state.discoveredRecipes.length}/${totalKnown} known)
+                    <div style="margin-top:8px; border:1px solid #888; padding:10px; min-height:60px;">${scroll}</div>
+                </div>
+                <div style="margin:20px 0;">
+                    <strong>📋 Cauldron Log</strong>
+                    <div id="cauldron-log-entries" style="margin-top:8px; border:1px solid #555; padding:8px 10px; min-height:40px; max-height:130px; overflow-y:auto; font-size:0.88em; font-family:monospace;">${
+                        (this.state.cauldronLog || []).length === 0
+                            ? '<div style="color:#666;">No brews yet...</div>'
+                            : (this.state.cauldronLog || []).map(msg => `<div style="padding:3px 0; border-bottom:1px solid #333;">${msg}</div>`).join('')
+                    }</div>
+                </div>
+                <div style="margin-top:15px;">
+                    <button class="action-btn" data-action="go-map">🗺️ Back to Map</button>
+                </div>
+                ${this.renderArtifactHotspots('cauldron')}
+            </div>
+        `;
+    }
+
+    tickCauldronAnimation() {
+        this._cauldronTick = (this._cauldronTick || 0) + 1;
+        if (this._cauldronTick < 10) return;
+        this._cauldronTick = 0;
+        this.state.cauldronAnimFrame = ((this.state.cauldronAnimFrame || 0) + 1) % 4;
+        const el = document.getElementById('cauldron-art');
+        if (el) el.textContent = this.getCauldronArt(this.state.cauldronAnimFrame);
+    }
+
+    brew(rawCandy, rawChoc, rawLolly) {
+        const candy = Math.floor(Math.abs(rawCandy)) || 0;
+        const choc = Math.floor(Math.abs(rawChoc)) || 0;
+        const lolly = Math.floor(Math.abs(rawLolly)) || 0;
+        if (candy > this.state.candies || choc > this.state.chocolate || lolly > this.state.lollipops) {
+            this.addCauldronLog('Not enough resources to brew.');
+            return;
+        }
+        this.state.candies -= candy;
+        this.state.chocolate -= choc;
+        this.state.lollipops -= lolly;
+        const candyBands = [50, 100, 200, 500, 1000, 9999];
+        const bandedCandy = candy === 0 ? 0 : (candyBands.find(b => Math.abs(candy - b) <= Math.max(1, Math.floor(b * 0.1))) ?? -1);
+        const recipe = RECIPE_DEFS.find(r => {
+            const cMatch = r.candy === 0 ? candy === 0 : bandedCandy === r.candy;
+            return cMatch && choc === r.choc && lolly === r.lolly;
+        });
+        if (!recipe) {
+            this.addCauldronLog('🧪 The cauldron bubbles sadly. Nothing happened.');
+            this.doSave();
+            return;
+        }
+        const isNew = !this.state.discoveredRecipes.includes(recipe.id);
+        if (isNew) {
+            this.state.discoveredRecipes.push(recipe.id);
+            this.addCauldronLog(`✨ New recipe discovered: ${recipe.name}!`);
+        }
+        this.applyPotionEffect(recipe);
+        this.buildCauldronUI();
+        this.updateUI();
+        this.doSave();
+    }
+
+    applyPotionEffect(recipe) {
+        const sparkBonus = this.state.artifactsFound?.['cauldronSpark'] ? 2 : 1;
+        if (recipe.type === 'permhp') {
+            const alreadyUsed = this.state.discoveredRecipes.filter(id => id === recipe.id).length > 1;
+            if (alreadyUsed) {
+                this.addCauldronLog(`🧪 ${recipe.name}: The formula has already worked its magic.`);
+                return;
+            }
+            this.state.maxHp += recipe.value;
+            this.state.hp = Math.min(this.state.hp + recipe.value, this.getEffectiveMaxHp());
+            this.addCauldronLog(`🧪 ${recipe.name}: +${recipe.value} max HP permanently!`);
+            return;
+        }
+        if (recipe.type === 'cosmetic') {
+            this.state.candyTitle = true;
+            this.addCauldronLog(`🧪 ${recipe.name}: The candy whispers something ancient...`);
+            this.addCauldronLog('"The sugar remembers."');
+            return;
+        }
+        if (recipe.type === 'reveal') {
+            const unfound = ARTIFACT_DEFS.filter(a => !this.state.artifactsFound[a.id]);
+            if (unfound.length === 0) {
+                this.addCauldronLog('🔮 The cauldron whispers: "You have found all that is hidden."');
+            } else {
+                const target = unfound[Math.floor(Math.random() * unfound.length)];
+                const pageNames = {
+                    'main': 'the Factory floor', 'map': 'the World Map',
+                    'forest': 'the Chocolate Forest', 'colosseum': 'the Arena',
+                    'cauldron': 'near the Cauldron itself',
+                    'village-square': 'the Village Square', 'village-townhall': 'the Town Hall',
+                    'village-forge': 'the Forge', 'village-market': 'the Market',
+                    'village-library': 'the Library', 'village-lookout': 'the Lookout',
+                };
+                const pageName = pageNames[target.page] || target.page;
+                this.addCauldronLog(`🔮 The cauldron whispers: "Something glimmers in ${pageName}..."`);
+            }
+            return;
+        }
+        const duration = (recipe.duration || 0) * sparkBonus;
+        const value = recipe.combatOnly ? recipe.value * sparkBonus : recipe.value;
+        const expiresAt = recipe.combatOnly ? 0 : (duration > 0 ? Date.now() + duration : 0);
+        this.state.activePotions = this.state.activePotions.filter(p => p.type !== recipe.type);
+        this.state.activePotions.push({ id: recipe.id, name: recipe.name, type: recipe.type, value, expiresAt, combatOnly: !!recipe.combatOnly });
+        this.addCauldronLog(`🧪 ${recipe.name}: ${recipe.desc}`);
+        this.updateUI();
+    }
+
+    expirePotionEffects() {
+        if (!this.state.activePotions || this.state.activePotions.length === 0) return;
+        const now = Date.now();
+        const before = this.state.activePotions.length;
+        this.state.activePotions = this.state.activePotions.filter(p => p.combatOnly || p.expiresAt > now);
+        if (this.state.activePotions.length < before) this.updateUI();
+    }
+
+    getPotionMultiplier(type) {
+        if (!this.state.activePotions) return 1;
+        const now = Date.now();
+        const p = this.state.activePotions.find(p => p.type === type && (p.combatOnly || p.expiresAt > now));
+        return p ? p.value : 1;
+    }
+
+    getPotionAttackBonus() {
+        if (!this.state.activePotions) return 0;
+        const now = Date.now();
+        const p = this.state.activePotions.find(p => p.type === 'attack' && (p.combatOnly || p.expiresAt > now));
+        return p ? p.value : 0;
+    }
+
     tick() {
         this.ensureStateShape();
         const now = Date.now();
@@ -1865,7 +2426,7 @@ stopColosseumCombat() {
         this.lastUpdate = now;
 
         // Candy generation
-        const candyGained = (this.state.candyRate + this.getArtifactBonusTotal('candyRate')) * deltaTime;
+        const candyGained = this.getEffectiveCPS() * deltaTime;
         this.state.candies += candyGained;
         if (this.state.darkModeEnabled) {
             this.addDarkEnergy(candyGained);
@@ -1885,6 +2446,8 @@ stopColosseumCombat() {
         if (this.state.colosseumRunning) {
             this.state.colosseumCurrentTime += deltaTime;
         }
+
+        this.expirePotionEffects();
     }
 
     updateUI() {
@@ -1893,7 +2456,7 @@ stopColosseumCombat() {
         const u = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
         u('candy-count', Math.floor(this.state.candies));
         u('total-eaten', Math.floor(this.state.totalCandiesEaten));
-        u('candy-rate', (this.state.candyRate + this.getArtifactBonusTotal('candyRate')).toFixed(1));
+        u('candy-rate', this.getEffectiveCPS().toFixed(1));
         u('chocolate-count', Math.floor(this.state.chocolate));
         u('chocolate-rate', (this.state.chocolateRate + this.getArtifactBonusTotal('chocolateRate')).toFixed(1));
         u('lollipop-count', Math.floor(this.state.lollipops));
@@ -1948,14 +2511,16 @@ stopColosseumCombat() {
         }
 
             const inFight = !!(this.state.inCombat && this.state.enemy);
+            const isDead = this.state.hp <= 0;
 
-        // Disable Eat Candy and Map buttons during combat
+        // Disable Eat Candy and Map buttons during combat or death
         const eatBtn = document.querySelector('[data-action="eat"]');
         const mapBtn = document.querySelector('[data-action="go-map"]');
         if (eatBtn) {
-            eatBtn.disabled = inFight;
-            eatBtn.style.opacity = inFight ? '0.4' : '';
-            eatBtn.style.cursor = inFight ? 'not-allowed' : '';
+            const eatBlocked = inFight || isDead;
+            eatBtn.disabled = eatBlocked;
+            eatBtn.style.opacity = eatBlocked ? '0.4' : '';
+            eatBtn.style.cursor = eatBlocked ? 'not-allowed' : '';
         }
         if (mapBtn) {
             mapBtn.disabled = inFight;
@@ -1975,7 +2540,7 @@ stopColosseumCombat() {
                 const lv = this.state.upgradesPurchased[d.key];
                 const c = getUpgradeCost(d.key, lv);
                 cost.textContent = ` (Lv ${lv} → ${lv + 1}) - ${c}`;
-                btn.disabled = inFight || this.state.candies < c;
+                btn.disabled = inFight || isDead || this.state.candies < c;
             }
         }
 
@@ -2006,12 +2571,24 @@ stopColosseumCombat() {
                 if (skill) h += `<div class="inventory-item">✦ ${skill.name} +${this.getSkillUpgradeLevel(skill.id)}</div>`;
             }
             const foundArtifacts = Object.keys(this.state.artifactsFound).length;
-            if (foundArtifacts > 0) h += `<div class="inventory-item">🏛️ Artifacts Found ${foundArtifacts}/20</div>`;
+            if (foundArtifacts > 0) h += `<div class="inventory-item">🏛️ Artifacts Found ${foundArtifacts}/${ARTIFACT_DEFS.length}</div>`;
 
 
             inv.innerHTML = h || '(empty)';
         }
 
+        const potionEl = document.getElementById('potion-status');
+        if (potionEl) {
+            const now = Date.now();
+            const active = (this.state.activePotions || []).filter(p => p.combatOnly || p.expiresAt > now);
+            potionEl.textContent = active.length === 0 ? 'none' : active.map(p => {
+                if (p.combatOnly) return p.name;
+                const secs = Math.ceil((p.expiresAt - now) / 1000);
+                return `${p.name} (${secs}s)`;
+            }).join(', ');
+        }
+        const titleEl = document.getElementById('candy-title');
+        if (titleEl) titleEl.style.display = this.state.candyTitle ? 'inline' : 'none';
         const hiddenArsenal = document.getElementById('arsenal-panel');
         const hiddenAcademy = document.getElementById('academy-panel');
         if (hiddenArsenal) hiddenArsenal.style.display = 'none';
@@ -2025,12 +2602,58 @@ stopColosseumCombat() {
         }
     }
 
+    updateButtonStates() {
+        const inFight = !!(this.state.inCombat && this.state.enemy);
+        const isDead = this.state.hp <= 0;
+        const newState = inFight ? 'fight' : isDead ? 'dead' : 'idle';
+
+        const c = document.getElementById('action-buttons');
+        if (c && c.dataset.uiState !== newState) {
+            c.dataset.uiState = newState;
+            if (inFight) {
+                c.innerHTML = '<button class="action-btn" data-action="attack">⚔️ Attack</button>';
+            } else if (isDead) {
+                c.innerHTML = '<div style="color: red;">Dead - Recovering...</div>';
+            } else {
+                c.innerHTML = '<button class="action-btn" data-action="explore">🔍 Explore</button>';
+            }
+        }
+
+        const blocked = inFight || isDead;
+        const eatBtn = document.querySelector('[data-action="eat"]');
+        if (eatBtn) {
+            eatBtn.disabled = blocked;
+            eatBtn.style.opacity = blocked ? '0.4' : '';
+            eatBtn.style.cursor = blocked ? 'not-allowed' : '';
+        }
+        const mapBtn = document.querySelector('[data-action="go-map"]');
+        if (mapBtn) {
+            mapBtn.disabled = inFight;
+            mapBtn.style.opacity = inFight ? '0.4' : '';
+            mapBtn.style.cursor = inFight ? 'not-allowed' : '';
+        }
+
+        const upgDefs = [{ key: 'candy' }, { key: 'attack' }, { key: 'regen' }];
+        for (const d of upgDefs) {
+            const btn = document.getElementById(`buy-${d.key}`);
+            if (btn) {
+                const lv = this.state.upgradesPurchased[d.key] || 0;
+                btn.disabled = blocked || this.state.candies < getUpgradeCost(d.key, lv);
+            }
+        }
+    }
+
     eatCandy() {
         console.log("[eatCandy] TRIGGERED - Initial state:", {
             candies: this.state.candies,
             maxHp: this.state.maxHp,
             hp: this.state.hp
         });
+
+        if (this.state.hp <= 0) {
+            this.addLog('Cannot eat candy while recovering from defeat.');
+            return;
+        }
 
         if (this.state.candies <= 0) {
             this.addLog('No candy to eat!');
@@ -2153,6 +2776,13 @@ stopColosseumCombat() {
         this.state.inCombat = true;
         this.resetCombatFlags();
         this.addLog(`${m.emoji || '👾'} ${m.name} (Lv${m.level || 1}) appears!`);
+        const autowinIdx = (this.state.activePotions || []).findIndex(p => p.type === 'autowin');
+        if (autowinIdx >= 0) {
+            this.state.activePotions.splice(autowinIdx, 1);
+            this.addLog('✨ Candy Storm Flask detonates! Instant victory!');
+            setTimeout(() => this.winCombat(), 600);
+            return;
+        }
     }
 
     fightSelectedMonster() {
@@ -2284,6 +2914,7 @@ stopColosseumCombat() {
         // Check colosseum unlock
         this.checkColosseumUnlock();
 
+        this.state.activePotions = (this.state.activePotions || []).filter(p => !p.combatOnly);
         this.state.inCombat = false;
         this.state.enemy = null;
         this.doSave();
@@ -2292,6 +2923,7 @@ stopColosseumCombat() {
     loseCombat() {
         this.addLog(`Defeated and lost all candies`);
         this.state.candies = 0;
+        this.state.activePotions = (this.state.activePotions || []).filter(p => !p.combatOnly);
         this.state.inCombat = false;
         this.state.enemy = null;
         this.doSave();
@@ -2419,7 +3051,7 @@ stopColosseumCombat() {
 
     doSave() {
         try {
-            const enc = btoa(JSON.stringify(this.state));
+            const enc = encodeState(this.state);
             document.cookie = `candybox3=${enc}; max-age=31536000; path=/`;
             console.log("[doSave] State saved - maxHp:", this.state.maxHp, "candies:", this.state.candies);
         } catch (e) {
@@ -2430,7 +3062,7 @@ stopColosseumCombat() {
     loadFromHash() {
         if (location.hash) {
             try {
-                return JSON.parse(atob(location.hash.slice(1)));
+                return decodeState(location.hash.slice(1));
             } catch (e) {
                 return null;
             }
@@ -2442,7 +3074,7 @@ stopColosseumCombat() {
         const m = document.cookie.match(/candybox3=([^;]+)/);
         if (m) {
             try {
-                return JSON.parse(atob(m[1]));
+                return decodeState(m[1]);
             } catch (e) {
                 return null;
             }
@@ -2496,6 +3128,14 @@ function doNewGame() {
     game.doSave();
 }
 
+function encodeState(state) {
+    return btoa(encodeURIComponent(JSON.stringify(state)));
+}
+function decodeState(encoded) {
+    const raw = atob(encoded);
+    try { return JSON.parse(decodeURIComponent(raw)); } catch(e) { return JSON.parse(raw); }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     game = new CandyBox3();
 
@@ -2547,6 +3187,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('time-warp');
     }
     game.state.villagerQuestCounts = game.state.villagerQuestCounts || {};
+    game.state.cauldronFound = game.state.cauldronFound || false;
+    game.state.activePotions = Array.isArray(game.state.activePotions) ? game.state.activePotions : [];
+    game.state.discoveredRecipes = Array.isArray(game.state.discoveredRecipes) ? game.state.discoveredRecipes : [];
+    game.state.cauldronLog = Array.isArray(game.state.cauldronLog) ? game.state.cauldronLog : [];
+    game.state.candyTitle = game.state.candyTitle || false;
 
     // Legacy colosseum bonus system removed - clean up old state
     game.state.colosseumBuffs = {};
@@ -2576,9 +3221,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (game.state.darkModeEnabled) {
             game.updateDarkEnergyBar();
         }
-        
-        // Only run full updateUI() when necessary (state changes that need UI layout changes)
-        // Dynamic values are updated directly via targeted functions for performance
+        if (game.state.view === 'cauldron') {
+            game.tickCauldronAnimation();
+        }
+
+        game.updateButtonStates();
     }, 100);
 
     setInterval(() => {
@@ -2601,15 +3248,14 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'cast-spell': game.castSpell(e.target.dataset.spellKey); break;
             case 'use-skill': game.useSkill(e.target.dataset.skillId); break;
             case 'export-save':
-                const en = btoa(JSON.stringify(game.state));
-                location.hash = en;
+                location.hash = encodeState(game.state);
                 game.addLog('Save in URL');
                 break;
             case 'import-save':
                 const tx = prompt('Paste save:');
                 if (tx) {
                     try {
-                        const de = JSON.parse(atob(tx));
+                        const de = decodeState(tx);
                         game.state = de;
                         game.ensureStateShape();
                         game.buildSpells();
@@ -2634,6 +3280,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.updateView();
                 break;
             case 'go-map':
+                if (game.state.view === 'colosseum') {
+                    if (game.colosseumInterval) {
+                        clearInterval(game.colosseumInterval);
+                        game.colosseumInterval = null;
+                    }
+                    game.state.colosseumRunning = false;
+                    game.state.inColosseum = false;
+                    game.state.enemy = null;
+                    game.state.colosseumSurvivalTime = 0;
+                    game.state.colosseumSessionPaid = false;
+                }
                 game.state.view = 'map';
                 game.state.villagePlace = 'square';
                 game.updateView();
@@ -2707,13 +3364,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.addLog('⚔️ Combat started!');
                 game.updateColosseumUI();
                 break;
-            case 'stop-colosseum':
+            case 'stop-colosseum': {
+                const timeAtStop = game.state.colosseumCurrentTime;
                 game.stopColosseumCombat();
 
-                if (game.state.colosseumCurrentTime > game.state.colosseumBestTime) {
-                    game.state.colosseumBestTime = game.state.colosseumCurrentTime;
-
-
+                if (timeAtStop > game.state.colosseumBestTime) {
+                    game.state.colosseumBestTime = timeAtStop;
                     game.addLog('🏆 New record! ' + game.state.colosseumBestTime.toFixed(1) + 's');
                 }
 
@@ -2727,6 +3383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.updateColosseumUI();
                 game.doSave();
                 break;
+            }
             case 'choose-buff':
                 const buffId = e.target.dataset.id;
                 if (game.state.colosseumBuffs[buffId]) {
@@ -2827,7 +3484,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         game.state.candies -= 10000000;
                         game.state.timeWarpUnlocked = true;
                         // Increase Dark Energy cap to 100 million after Time Warp unlock
-                        DARK_ENERGY_REQUIRED = 10000000;
+                        DARK_ENERGY_REQUIRED = 100000000;
                         game.state.villagePlace = 'laboratory';
                         game.buildVillageUI();
                         game.updateDarkEnergyBar();
@@ -2845,6 +3502,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 break;
+            case 'find-cauldron':
+                if (!game.state.cauldronFound) {
+                    game.state.cauldronFound = true;
+                    game.addLog('You find an old bubbling cauldron half-buried in chocolate mud.');
+                    game.updateView();
+                    game.doSave();
+                }
+                break;
+            case 'go-cauldron':
+                game.state.view = 'cauldron';
+                game.updateView();
+                break;
+            case 'brew': {
+                const brewCandy = parseInt(document.getElementById('brew-candy')?.value || '0') || 0;
+                const brewChoc = parseInt(document.getElementById('brew-choc')?.value || '0') || 0;
+                const brewLolly = parseInt(document.getElementById('brew-lolly')?.value || '0') || 0;
+                game.brew(brewCandy, brewChoc, brewLolly);
+                break;
+            }
             case 'find-artifact':
                 game.findArtifact(e.target.dataset.artifactId);
                 break;
