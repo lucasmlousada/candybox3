@@ -639,6 +639,18 @@ class CandyBox3 {
         }
     }
 
+    updateResourceCounts() {
+        const chocEl = document.getElementById('chocolate-count');
+        if (chocEl) chocEl.textContent = Math.floor(this.state.chocolate);
+        const lolEl = document.getElementById('lollipop-count');
+        if (lolEl) lolEl.textContent = Math.floor(this.state.lollipops);
+        // Keep "you have" lines in forest/farm views live too
+        const farmChocEl = document.getElementById('lollipop-farm-owned-choc');
+        if (farmChocEl) farmChocEl.textContent = Math.floor(this.state.chocolate);
+        const forestCandiesEl = document.getElementById('forest-owned-candies');
+        if (forestCandiesEl) forestCandiesEl.textContent = Math.floor(this.state.candies);
+    }
+
     updateHpBar() {
         const barEl = document.getElementById("hp-bar");
         const currentEl = document.getElementById("hp-current");
@@ -3578,6 +3590,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         game.tick();
         game.updateCandyBar();
+        game.updateResourceCounts();
         game.updateHpBar();
         
         if (game.state.darkModeEnabled) {
