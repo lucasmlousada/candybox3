@@ -547,6 +547,7 @@ function getDefaultGameState() {
         colosseumFightCount: 0,       // fights won in current session (resets on stop)
         colosseumBestFight: 0,        // persistent best session fight count
         colosseumBossesDefeated: [],  // speed levels (10,20,30...) whose boss was beaten
+        inBossCombat: false,          // true during a manual boss fight
         // Lollipop Farm system
         lollipopFarmUnlocked: false,
         lollipopFarmTrees: 0,
@@ -708,6 +709,7 @@ class CandyBox3 {
         this.state.colosseumFightCount = this.state.colosseumFightCount || 0;
         this.state.colosseumBestFight  = this.state.colosseumBestFight  || 0;
         this.state.colosseumBossesDefeated = Array.isArray(this.state.colosseumBossesDefeated) ? this.state.colosseumBossesDefeated : [];
+        this.state.inBossCombat = this.state.inBossCombat || false;
         // Infer defeated bosses from already-unlocked speeds (backward compat)
         [10,20,30,40,50,60,70,80,90,100].forEach(boss => {
             if (this.state.colosseumUnlockedSpeeds.includes(boss + 1) &&
@@ -2234,11 +2236,59 @@ class CandyBox3 {
         });
     }
 
+    _buildBossActionButtons() {
+        const c = Math.floor(this.state.candies);
+        let html = `<div style="margin:8px 0;">
+            <button class="action-btn" data-action="boss-attack" style="font-size:15px;padding:8px 18px;">⚔️ Attack</button>
+        </div>`;
+
+        const spellDefs = [
+            { key: 'fire',  name: '🔥 Fire Candy',  cost: 50,  desc: '30-50 dmg' },
+            { key: 'heal',  name: '💊 Sugar Heal',  cost: 100, desc: '+50 HP' },
+            { key: 'storm', name: '⛈️ Candy Storm', cost: 300, desc: '80-120 dmg' },
+        ];
+        if (this.state.spellsUnlocked) {
+            html += `<div style="margin:6px 0;font-size:11px;color:#aaa;">✨ Spells</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">`;
+            for (const sp of spellDefs) {
+                html += `<button class="action-btn" data-action="boss-cast-spell" data-spell-key="${sp.key}" ${c < sp.cost ? 'disabled' : ''} title="${sp.desc}">${sp.name} (${sp.cost}🍬)</button>`;
+            }
+            html += `</div>`;
+        }
+
+        const activeSkills = SKILL_DEFS.filter(def => def.active && this.hasSkill(def.id));
+        if (activeSkills.length > 0) {
+            html += `<div style="margin:6px 0;font-size:11px;color:#aaa;">⚡ Skills</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">`;
+            for (const sk of activeSkills) {
+                const lvl = this.getSkillUpgradeLevel(sk.id);
+                html += `<button class="action-btn" data-action="boss-use-skill" data-skill-id="${sk.id}" ${c < sk.useCost ? 'disabled' : ''} title="${(sk.descriptionTemplate || '').replace('Active: ', '')}">${sk.name} +${lvl} (${sk.useCost}🍬)</button>`;
+            }
+            html += `</div>`;
+        }
+        return html;
+    }
+
     buildColosseumUI() {
         const view = document.getElementById('colosseumView');
         if (!view) return;
         const isBossSpeed = (this.state.colosseumSpeed % 10 === 0);
         const bossDefeated = this.state.colosseumBossesDefeated.includes(this.state.colosseumSpeed);
+        const inBoss = this.state.inBossCombat && this.state.enemy;
+
+        const combatSection = inBoss ? `
+            <div id="boss-combat-actions" style="text-align:center;margin:16px 0;padding:12px;background:rgba(200,0,0,0.08);border:1px solid #c44;border-radius:6px;">
+                <div style="color:#ff6644;font-weight:bold;font-size:14px;margin-bottom:8px;">⚔️ YOUR TURN — Choose an action</div>
+                ${this._buildBossActionButtons()}
+                <div style="margin-top:10px;">
+                    <button class="action-btn" data-action="stop-colosseum" style="font-size:11px;opacity:0.7;">🏳️ Flee</button>
+                </div>
+            </div>` : `
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="action-btn" data-action="start-colosseum">▶️ Start</button>
+                <button class="action-btn" data-action="stop-colosseum" style="margin-left: 5px;">⏹️ Stop</button>
+            </div>`;
+
         view.innerHTML = `
             <div class="panel">
                 <h2>🏟️ Candy Colosseum</h2>
@@ -2257,16 +2307,13 @@ class CandyBox3 {
                 </div>
                 <div style="text-align: center; margin: 20px 0;">
                     <label>Speed: </label>
-                    <select id="colosseumSpeedSelect" style="padding: 5px; margin: 0 10px;">
+                    <select id="colosseumSpeedSelect" style="padding: 5px; margin: 0 10px;" ${inBoss ? 'disabled' : ''}>
                         <option value="1">x1</option>
                     </select>
                 </div>
+                ${combatSection}
                 <div style="text-align: center; margin: 20px 0;">
-                    <button class="action-btn" data-action="start-colosseum">▶️ Start</button>
-                    <button class="action-btn" data-action="stop-colosseum" style="margin-left: 5px;">⏹️ Stop</button>
-                </div>
-                <div style="text-align: center; margin: 20px 0;">
-                    <button class="action-btn" data-action="go-map">🗺️ Exit Colosseum</button>
+                    <button class="action-btn" data-action="go-map" ${inBoss ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>🗺️ Exit Colosseum</button>
                 </div>
                 ${this.renderArtifactHotspots('colosseum')}
             </div>
@@ -2448,12 +2495,12 @@ class CandyBox3 {
             }
             this.addLog(`🏆 BOSS DEFEATED: ${defeatedEnemy.name.replace('⚠️ BOSS — ', '')}! +${r} candies.`);
             this.addLog(`⚡ Speed x${L+1} unlocked! Select it to continue.`);
-            // Boss fight is one-shot — stop combat at this speed
+            this.state.inBossCombat = false;
             this.state.colosseumRunning = false;
             if (this.colosseumInterval) { clearInterval(this.colosseumInterval); this.colosseumInterval = null; }
             this.state.colosseumFightCount = 0;
             this.state.colosseumSessionPaid = false;
-            this.updateColosseumUI();
+            this.buildColosseumUI();
             this.updateColosseumSpeedOptions();
             this.doSave();
         } else {
@@ -2476,7 +2523,7 @@ class CandyBox3 {
         this.state.candies = 0;
         this.addLog(`💀 Fell in the Colosseum after ${this.state.colosseumSurvivalTime.toFixed(1)}s - Lost all candies! (Fight #${this.state.colosseumFightCount})`);
 
-        // Reset fight count for this session
+        this.state.inBossCombat = false;
         this.state.colosseumFightCount = 0;
         this.state.colosseumRunning = false;
         this.state.colosseumCurrentTime = 0;
@@ -2497,10 +2544,86 @@ class CandyBox3 {
             this.state.colosseumRunning = false;
             if (this.colosseumInterval) clearInterval(this.colosseumInterval);
             this.addLog(`⏹️ Stopped at Speed x${this.state.colosseumSpeed} after Fight #${this.state.colosseumFightCount}`);
-            // Reset session fight count
             this.state.colosseumFightCount = 0;
             this.state.colosseumCurrentTime = 0;
             this.state.colosseumSurvivalTime = 0;
+            this.updateColosseumUI();
+        } else if (this.state.inBossCombat) {
+            this.state.inBossCombat = false;
+            this.state.colosseumFightCount = 0;
+            this.state.colosseumSessionPaid = false;
+            this.addLog(`🏳️ Fled from the boss at Speed x${this.state.colosseumSpeed}.`);
+            this.buildColosseumUI();
+        }
+    }
+
+    _bossCounterAttack() {
+        if (!this.state.inBossCombat || !this.state.inColosseum) return;
+        const enemyDmg = Math.max(1, this.state.enemy.attack + (Math.random() < 0.5 ? 1 : 0));
+        this.takeEnemyHit(enemyDmg, this.state.enemy.name, () => {
+            this.state.inBossCombat = false;
+            this.loseColosseum();
+        });
+    }
+
+    bossPlayerAttack() {
+        if (!this.state.inBossCombat || !this.state.enemy) return;
+        const dmg = this.calculatePlayerDamage(1);
+        this.state.enemy.hp -= dmg;
+        this.addLog(`⚔️ You strike for ${dmg} dmg!`);
+        if (this.state.enemy.hp <= 0) {
+            this.state.inBossCombat = false;
+            this.winColosseumCombat();
+        } else {
+            this._bossCounterAttack();
+            this.updateColosseumUI();
+        }
+    }
+
+    bossCastSpell(key) {
+        if (!this.state.inBossCombat || !this.state.enemy) return;
+        const spells = {
+            fire:  { cost: 50,  effect: () => { const d = 30 + Math.floor(Math.random() * 21); this.state.enemy.hp -= d; this.addLog(`🔥 Fire Candy! ${d} dmg`); } },
+            heal:  { cost: 100, effect: () => { this.state.hp = Math.min(this.state.hp + 50, this.getEffectiveMaxHp()); this.addLog(`💊 Sugar Heal! +50 HP`); } },
+            storm: { cost: 300, effect: () => { const d = 80 + Math.floor(Math.random() * 41); this.state.enemy.hp -= d; this.addLog(`⛈️ Candy Storm! ${d} dmg`); } },
+        };
+        const s = spells[key];
+        if (!s) return;
+        if (this.state.candies < s.cost) { this.addLog(`Not enough candies! Need ${s.cost} 🍬`); return; }
+        this.state.candies -= s.cost;
+        const beforeHp = this.state.enemy.hp;
+        s.effect();
+        const extra = Math.floor((beforeHp - this.state.enemy.hp) * (this.getSkillDamageMultiplier() - 1));
+        if (extra > 0) { this.state.enemy.hp -= extra; this.addLog(`Gear amplifies for +${extra} dmg`); }
+        if (this.state.enemy.hp <= 0) {
+            this.state.inBossCombat = false;
+            this.winColosseumCombat();
+        } else {
+            this._bossCounterAttack();
+            this.updateColosseumUI();
+        }
+    }
+
+    bossUseSkill(key) {
+        if (!this.state.inBossCombat || !this.state.enemy || !this.hasSkill(key)) return;
+        const skill = SKILL_DEFS.find(def => def.id === key && def.active);
+        if (!skill) return;
+        if (this.state.candies < skill.useCost) { this.addLog(`Not enough candies! Need ${skill.useCost} 🍬`); return; }
+        this.state.candies -= skill.useCost;
+        const skillMultiplier = this.getSkillDamageMultiplier();
+        if (key === 'stasisHex') {
+            this.state.combatFlags.enemyStaggered = true;
+            this.addLog('Stasis Hex locks the boss in place for one turn!');
+        } else if (key === 'novaPulse') {
+            const damage = Math.floor((45 + this.getEffectiveMaxHp() * 0.35) * skillMultiplier * (1 + this.getSkillUpgradeLevel('novaPulse') * 0.2));
+            this.state.enemy.hp -= damage;
+            this.addLog(`⚡ Nova Pulse! ${damage} dmg`);
+        }
+        if (this.state.enemy.hp <= 0) {
+            this.state.inBossCombat = false;
+            this.winColosseumCombat();
+        } else {
+            this._bossCounterAttack();
             this.updateColosseumUI();
         }
     }
@@ -2546,13 +2669,26 @@ class CandyBox3 {
         if (chocolateEl) chocolateEl.textContent = Math.floor(this.state.chocolate);
 
 
-        // Lock Exit button while a Colosseum run is active
+        // Lock Exit button while a Colosseum run or boss fight is active
         const exitBtn = document.querySelector('#colosseumView [data-action="go-map"]');
         if (exitBtn) {
-            const running = !!this.state.colosseumRunning;
-            exitBtn.disabled = running;
-            exitBtn.style.opacity = running ? '0.4' : '';
-            exitBtn.style.cursor = running ? 'not-allowed' : '';
+            const locked = !!this.state.colosseumRunning || !!this.state.inBossCombat;
+            exitBtn.disabled = locked;
+            exitBtn.style.opacity = locked ? '0.4' : '';
+            exitBtn.style.cursor = locked ? 'not-allowed' : '';
+        }
+
+        // Refresh boss action button disabled states based on current candy count
+        if (this.state.inBossCombat) {
+            const c = Math.floor(this.state.candies);
+            const spellCosts = { fire: 50, heal: 100, storm: 300 };
+            document.querySelectorAll('#colosseumView [data-action="boss-cast-spell"]').forEach(btn => {
+                btn.disabled = c < (spellCosts[btn.dataset.spellKey] || 0);
+            });
+            document.querySelectorAll('#colosseumView [data-action="boss-use-skill"]').forEach(btn => {
+                const sk = SKILL_DEFS.find(def => def.id === btn.dataset.skillId && def.active);
+                btn.disabled = c < (sk?.useCost || 0);
+            });
         }
     }
 
@@ -3720,47 +3856,59 @@ document.addEventListener('DOMContentLoaded', () => {
                 game.startColosseum();
                 game.updateView();
                 break;
-            case 'start-colosseum':
-                if (game.state.colosseumRunning) return;  // Already running
+            case 'start-colosseum': {
+                if (game.state.colosseumRunning || game.state.inBossCombat) return;
 
-                // Block re-entry at a boss speed that's already been conquered
-                {
-                    const sel = parseInt(document.getElementById('colosseumSpeedSelect')?.value || '1');
-                    const selSpeed = isNaN(sel) ? game.state.colosseumSpeed : sel;
-                    if (selSpeed % 10 === 0 && game.state.colosseumBossesDefeated.includes(selSpeed)) {
-                        game.addLog(`🛡️ Boss at Speed x${selSpeed} is already defeated. Select a higher speed.`);
-                        return;
-                    }
+                // Read selected speed
+                const _selRaw = parseInt(document.getElementById('colosseumSpeedSelect')?.value || '1');
+                const _selSpeed = isNaN(_selRaw) ? game.state.colosseumSpeed : _selRaw;
+
+                // Block re-entry at an already-conquered boss speed
+                if (_selSpeed % 10 === 0 && game.state.colosseumBossesDefeated.includes(_selSpeed)) {
+                    game.addLog(`🛡️ Boss at Speed x${_selSpeed} is already defeated. Select a higher speed.`);
+                    return;
                 }
 
-                // Only charge if not already paid for this session
+                // Entry fee
                 if (!game.state.colosseumSessionPaid) {
                     if (game.state.chocolate < 1) {
                         game.addLog('You need at least 1 🍫 to start the Colosseum.');
                         return;
                     }
-
                     game.state.chocolate -= 1;
-                game.state.colosseumSessionPaid = true;
-                game.addLog('🍫 You enter the arena...');
+                    game.state.colosseumSessionPaid = true;
+                    game.addLog('🍫 You enter the arena...');
+                }
+
+                game.state.colosseumSpeed = _selSpeed;
+                game.state.colosseumCurrentTime = 0;
+
+                if (_selSpeed % 10 === 0) {
+                    // BOSS FIGHT — manual turn-based combat
+                    game.state.inBossCombat = true;
+                    game.spawnColosseumMonster();
+                    game.buildColosseumUI();
+                    game.updateColosseumSpeedOptions();
+                    game.addLog(`⚔️ BOSS BATTLE at Speed x${_selSpeed}! Choose your action.`);
+                } else {
+                    // REGULAR FIGHT — automatic interval combat
+                    game.state.colosseumRunning = true;
+                    if (game.colosseumInterval) clearInterval(game.colosseumInterval);
+                    const tickRate = game.getColosseumTickMs(game.state.colosseumSpeed);
+                    game.colosseumInterval = setInterval(() => game.colosseumTick(), tickRate);
+                    game.addLog('⚔️ Combat started!');
+                    game.updateColosseumUI();
+                }
+                break;
             }
-
-            // Capture whatever speed the player has selected in the dropdown right now
-            const selectedSpeed = parseInt(document.getElementById('colosseumSpeedSelect')?.value || '1');
-            if (!isNaN(selectedSpeed) && selectedSpeed >= 1) {
-                game.state.colosseumSpeed = selectedSpeed;
-            }
-
-            game.state.colosseumRunning = true;
-            game.state.colosseumCurrentTime = 0;
-
-                // Start combat loop
-                if (game.colosseumInterval) clearInterval(game.colosseumInterval);
-                const tickRate = game.getColosseumTickMs(game.state.colosseumSpeed);
-                game.colosseumInterval = setInterval(() => game.colosseumTick(), tickRate);
-
-                game.addLog('⚔️ Combat started!');
-                game.updateColosseumUI();
+            case 'boss-attack':
+                game.bossPlayerAttack();
+                break;
+            case 'boss-cast-spell':
+                game.bossCastSpell(e.target.dataset.spellKey);
+                break;
+            case 'boss-use-skill':
+                game.bossUseSkill(e.target.dataset.skillId);
                 break;
             case 'stop-colosseum': {
                 const timeAtStop = game.state.colosseumCurrentTime;
