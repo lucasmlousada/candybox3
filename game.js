@@ -543,6 +543,12 @@ function getDefaultGameState() {
         colosseumBuffs: {},
         pendingBuffChoice: null,
         colosseumSessionPaid: false,  // Whether chocolate was paid for current session
+        colosseumArenaLevel: 0,       // total arena wins; every 10th is a boss fight
+        // Lollipop Farm system
+        lollipopFarmUnlocked: false,
+        lollipopFarmTrees: 0,
+        lollipopFarmRate: 0,
+        lollipopFarmTreePositions: [],
         laboratoryUnlocked: false,
         darkModeEnabled: false,
         timeWarpEnabled: false,
@@ -683,6 +689,14 @@ class CandyBox3 {
         this.state.discoveredRecipes = Array.isArray(this.state.discoveredRecipes) ? this.state.discoveredRecipes : [];
         this.state.cauldronLog = Array.isArray(this.state.cauldronLog) ? this.state.cauldronLog : [];
         this.state.candyTitle = this.state.candyTitle || false;
+        this.state.colosseumArenaLevel = this.state.colosseumArenaLevel || 0;
+        this.state.lollipopFarmUnlocked = this.state.lollipopFarmUnlocked || false;
+        this.state.lollipopFarmTrees = this.state.lollipopFarmTrees || 0;
+        this.state.lollipopFarmRate = this.state.lollipopFarmRate || 0;
+        this.state.lollipopFarmTreePositions = Array.isArray(this.state.lollipopFarmTreePositions) ? this.state.lollipopFarmTreePositions : [];
+        if (!this.state.lollipopFarmUnlocked && this.state.chocolate >= 1000) {
+            this.state.lollipopFarmUnlocked = true;
+        }
     }
 
     getArmorDef(id = this.state.equippedArmor) {
@@ -1004,7 +1018,7 @@ class CandyBox3 {
                 <div class="stat-row"><span class="stat-label">Total Eaten:</span><span id="total-eaten">0</span></div>
                 <div class="stat-row"><span class="stat-label">Candy/sec:</span><span id="candy-rate">1.0</span></div>
                 <div class="stat-row"><span class="stat-label">Chocolate:</span><span id="chocolate-count">0</span><span> (+</span><span id="chocolate-rate">0</span><span>/hr)</span></div>
-                <div class="stat-row"><span class="stat-label">Lollipops:</span><span id="lollipop-count">0</span></div>
+                <div class="stat-row"><span class="stat-label">Lollipops:</span><span id="lollipop-count">0</span><span id="lollipop-farm-rate-display" style="display:none;"> (+<span id="lollipop-farm-rate">0</span>/hr)</span></div>
                 <div class="stat-row"><span class="stat-label">Attack:</span><span id="attack-value">5</span></div>
                 <div class="stat-row"><span class="stat-label">HP:</span><span id="hp-bar">[██████████]</span><span id="hp-current">10</span><span>/</span><span id="hp-max">10</span></div>
                 <div class="stat-row"><span class="stat-label">Active Quest:</span><span id="active-quest-display">none</span></div>
@@ -1025,6 +1039,7 @@ class CandyBox3 {
             <div id="museumView" style="display:none;"></div>
             <div id="colosseumView" style="display:none; position: relative; min-height: 500px;"></div>
             <div id="cauldronView" style="display:none;"></div>
+            <div id="lollipopFarmView" style="display:none; position: relative; min-height: 400px;"></div>
             <div id="arsenal-panel" class="panel" style="display:none;"><h3>Arsenal</h3><div id="arsenal-list"></div></div>
             <div id="academy-panel" class="panel" style="display:none;"><h3>Skills</h3><div id="academy-list"></div></div>
             <div id="log-panel" class="panel" style="display:none; max-height: 200px; overflow-y: auto;"><h3>Log</h3><div id="game-log"></div></div>
@@ -1285,6 +1300,17 @@ class CandyBox3 {
                         <td></td>
                         <td></td>
                     </tr>` : '';
+        const lollipopFarmRows = this.state.lollipopFarmUnlocked ? `
+                    <tr>
+                        ${blank}
+                        ${blank}
+                        ${connV}
+                    </tr>
+                    <tr>
+                        ${blank}
+                        ${blank}
+                        <td style="${cell}"><button class="action-btn map-btn" data-action="go-lollipop-farm">🍭 Lollipop Farm</button></td>
+                    </tr>` : '';
 
         map.innerHTML = `
             <div class="panel" style="position:relative;">
@@ -1316,6 +1342,7 @@ class CandyBox3 {
                         ${blank}
                     </tr>
                     ${cauldronRows}
+                    ${lollipopFarmRows}
                 </table>
                 ${this.renderArtifactHotspots('map')}
             </div>
@@ -1932,6 +1959,7 @@ class CandyBox3 {
         const museumView = document.getElementById('museumView');
         const colosseumView = document.getElementById('colosseumView');
         const cauldronView = document.getElementById('cauldronView');
+        const lollipopFarmView = document.getElementById('lollipopFarmView');
         const logPanel = document.getElementById('log-panel');
 
         // Show/hide views based on current view
@@ -1942,6 +1970,7 @@ class CandyBox3 {
         museumView.style.display = this.state.view === 'museum' ? 'block' : 'none';
         colosseumView.style.display = this.state.view === 'colosseum' ? 'block' : 'none';
         if (cauldronView) cauldronView.style.display = this.state.view === 'cauldron' ? 'block' : 'none';
+        if (lollipopFarmView) lollipopFarmView.style.display = this.state.view === 'lollipop-farm' ? 'block' : 'none';
         if (logPanel && this.state.view !== 'village') logPanel.style.display = 'none';
 
         // Build view-specific UI when entering each view
@@ -1962,6 +1991,9 @@ class CandyBox3 {
             this.updateColosseumSpeedOptions();
         } else if (this.state.view === 'cauldron') {
             this.buildCauldronUI();
+        } else if (this.state.view === 'lollipop-farm') {
+            this.buildLollipopFarmUI();
+            this.renderLollipopFarm();
         }
     }
 
@@ -2019,20 +2051,102 @@ class CandyBox3 {
         });
     }
 
+    buildLollipopFarmUI() {
+        const farm = document.getElementById('lollipopFarmView');
+        if (!farm) return;
+        const cost = Math.floor(1000 * (this.state.lollipopFarmTrees + 1));
+        farm.innerHTML = `
+            <div class="panel" style="position:relative;">
+                <h2>🍭 Lollipop Farm</h2>
+                <div style="white-space: pre-wrap; font-family: monospace; margin: 20px 0; font-size: 12px;">
+╔════════════════════════════════════════╗
+║  Sweet fields stretch to the horizon. ║
+║  Plant lollipops to harvest per hour. ║
+║  Cost: chocolate bars (×1000 each).   ║
+╚════════════════════════════════════════╝
+                </div>
+                <div id="lollipop-farm-content" style="position: relative; height: 300px; border: 1px solid #666; background: #1a1a1a; margin: 20px 0; overflow: hidden;">
+                    <div style="position: absolute; top: 50%; left: 10%; font-size: 20px;">🌱</div>
+                    <div style="position: absolute; top: 30%; right: 15%; font-size: 20px;">🌱</div>
+                </div>
+                <div style="margin: 20px 0;">
+                    <p>Lollipops Planted: <strong id="lollipop-farm-trees-count">${this.state.lollipopFarmTrees}</strong></p>
+                    <p>Lollipops/Hour: <strong id="lollipop-farm-rate-view">${this.state.lollipopFarmRate}</strong></p>
+                    <p>Cost for next plant: <strong id="lollipop-farm-cost">${cost}</strong> 🍫 chocolate bars</p>
+                    <p style="font-size:11px; color:#888;">You have: ${Math.floor(this.state.chocolate)} 🍫</p>
+                </div>
+                <div style="margin: 20px 0;">
+                    <button class="action-btn" data-action="plant-lollipop-tree" ${this.state.chocolate < cost ? 'disabled' : ''}>🌱 Plant Lollipop (${cost} 🍫)</button>
+                    <button class="action-btn" data-action="go-map" style="margin-left: 10px;">🗺️ Back to Map</button>
+                </div>
+            </div>
+        `;
+    }
+
+    updateLollipopFarmDisplay() {
+        const treesEl = document.getElementById('lollipop-farm-trees-count');
+        const rateEl = document.getElementById('lollipop-farm-rate-view');
+        const costEl = document.getElementById('lollipop-farm-cost');
+        const cost = Math.floor(1000 * (this.state.lollipopFarmTrees + 1));
+        if (treesEl) treesEl.textContent = this.state.lollipopFarmTrees;
+        if (rateEl) rateEl.textContent = this.state.lollipopFarmRate;
+        if (costEl) costEl.textContent = cost;
+        const plantBtn = document.querySelector('[data-action="plant-lollipop-tree"]');
+        if (plantBtn) {
+            plantBtn.disabled = this.state.chocolate < cost;
+            plantBtn.textContent = `🌱 Plant Lollipop (${cost} 🍫)`;
+        }
+    }
+
+    plantLollipopTree() {
+        const cost = Math.floor(1000 * (this.state.lollipopFarmTrees + 1));
+        if (this.state.chocolate < cost) {
+            this.addLog(`Not enough chocolate bars! Need ${cost} 🍫`);
+            return;
+        }
+        this.state.chocolate -= cost;
+        this.state.lollipopFarmTrees += 1;
+        this.state.lollipopFarmRate += 1;
+        this.addLog(`🍭 Planted a lollipop! (+1 lollipop/hour)`);
+        this.state.lollipopFarmTreePositions.push({ x: Math.random(), y: Math.random() });
+        this.updateLollipopFarmDisplay();
+        this.renderLollipopFarm();
+        this.doSave();
+    }
+
+    renderLollipopFarm() {
+        const farmView = document.getElementById('lollipopFarmView');
+        if (!farmView) return;
+        farmView.querySelectorAll('.farm-lollipop').forEach(el => el.remove());
+        this.state.lollipopFarmTreePositions.forEach(pos => {
+            const el = document.createElement('div');
+            el.className = 'farm-lollipop';
+            el.textContent = '🍭';
+            el.style.position = 'absolute';
+            el.style.left = (pos.x * 85) + '%';
+            el.style.top = (pos.y * 70) + '%';
+            el.style.fontSize = '24px';
+            farmView.appendChild(el);
+        });
+    }
+
     buildColosseumUI() {
         const view = document.getElementById('colosseumView');
         if (!view) return;
+        const nextFight = this.state.colosseumArenaLevel + 1;
+        const isBossNext = (nextFight % 10 === 0);
         view.innerHTML = `
             <div class="panel">
                 <h2>🏟️ Candy Colosseum</h2>
-                <p style="text-align: center; margin: 10px 0;">Survive continuous waves of monsters!</p>
+                <div style="text-align: center; margin: 6px 0; font-size: 13px;">Arena Level: <strong id="colosseum-arena-level">${this.state.colosseumArenaLevel}</strong> &nbsp;|&nbsp; Next Fight: <strong>#${nextFight}</strong></div>
+                ${isBossNext ? '<div id="colosseum-boss-warning" style="text-align:center;color:#ff4444;font-weight:bold;font-size:18px;margin:6px 0;animation:epic-pulse 1.5s ease-in-out infinite;">⚠️ BOSS FIGHT INCOMING ⚠️</div>' : '<div id="colosseum-boss-warning" style="display:none;"></div>'}
                 <div style="text-align: center; margin: 20px 0;">
                     <div style="font-size: 32px; margin: 10px 0;" id="colosseum-enemy-emoji">👾</div>
                     <div style="font-weight: bold; margin: 10px 0;" id="colosseum-enemy-name">Arena Champion</div>
                     <div style="margin: 10px 0;" id="colosseum-enemy-hp">HP: [██████████] 100/100</div>
                 </div>
                 <div style="text-align: center; margin: 20px 0;">
-                    <div>Player HP: <strong id="colosseum-player-hp">100/100</strong></div>
+                    <div>Player HP: <strong id="colosseum-player-hp">[██████████] ${Math.floor(this.state.hp)}/${this.getEffectiveMaxHp()}</strong></div>
                     <div>Survival Time: <strong id="colosseum-time">0.0s</strong></div>
                     <div>Best Time: <strong id="colosseum-best-time">0.0s</strong></div>
                     <div>Chocolate: <strong id="colosseum-chocolate">0</strong></div>
@@ -2059,6 +2173,7 @@ class CandyBox3 {
     startColosseum() {
         this.state.inColosseum = true;
         this.state.colosseumSurvivalTime = 0;
+        this.state.hp = this.getEffectiveMaxHp(); // fresh HP for each arena session
         this.buildColosseumUI();
         this.spawnColosseumMonster();
 
@@ -2081,40 +2196,61 @@ class CandyBox3 {
         this.addLog('🏟️ Entered the Colosseum. Click Start to begin!');
     }
 
+    getColosseumFightPower(fightNum) {
+        if (fightNum % 10 === 0) return fightNum; // boss: power equals fight number
+        const tier = Math.floor(fightNum / 10);
+        const offset = fightNum % 10;
+        return tier + offset;
+    }
+
     spawnColosseumMonster() {
-        const unlocked = [...this.state.unlockedMonsters];
-        if (unlocked.length === 0) return;
-        unlocked.sort((a, b) => {
-            if ((a.level || 0) !== (b.level || 0)) return (a.level || 0) - (b.level || 0);
-            const aBase = this.monsters.find(m => m.id === a.id);
-            const bBase = this.monsters.find(m => m.id === b.id);
-            const aScore = (aBase?.attack || 0) + (aBase?.hp || 0);
-            const bScore = (bBase?.attack || 0) + (bBase?.hp || 0);
-            if (aScore !== bScore) return aScore - bScore;
-            return a.id - b.id;
-        });
+        const fightNum = this.state.colosseumArenaLevel + 1;
+        const isBoss = (fightNum % 10 === 0);
+        const power = this.getColosseumFightPower(fightNum);
 
-        const unl = unlocked[0];
-        const baseM = this.monsters.find(m => m.id === unl.id);
-        if (!baseM) return;
+        const BASE_HP = 60;
+        const BASE_ATK = 10;
+        const BASE_REWARD = 80;
 
-        const m = { ...baseM };
-        m.level = unl.level;
-        m.hp = Math.floor(baseM.hp * (1 + 0.2 * (unl.level - 1)));
-        m.attack = Math.floor(baseM.attack * (1 + 0.15 * (unl.level - 1)));
-        m.reward = Math.floor(baseM.reward * (1 + 0.25 * (unl.level - 1)));
-
-        this.state.enemy = {
-            id: m.id,
-            name: m.name,
-            emoji: m.emoji || '👾',
-            hp: m.hp,
-            maxHp: m.hp,
-            attack: m.attack,
-            reward: m.reward,
-            ascii: m.ascii,
-            level: m.level
-        };
+        if (isBoss) {
+            const bossIdx = Math.floor(fightNum / 10) - 1;
+            const bossNames = [
+                'The Candy Sentinel', 'The Chocolate Colossus', 'The Sugar Wyrm',
+                'The Caramel Knight', 'The Lollipop Lord', 'The Toffee Titan',
+                'The Candy Dragon', 'The Praline Phantom', 'The Saccharine Sage', 'The Eternal Confection'
+            ];
+            const bossEmojis = ['🛡️', '💀', '🐍', '⚔️', '👹', '🦖', '🐉', '👻', '🧙', '👑'];
+            const idx = bossIdx % bossNames.length;
+            this.state.enemy = {
+                id: -fightNum,
+                name: `⚠️ BOSS — ${bossNames[idx]}`,
+                emoji: bossEmojis[idx],
+                hp: Math.floor(BASE_HP * power * 2.5),
+                maxHp: Math.floor(BASE_HP * power * 2.5),
+                attack: Math.floor(BASE_ATK * power * 1.5),
+                reward: Math.floor(BASE_REWARD * power * 3),
+                ascii: `  ${bossEmojis[idx]}  `,
+                level: fightNum,
+                isBoss: true
+            };
+            this.addLog(`⚠️ BOSS FIGHT #${fightNum}! Power ×${power} — good luck!`);
+        } else {
+            const tier = Math.floor(fightNum / 10);
+            const regularNames = ['Candy Golem', 'Sugar Imp', 'Taffy Slime', 'Caramel Wraith', 'Nougat Beast', 'Fudge Fiend', 'Gummy Specter', 'Licorice Brute', 'Marzipan Shade', 'Fondant Crusher'];
+            const regularEmojis = ['🍬', '👾', '🟤', '💜', '🟡', '🤎', '🍭', '⚫', '🟣', '🟠'];
+            this.state.enemy = {
+                id: fightNum,
+                name: regularNames[fightNum % regularNames.length],
+                emoji: regularEmojis[tier % regularEmojis.length],
+                hp: Math.floor(BASE_HP * power),
+                maxHp: Math.floor(BASE_HP * power),
+                attack: Math.floor(BASE_ATK * power),
+                reward: Math.floor(BASE_REWARD * power),
+                ascii: `  ${regularEmojis[tier % regularEmojis.length]}  `,
+                level: fightNum,
+                isBoss: false
+            };
+        }
         this.resetCombatFlags();
     }
 
@@ -2157,14 +2293,17 @@ class CandyBox3 {
     winColosseumCombat() {
         const defeatedEnemy = { ...this.state.enemy };
         const r = this.applyMonsterRewards(defeatedEnemy.reward, 'colosseum');
-        this.maybeCompleteVillageQuest(defeatedEnemy);
+        const wasBoss = defeatedEnemy.isBoss;
 
-        // Level up monster
-        const ex = this.state.unlockedMonsters.find(m => m.id === defeatedEnemy.id);
-        if (ex) {
-            ex.level += 1;
+        this.state.colosseumArenaLevel += 1;
+
+        if (wasBoss) {
+            this.addLog(`🏆 BOSS DEFEATED: ${defeatedEnemy.name.replace('⚠️ BOSS — ', '')}! +${r} candies.`);
+            const nextBoss = Math.ceil(this.state.colosseumArenaLevel / 10) * 10;
+            this.addLog(`💪 Arena Level ${this.state.colosseumArenaLevel}. Next boss at fight #${nextBoss}.`);
+        } else {
+            this.addLog(`Arena win #${this.state.colosseumArenaLevel}: +${r} candies (power ×${this.getColosseumFightPower(defeatedEnemy.level)}).`);
         }
-        this.addLog(`Arena victory: +${r} candies at x${this.state.colosseumSpeed}.`);
 
         // Spawn next monster after delay
         setTimeout(() => {
@@ -2225,13 +2364,26 @@ stopColosseumCombat() {
         const choicesDiv = document.getElementById('buffChoices');
         const buttonsDiv = document.getElementById('buffChoiceButtons');
 
-        if (NameEl) NameEl.textContent = this.state.enemy.name + ' (Lv' + this.state.enemy.level + ')';
+        if (NameEl) NameEl.textContent = this.state.enemy.name + (this.state.enemy.isBoss ? '' : ' (Fight #' + this.state.enemy.level + ')');
         if (emojiEl) emojiEl.textContent = this.state.enemy.emoji;
         if (hpEl) {
             const p = Math.max(0, Math.floor((this.state.enemy.hp / this.state.enemy.maxHp) * 10));
             hpEl.innerHTML = `HP: [${`█`.repeat(p)}${`░`.repeat(10 - p)}] ${Math.max(0, Math.floor(this.state.enemy.hp))}/${this.state.enemy.maxHp}`;
         }
-        if (playerHpEl) playerHpEl.textContent = Math.floor(this.state.hp) + '/' + this.getEffectiveMaxHp();
+        if (playerHpEl) {
+            const ph = Math.floor(this.state.hp);
+            const pm = this.getEffectiveMaxHp();
+            const pp = Math.max(0, Math.floor((Math.max(0, ph) / pm) * 10));
+            playerHpEl.textContent = `[${'█'.repeat(pp)}${'░'.repeat(10 - pp)}] ${Math.max(0, ph)}/${pm}`;
+        }
+        const arenaLevelEl = document.getElementById('colosseum-arena-level');
+        if (arenaLevelEl) arenaLevelEl.textContent = this.state.colosseumArenaLevel;
+        const bossWarning = document.getElementById('colosseum-boss-warning');
+        if (bossWarning) {
+            const nextFight = this.state.colosseumArenaLevel + 1;
+            const isBossNext = (nextFight % 10 === 0) && !this.state.colosseumRunning;
+            bossWarning.style.display = isBossNext ? 'block' : 'none';
+        }
         if (timeEl) timeEl.textContent = this.state.colosseumSurvivalTime.toFixed(1) + 's';
         if (bestTimeEl) bestTimeEl.textContent = this.state.colosseumBestTime.toFixed(1) + 's';
         if (chocolateEl) chocolateEl.textContent = Math.floor(this.state.chocolate);
@@ -2333,7 +2485,7 @@ stopColosseumCombat() {
                     <span>🍬</span><input id="brew-candy" type="number" min="0" value="0" style="width:80px; padding:4px;">
                     <span>🍫</span><input id="brew-choc" type="number" min="0" value="0" style="width:60px; padding:4px;">
                     <span>🍭</span><input id="brew-lolly" type="number" min="0" value="0" style="width:60px; padding:4px;">
-                    <button class="action-btn" data-action="brew">Brew</button>
+                    <button class="action-btn" data-action="brew" ${(Math.floor(this.state.candies) <= 0 && Math.floor(this.state.chocolate) <= 0 && Math.floor(this.state.lollipops) <= 0) ? 'disabled' : ''}>Brew</button>
                 </div>
                 <div style="margin:20px 0;">
                     <strong>📜 Recipe Scroll</strong> (${this.state.discoveredRecipes.length}/${totalKnown} known)
@@ -2480,6 +2632,11 @@ stopColosseumCombat() {
         }
         this.state.chocolate += (this.state.chocolateRate + this.getArtifactBonusTotal('chocolateRate')) * (deltaTime / 3600); // per hour
         this.state.lollipops += this.getArtifactBonusTotal('lollipopRate') * deltaTime;
+        this.state.lollipops += this.state.lollipopFarmRate * (deltaTime / 3600); // lollipop farm per hour
+        if (!this.state.lollipopFarmUnlocked && this.state.chocolate >= 1000) {
+            this.state.lollipopFarmUnlocked = true;
+            this.addLog('🍭 You now have 1000 chocolate bars! The Lollipop Farm is available on the Map.');
+        }
 
         // HP regen paused during field combat or active Colosseum run
         if (!this.state.inCombat && !this.state.colosseumRunning) {
@@ -2507,6 +2664,9 @@ stopColosseumCombat() {
         u('chocolate-count', Math.floor(this.state.chocolate));
         u('chocolate-rate', (this.state.chocolateRate + this.getArtifactBonusTotal('chocolateRate')).toFixed(1));
         u('lollipop-count', Math.floor(this.state.lollipops));
+        const _lfrDisplay = document.getElementById('lollipop-farm-rate-display');
+        if (_lfrDisplay) _lfrDisplay.style.display = this.state.lollipopFarmRate > 0 ? 'inline' : 'none';
+        u('lollipop-farm-rate', this.state.lollipopFarmRate.toFixed(1));
         u('attack-value', this.getEffectiveAttack());
         u('hp-current', Math.floor(this.state.hp));
         u('hp-max', this.getEffectiveMaxHp());
@@ -3335,6 +3495,13 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'go-forest':
                 game.state.view = 'forest';
                 game.updateView();
+                break;
+            case 'go-lollipop-farm':
+                game.state.view = 'lollipop-farm';
+                game.updateView();
+                break;
+            case 'plant-lollipop-tree':
+                game.plantLollipopTree();
                 break;
             case 'go-map':
                 if (game.state.view === 'colosseum') {
