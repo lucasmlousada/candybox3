@@ -547,6 +547,8 @@ function getDefaultGameState() {
         darkModeEnabled: false,
         timeWarpEnabled: false,
         timeWarpUnlocked: false,
+        timeWarp2Unlocked: false,
+        timeWarp2Enabled: false,
         darkModeCandies: 0,
         villagerQuestCounts: {},
         // Candy Cauldron system
@@ -669,6 +671,8 @@ class CandyBox3 {
         this.state.pendingBuffChoice = this.state.pendingBuffChoice || null;
         this.state.combatFlags = { ...defaults.combatFlags, ...(this.state.combatFlags || {}) };
         this.state.timeWarpUnlocked = this.state.timeWarpUnlocked || false;
+        this.state.timeWarp2Unlocked = this.state.timeWarp2Unlocked || false;
+        this.state.timeWarp2Enabled = this.state.timeWarp2Enabled || false;
         this.state.darkModeCandies = this.state.darkModeCandies || 0;
         this.state.cauldronFound = this.state.cauldronFound || false;
         this.state.activePotions = Array.isArray(this.state.activePotions) ? this.state.activePotions : [];
@@ -1621,8 +1625,12 @@ class CandyBox3 {
                 <div style="margin: 15px 0;">
                     <p>🧑‍🔬 <strong>Sweet Scientist</strong> says:</p>
                     ${(() => {
-                        if (this.state.timeWarpUnlocked) {
-                            return `<p style="margin: 10px 0; font-style: italic;">"Eureka!"</p>`;
+                        if (this.state.timeWarp2Unlocked) {
+                            return `<p style="margin: 10px 0; font-style: italic;">"The time stream is fully destabilized. I can see... everything."</p>`;
+                        } else if (this.state.timeWarpUnlocked && this.state.darkModeCandies >= 100000000) {
+                            return `<p style="margin: 10px 0; font-style: italic;">"Incredible! There's another era just beyond the threshold — I need 100,000,000 candies to break through!"</p>`;
+                        } else if (this.state.timeWarpUnlocked) {
+                            return `<p style="margin: 10px 0; font-style: italic;">"Eureka! Keep harvesting Dark Energy... I sense something further in the timestream."</p>`;
                         } else if (this.state.darkModeCandies >= 10000000) {
                             return `<p style="margin: 10px 0; font-style: italic;">"We have enough Dark Energy, I need candies to finish my latest invention"</p>`;
                         } else {
@@ -1657,6 +1665,21 @@ class CandyBox3 {
                     ${this.state.timeWarpEnabled
                         ? `<button class="action-btn" data-action="toggle-time-warp">🕰️ Return to Present</button>`
                         : `<button class="action-btn" data-action="toggle-time-warp">⏳ Time Warp</button>`
+                    }
+                    </div>
+                    ` : ''}
+
+                    ${(this.state.timeWarpUnlocked && !this.state.timeWarp2Unlocked && this.state.darkModeCandies >= 100000000) ? `
+                    <div style="margin: 10px 0;">
+                        <button class="action-btn" data-action="help-scientist-2">💫 Help the Scientist Further (100,000,000 candies)</button>
+                    </div>
+                    ` : ''}
+
+                    ${this.state.timeWarp2Unlocked ? `
+                    <div style="margin-top:8px;">
+                    ${this.state.timeWarp2Enabled
+                        ? `<button class="action-btn" data-action="toggle-time-warp-2">🕹️ Return to 2002</button>`
+                        : `<button class="action-btn" data-action="toggle-time-warp-2">🖥️ Warp to 2010s</button>`
                     }
                     </div>
                     ` : ''}
@@ -3179,11 +3202,15 @@ document.addEventListener('DOMContentLoaded', () => {
     game.state.laboratoryUnlocked = game.state.laboratoryUnlocked || game.state.darkModeUnlocked || false;
     game.state.darkModeEnabled = game.state.darkModeEnabled || false;
     game.state.timeWarpEnabled = game.state.timeWarpEnabled || false;
+    game.state.timeWarp2Unlocked = game.state.timeWarp2Unlocked || false;
+    game.state.timeWarp2Enabled = game.state.timeWarp2Enabled || false;
 
     if (game.state.darkModeEnabled) {
         document.body.classList.add('dark-mode');
     }
-    if (game.state.timeWarpEnabled) {
+    if (game.state.timeWarp2Enabled) {
+        document.body.classList.add('xp-warp');
+    } else if (game.state.timeWarpEnabled) {
         document.body.classList.add('time-warp');
     }
     game.state.villagerQuestCounts = game.state.villagerQuestCounts || {};
@@ -3467,6 +3494,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (game.state.laboratoryUnlocked) {
                     game.state.timeWarpEnabled = !game.state.timeWarpEnabled;
                     if (game.state.timeWarpEnabled) {
+                        game.state.timeWarp2Enabled = false;
+                        document.body.classList.remove('xp-warp');
                         document.body.classList.add('time-warp');
                         game.addLog('⏳ Time Warp activated! Welcome to the internet, circa 2002.');
                     } else {
@@ -3500,6 +3529,40 @@ document.addEventListener('DOMContentLoaded', () => {
                         ];
                         game.addLog(`🧑‍🔬 "${messages[Math.floor(Math.random() * messages.length)]}"`);
                     }
+                }
+                break;
+            case 'help-scientist-2':
+                if (game.state.timeWarpUnlocked && !game.state.timeWarp2Unlocked &&
+                    game.state.darkModeCandies >= 100000000) {
+                    if (game.state.candies >= 100000000) {
+                        game.state.candies -= 100000000;
+                        game.state.timeWarp2Unlocked = true;
+                        game.state.villagePlace = 'laboratory';
+                        game.buildVillageUI();
+                        game.addLog('🧑‍🔬 "By the Candy Gods... I\'ve done it! The 2010s are now accessible!"');
+                        game.addLog('🖥️ Time Warp 2 is now available in the Laboratory!');
+                        game.updateUI();
+                        game.doSave();
+                    } else {
+                        game.addLog('🧑‍🔬 "Not enough candies! I need 100,000,000 — every last one!"');
+                    }
+                }
+                break;
+            case 'toggle-time-warp-2':
+                if (game.state.timeWarp2Unlocked) {
+                    game.state.timeWarp2Enabled = !game.state.timeWarp2Enabled;
+                    if (game.state.timeWarp2Enabled) {
+                        game.state.timeWarpEnabled = false;
+                        document.body.classList.remove('time-warp');
+                        document.body.classList.add('xp-warp');
+                        game.addLog('🖥️ Time Warp 2 activated! Welcome to the internet, circa 2010.');
+                    } else {
+                        document.body.classList.remove('xp-warp');
+                        game.addLog('🕰️ Returned to 2002.');
+                    }
+                    game.state.villagePlace = 'laboratory';
+                    game.buildVillageUI();
+                    game.doSave();
                 }
                 break;
             case 'find-cauldron':
