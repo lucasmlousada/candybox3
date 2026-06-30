@@ -270,6 +270,19 @@ body.xp-warp .locked {
     font-style: italic;
 }
 
+/* ---- MAP NODE BUTTONS & CONNECTORS ---- */
+body.xp-warp .map-btn {
+    min-width: 160px;
+    white-space: nowrap;
+}
+
+body.xp-warp .map-conn {
+    color: #003399;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+}
+
 /* ---- MAP VIEW ---- */
 body.xp-warp #asciiMap {
     background: #e8f0ff;
@@ -645,6 +658,11 @@ body.xp-warp.dark-mode .clickable:hover {
 body.xp-warp.dark-mode .locked {
     color: #555555;
     font-style: italic;
+}
+
+/* ---- MAP NODE BUTTONS & CONNECTORS ---- */
+body.xp-warp.dark-mode .map-conn {
+    color: #ff6600;
 }
 
 /* ---- MAP VIEW ---- */

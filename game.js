@@ -1253,30 +1253,31 @@ class CandyBox3 {
         if (!map) return;
         const _scrollY = window.scrollY;
 
-        const forestLink = this.state.forestUnlocked
-            ? '<span data-action="go-forest" class="clickable">🌲 Chocolate Forest</span>'
-            : '<span class="locked">🌲 ??? (locked)</span>';
-        const villageLink = this.state.sweetVillageUnlocked
-            ? '<span data-action="go-village" class="clickable">🏘️ Sweet Village</span>'
-            : '<span class="locked">🏘️ Quiet road (locked)</span>';
-        const colosseumLink = this.state.colosseumUnlocked
-            ? '<span data-action="go-colosseum" class="clickable">🏟️ Candy Colosseum</span>'
-            : '<span class="locked">🏟️ Arena gate (locked)</span>';
-        const museumLink = this.state.museumUnlocked
-            ? '<span data-action="go-museum" class="clickable">🏛️ Museum</span>'
-            : '<span class="locked">🏛️ Museum (locked)</span>';
+        const forestBtn = this.state.forestUnlocked
+            ? '<button class="action-btn map-btn" data-action="go-forest">🌲 Chocolate Forest</button>'
+            : '<button class="action-btn map-btn" disabled>🌲 ??? (locked)</button>';
+        const villageBtn = this.state.sweetVillageUnlocked
+            ? '<button class="action-btn map-btn" data-action="go-village">🏘️ Sweet Village</button>'
+            : '<button class="action-btn map-btn" disabled>🏘️ Quiet road (locked)</button>';
+        const colosseumBtn = this.state.colosseumUnlocked
+            ? '<button class="action-btn map-btn" data-action="go-colosseum">🏟️ Candy Colosseum</button>'
+            : '<button class="action-btn map-btn" disabled>🏟️ Arena gate (locked)</button>';
+        const museumBtn = this.state.museumUnlocked
+            ? '<button class="action-btn map-btn" data-action="go-museum">🏛️ Museum</button>'
+            : '<button class="action-btn map-btn" disabled>🏛️ Museum (locked)</button>';
 
-        const box = 'border:1px solid #888; padding:10px 18px; text-align:center; white-space:nowrap;';
-        const connH = '<td style="text-align:center;padding:0 8px;vertical-align:middle;font-family:monospace;white-space:nowrap;">────</td>';
+        const cell = 'text-align:center; padding:8px; vertical-align:middle;';
+        const connH = '<td class="map-conn" style="text-align:center;padding:0 8px;vertical-align:middle;white-space:nowrap;">────</td>';
+        const connV = '<td class="map-conn" style="text-align:center;padding:2px 0;vertical-align:middle;">│</td>';
         const blank = '<td></td>';
         const cauldronRows = this.state.cauldronFound ? `
                     <tr>
-                        <td style="text-align:center;font-family:monospace;padding:2px 0;">│</td>
+                        ${connV}
                         <td></td>
                         <td></td>
                     </tr>
                     <tr>
-                        <td style="${box}"><span data-action="go-cauldron" class="clickable">🧪 Candy Cauldron</span></td>
+                        <td style="${cell}"><button class="action-btn map-btn" data-action="go-cauldron">🧪 Candy Cauldron</button></td>
                         <td></td>
                         <td></td>
                     </tr>` : '';
@@ -1286,28 +1287,28 @@ class CandyBox3 {
                 <h2>🗺️ World Map</h2>
                 <table style="border-collapse:separate;border-spacing:0;margin:20px auto;">
                     <tr>
-                        <td style="${box}"><span data-action="go-main" class="clickable">🏭 Candy Factory</span></td>
+                        <td style="${cell}"><button class="action-btn map-btn" data-action="go-main">🏭 Candy Factory</button></td>
                         ${connH}
-                        <td style="${box}">${colosseumLink}</td>
+                        <td style="${cell}">${colosseumBtn}</td>
                     </tr>
                     <tr>
-                        <td style="text-align:center;font-family:monospace;padding:2px 0;">│</td>
+                        ${connV}
                         ${blank}
                         ${blank}
                     </tr>
                     <tr>
-                        <td style="${box}">${forestLink}</td>
+                        <td style="${cell}">${forestBtn}</td>
                         ${connH}
-                        <td style="${box}">${villageLink}</td>
+                        <td style="${cell}">${villageBtn}</td>
                     </tr>
                     <tr>
                         ${blank}
-                        <td style="text-align:center;font-family:monospace;padding:2px 0;">│</td>
+                        ${connV}
                         ${blank}
                     </tr>
                     <tr>
                         ${blank}
-                        <td style="${box}">${museumLink}</td>
+                        <td style="${cell}">${museumBtn}</td>
                         ${blank}
                     </tr>
                     ${cauldronRows}

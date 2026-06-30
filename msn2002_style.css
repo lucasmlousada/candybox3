@@ -270,6 +270,19 @@ body.time-warp .locked {
     font-style: italic;
 }
 
+/* ---- MAP NODE BUTTONS & CONNECTORS ---- */
+body.time-warp .map-btn {
+    min-width: 160px;
+    white-space: nowrap;
+}
+
+body.time-warp .map-conn {
+    color: #0a3d8f;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+}
+
 /* ---- MAP VIEW ---- */
 body.time-warp #asciiMap {
     background: #e8f0ff;
@@ -595,6 +608,10 @@ body.time-warp.dark-mode .upgrade-name {
 
 body.time-warp.dark-mode .upgrade-cost {
     color: #a0b0c8;
+}
+
+body.time-warp.dark-mode .map-conn {
+    color: #6fa0d8;
 }
 
 body.time-warp.dark-mode .clickable {
