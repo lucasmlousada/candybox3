@@ -2320,15 +2320,15 @@ class CandyBox3 {
                 id: -L,
                 name: `⚠️ BOSS — ${bossNames[idx]}`,
                 emoji: bossEmojis[idx],
-                hp: Math.floor(BASE_HP * power * 2.5),
-                maxHp: Math.floor(BASE_HP * power * 2.5),
-                attack: Math.floor(BASE_ATK * power * 1.5),
+                hp: Math.floor(BASE_HP * power * 100),
+                maxHp: Math.floor(BASE_HP * power * 100),
+                attack: Math.floor(BASE_ATK * power * 100),
                 reward: Math.floor(BASE_REWARD * power * 3),
                 ascii: `  ${bossEmojis[idx]}  `,
                 level: L,
                 isBoss: true
             };
-            this.addLog(`⚠️ BOSS at Speed x${L}! Power ×${power} — defeat it to unlock x${L+1}–x${L+9}!`);
+            this.addLog(`⚠️ BOSS at Speed x${L}! Power ×${power} — single battle, defeat it to unlock x${L+1}!`);
         } else {
             // Use real monsters from unlockedMonsters if available; else synthetic
             const unlocked = this.state.unlockedMonsters;
@@ -2430,23 +2430,30 @@ class CandyBox3 {
             if (!this.state.colosseumBossesDefeated.includes(L)) {
                 this.state.colosseumBossesDefeated.push(L);
             }
-            for (let s = L + 1; s <= L + 9; s++) {
-                if (!this.state.colosseumUnlockedSpeeds.includes(s)) {
-                    this.state.colosseumUnlockedSpeeds.push(s);
-                }
+            // Unlock only the single next speed — player earns subsequent ones via 10s of time
+            if (!this.state.colosseumUnlockedSpeeds.includes(L + 1)) {
+                this.state.colosseumUnlockedSpeeds.push(L + 1);
             }
-            this.addLog(`🏆 BOSS DEFEATED: ${defeatedEnemy.name.replace('⚠️ BOSS — ', '')}! +${r} candies. Speeds x${L+1}–x${L+9} unlocked!`);
+            this.addLog(`🏆 BOSS DEFEATED: ${defeatedEnemy.name.replace('⚠️ BOSS — ', '')}! +${r} candies.`);
+            this.addLog(`⚡ Speed x${L+1} unlocked! Select it to continue.`);
+            // Boss fight is one-shot — stop combat at this speed
+            this.state.colosseumRunning = false;
+            if (this.colosseumInterval) { clearInterval(this.colosseumInterval); this.colosseumInterval = null; }
+            this.state.colosseumFightCount = 0;
+            this.state.colosseumSessionPaid = false;
+            this.updateColosseumUI();
+            this.updateColosseumSpeedOptions();
+            this.doSave();
         } else {
             this.addLog(`Fight #${this.state.colosseumFightCount} at Speed x${L}: +${r} candies (power ×${this.getColosseumFightPower(L)}).`);
+            // Spawn next monster after delay
+            setTimeout(() => {
+                if (this.state.inColosseum) {
+                    this.spawnColosseumMonster();
+                    this.updateColosseumUI();
+                }
+            }, 250);
         }
-
-        // Spawn next monster after delay
-        setTimeout(() => {
-            if (this.state.inColosseum) {
-                this.spawnColosseumMonster();
-                this.updateColosseumUI();
-            }
-        }, 250);
     }
 
     loseColosseum() {
@@ -3702,6 +3709,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'start-colosseum':
                 if (game.state.colosseumRunning) return;  // Already running
+
+                // Block re-entry at a boss speed that's already been conquered
+                {
+                    const sel = parseInt(document.getElementById('colosseumSpeedSelect')?.value || '1');
+                    const selSpeed = isNaN(sel) ? game.state.colosseumSpeed : sel;
+                    if (selSpeed % 10 === 0 && game.state.colosseumBossesDefeated.includes(selSpeed)) {
+                        game.addLog(`🛡️ Boss at Speed x${selSpeed} is already defeated. Select a higher speed.`);
+                        return;
+                    }
+                }
 
                 // Only charge if not already paid for this session
                 if (!game.state.colosseumSessionPaid) {
