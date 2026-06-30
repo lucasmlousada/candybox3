@@ -543,7 +543,10 @@ function getDefaultGameState() {
         colosseumBuffs: {},
         pendingBuffChoice: null,
         colosseumSessionPaid: false,  // Whether chocolate was paid for current session
-        colosseumArenaLevel: 0,       // total arena wins; every 10th is a boss fight
+        colosseumArenaLevel: 0,       // legacy, unused
+        colosseumFightCount: 0,       // fights won in current session (resets on stop)
+        colosseumBestFight: 0,        // persistent best session fight count
+        colosseumBossesDefeated: [],  // speed levels (10,20,30...) whose boss was beaten
         // Lollipop Farm system
         lollipopFarmUnlocked: false,
         lollipopFarmTrees: 0,
@@ -689,7 +692,17 @@ class CandyBox3 {
         this.state.discoveredRecipes = Array.isArray(this.state.discoveredRecipes) ? this.state.discoveredRecipes : [];
         this.state.cauldronLog = Array.isArray(this.state.cauldronLog) ? this.state.cauldronLog : [];
         this.state.candyTitle = this.state.candyTitle || false;
-        this.state.colosseumArenaLevel = this.state.colosseumArenaLevel || 0;
+        this.state.colosseumArenaLevel = this.state.colosseumArenaLevel || 0; // legacy
+        this.state.colosseumFightCount = this.state.colosseumFightCount || 0;
+        this.state.colosseumBestFight  = this.state.colosseumBestFight  || 0;
+        this.state.colosseumBossesDefeated = Array.isArray(this.state.colosseumBossesDefeated) ? this.state.colosseumBossesDefeated : [];
+        // Infer defeated bosses from already-unlocked speeds (backward compat)
+        [10,20,30,40,50,60,70,80,90,100].forEach(boss => {
+            if (this.state.colosseumUnlockedSpeeds.includes(boss + 1) &&
+                !this.state.colosseumBossesDefeated.includes(boss)) {
+                this.state.colosseumBossesDefeated.push(boss);
+            }
+        });
         this.state.lollipopFarmUnlocked = this.state.lollipopFarmUnlocked || false;
         this.state.lollipopFarmTrees = this.state.lollipopFarmTrees || 0;
         this.state.lollipopFarmRate = this.state.lollipopFarmRate || 0;
@@ -2133,13 +2146,13 @@ class CandyBox3 {
     buildColosseumUI() {
         const view = document.getElementById('colosseumView');
         if (!view) return;
-        const nextFight = this.state.colosseumArenaLevel + 1;
-        const isBossNext = (nextFight % 10 === 0);
+        const isBossSpeed = (this.state.colosseumSpeed % 10 === 0);
+        const bossDefeated = this.state.colosseumBossesDefeated.includes(this.state.colosseumSpeed);
         view.innerHTML = `
             <div class="panel">
                 <h2>🏟️ Candy Colosseum</h2>
-                <div style="text-align: center; margin: 6px 0; font-size: 13px;">Arena Level: <strong id="colosseum-arena-level">${this.state.colosseumArenaLevel}</strong> &nbsp;|&nbsp; Next Fight: <strong>#${nextFight}</strong></div>
-                ${isBossNext ? '<div id="colosseum-boss-warning" style="text-align:center;color:#ff4444;font-weight:bold;font-size:18px;margin:6px 0;animation:epic-pulse 1.5s ease-in-out infinite;">⚠️ BOSS FIGHT INCOMING ⚠️</div>' : '<div id="colosseum-boss-warning" style="display:none;"></div>'}
+                <div style="text-align: center; margin: 6px 0; font-size: 13px;">Fight #: <strong id="colosseum-fight-count">${this.state.colosseumFightCount}</strong> &nbsp;|&nbsp; Best Fight: <strong id="colosseum-best-fight">${this.state.colosseumBestFight}</strong></div>
+                ${(isBossSpeed && !bossDefeated) ? '<div id="colosseum-boss-warning" style="text-align:center;color:#ff4444;font-weight:bold;font-size:18px;margin:6px 0;animation:epic-pulse 1.5s ease-in-out infinite;">⚠️ BOSS FIGHT — Speed x' + this.state.colosseumSpeed + ' ⚠️</div>' : '<div id="colosseum-boss-warning" style="display:none;"></div>'}
                 <div style="text-align: center; margin: 20px 0;">
                     <div style="font-size: 32px; margin: 10px 0;" id="colosseum-enemy-emoji">👾</div>
                     <div style="font-weight: bold; margin: 10px 0;" id="colosseum-enemy-name">Arena Champion</div>
@@ -2196,24 +2209,27 @@ class CandyBox3 {
         this.addLog('🏟️ Entered the Colosseum. Click Start to begin!');
     }
 
-    getColosseumFightPower(fightNum) {
-        if (fightNum % 10 === 0) return fightNum; // boss: power equals fight number
-        const tier = Math.floor(fightNum / 10);
-        const offset = fightNum % 10;
-        return tier + offset;
+    // Power formula: speed L is the "level".
+    // L=1..9 (first segment): power=L. Boss at L%10===0: power=L.
+    // L>9 non-boss: power = (L%10) + floor(L/10) - 1
+    //   → x21=×2, x29=×10, x31=×3, x39=×11, matches user spec.
+    getColosseumFightPower(L) {
+        if (L <= 9) return L;
+        if (L % 10 === 0) return L; // boss power = speed level
+        return (L % 10) + Math.floor(L / 10) - 1;
     }
 
     spawnColosseumMonster() {
-        const fightNum = this.state.colosseumArenaLevel + 1;
-        const isBoss = (fightNum % 10 === 0);
-        const power = this.getColosseumFightPower(fightNum);
+        const L = this.state.colosseumSpeed; // speed IS the level
+        const isBoss = (L % 10 === 0);
+        const power = this.getColosseumFightPower(L);
 
         const BASE_HP = 60;
         const BASE_ATK = 10;
         const BASE_REWARD = 80;
 
         if (isBoss) {
-            const bossIdx = Math.floor(fightNum / 10) - 1;
+            const bossIdx = Math.floor(L / 10) - 1;
             const bossNames = [
                 'The Candy Sentinel', 'The Chocolate Colossus', 'The Sugar Wyrm',
                 'The Caramel Knight', 'The Lollipop Lord', 'The Toffee Titan',
@@ -2222,7 +2238,7 @@ class CandyBox3 {
             const bossEmojis = ['🛡️', '💀', '🐍', '⚔️', '👹', '🦖', '🐉', '👻', '🧙', '👑'];
             const idx = bossIdx % bossNames.length;
             this.state.enemy = {
-                id: -fightNum,
+                id: -L,
                 name: `⚠️ BOSS — ${bossNames[idx]}`,
                 emoji: bossEmojis[idx],
                 hp: Math.floor(BASE_HP * power * 2.5),
@@ -2230,26 +2246,48 @@ class CandyBox3 {
                 attack: Math.floor(BASE_ATK * power * 1.5),
                 reward: Math.floor(BASE_REWARD * power * 3),
                 ascii: `  ${bossEmojis[idx]}  `,
-                level: fightNum,
+                level: L,
                 isBoss: true
             };
-            this.addLog(`⚠️ BOSS FIGHT #${fightNum}! Power ×${power} — good luck!`);
+            this.addLog(`⚠️ BOSS at Speed x${L}! Power ×${power} — defeat it to unlock x${L+1}–x${L+9}!`);
         } else {
-            const tier = Math.floor(fightNum / 10);
-            const regularNames = ['Candy Golem', 'Sugar Imp', 'Taffy Slime', 'Caramel Wraith', 'Nougat Beast', 'Fudge Fiend', 'Gummy Specter', 'Licorice Brute', 'Marzipan Shade', 'Fondant Crusher'];
-            const regularEmojis = ['🍬', '👾', '🟤', '💜', '🟡', '🤎', '🍭', '⚫', '🟣', '🟠'];
-            this.state.enemy = {
-                id: fightNum,
-                name: regularNames[fightNum % regularNames.length],
-                emoji: regularEmojis[tier % regularEmojis.length],
-                hp: Math.floor(BASE_HP * power),
-                maxHp: Math.floor(BASE_HP * power),
-                attack: Math.floor(BASE_ATK * power),
-                reward: Math.floor(BASE_REWARD * power),
-                ascii: `  ${regularEmojis[tier % regularEmojis.length]}  `,
-                level: fightNum,
-                isBoss: false
-            };
+            // Use real monsters from unlockedMonsters if available; else synthetic
+            const unlocked = this.state.unlockedMonsters;
+            let base;
+            if (unlocked.length > 0) {
+                const pick = unlocked[Math.floor(Math.random() * unlocked.length)];
+                base = this.monsters.find(m => m.id === pick.id) || null;
+            }
+            if (!base) {
+                const regularNames = ['Candy Golem', 'Sugar Imp', 'Taffy Slime', 'Caramel Wraith', 'Nougat Beast', 'Fudge Fiend', 'Gummy Specter', 'Licorice Brute', 'Marzipan Shade', 'Fondant Crusher'];
+                const regularEmojis = ['🍬', '👾', '🟤', '💜', '🟡', '🤎', '🍭', '⚫', '🟣', '🟠'];
+                const tier = Math.floor(L / 10);
+                this.state.enemy = {
+                    id: L,
+                    name: regularNames[L % regularNames.length],
+                    emoji: regularEmojis[tier % regularEmojis.length],
+                    hp: Math.floor(BASE_HP * power),
+                    maxHp: Math.floor(BASE_HP * power),
+                    attack: Math.floor(BASE_ATK * power),
+                    reward: Math.floor(BASE_REWARD * power),
+                    ascii: `  ${regularEmojis[tier % regularEmojis.length]}  `,
+                    level: L,
+                    isBoss: false
+                };
+            } else {
+                this.state.enemy = {
+                    id: base.id,
+                    name: base.name,
+                    emoji: base.emoji || '👾',
+                    hp: Math.floor(base.hp * power),
+                    maxHp: Math.floor(base.hp * power),
+                    attack: Math.floor(base.attack * power),
+                    reward: Math.floor(base.reward * power),
+                    ascii: base.ascii || '',
+                    level: L,
+                    isBoss: false
+                };
+            }
         }
         this.resetCombatFlags();
     }
@@ -2280,11 +2318,19 @@ class CandyBox3 {
         for (let speed = 1; speed < 100; speed++) {
             const next = speed + 1;
             if (this.state.colosseumUnlockedSpeeds.includes(next)) continue;
+            // Boss speeds block time-based unlock of the next regular speeds.
+            // Speeds 11-19, 21-29... are only unlocked by defeating the boss at 10, 20...
+            // Time-based unlock is skipped when currently AT a boss speed.
+            if (speed % 10 === 0) continue;
             const required = 10;
             const spent = this.state.colosseumTimeBySpeed[speed] || 0;
             if (spent >= required) {
                 this.state.colosseumUnlockedSpeeds.push(next);
-                this.addLog(`⚡ Speed x${next} unlocked after ${required}s at x${speed}.`);
+                if (next % 10 === 0) {
+                    this.addLog(`⚡ Speed x${next} (BOSS) is now reachable!`);
+                } else {
+                    this.addLog(`⚡ Speed x${next} unlocked!`);
+                }
             }
         }
         this.updateColosseumSpeedOptions();
@@ -2294,15 +2340,25 @@ class CandyBox3 {
         const defeatedEnemy = { ...this.state.enemy };
         const r = this.applyMonsterRewards(defeatedEnemy.reward, 'colosseum');
         const wasBoss = defeatedEnemy.isBoss;
+        const L = defeatedEnemy.level;
 
-        this.state.colosseumArenaLevel += 1;
+        this.state.colosseumFightCount += 1;
+        if (this.state.colosseumFightCount > this.state.colosseumBestFight) {
+            this.state.colosseumBestFight = this.state.colosseumFightCount;
+        }
 
         if (wasBoss) {
-            this.addLog(`🏆 BOSS DEFEATED: ${defeatedEnemy.name.replace('⚠️ BOSS — ', '')}! +${r} candies.`);
-            const nextBoss = Math.ceil(this.state.colosseumArenaLevel / 10) * 10;
-            this.addLog(`💪 Arena Level ${this.state.colosseumArenaLevel}. Next boss at fight #${nextBoss}.`);
+            if (!this.state.colosseumBossesDefeated.includes(L)) {
+                this.state.colosseumBossesDefeated.push(L);
+            }
+            for (let s = L + 1; s <= L + 9; s++) {
+                if (!this.state.colosseumUnlockedSpeeds.includes(s)) {
+                    this.state.colosseumUnlockedSpeeds.push(s);
+                }
+            }
+            this.addLog(`🏆 BOSS DEFEATED: ${defeatedEnemy.name.replace('⚠️ BOSS — ', '')}! +${r} candies. Speeds x${L+1}–x${L+9} unlocked!`);
         } else {
-            this.addLog(`Arena win #${this.state.colosseumArenaLevel}: +${r} candies (power ×${this.getColosseumFightPower(defeatedEnemy.level)}).`);
+            this.addLog(`Fight #${this.state.colosseumFightCount} at Speed x${L}: +${r} candies (power ×${this.getColosseumFightPower(L)}).`);
         }
 
         // Spawn next monster after delay
@@ -2320,13 +2376,12 @@ class CandyBox3 {
         this.state.hp = this.getEffectiveMaxHp();
         // Death penalty: lose all candies
         this.state.candies = 0;
-        this.addLog(`💀 Fell in the Colosseum after ${this.state.colosseumSurvivalTime.toFixed(1)}s - Lost all candies!`);
+        this.addLog(`💀 Fell in the Colosseum after ${this.state.colosseumSurvivalTime.toFixed(1)}s - Lost all candies! (Fight #${this.state.colosseumFightCount})`);
 
-        // Reset combat state
+        // Reset fight count for this session
+        this.state.colosseumFightCount = 0;
         this.state.colosseumRunning = false;
         this.state.colosseumCurrentTime = 0;
-
-        // Allow next run to require payment again
         this.state.colosseumSessionPaid = false;
 
         this.state.view = 'main';
@@ -2339,16 +2394,18 @@ class CandyBox3 {
         // Legacy colosseum buff system removed; stub kept to avoid TypeError on stop
     }
 
-stopColosseumCombat() {
-    if (this.state.colosseumRunning) {
-        this.state.colosseumRunning = false;
-        if (this.colosseumInterval) clearInterval(this.colosseumInterval);
-        this.addLog(`⏹️ Stopped at ${this.state.colosseumCurrentTime.toFixed(1)}s`);
-        this.state.colosseumCurrentTime = 0;
-        this.state.colosseumSurvivalTime = 0;
-        this.updateColosseumUI();
+    stopColosseumCombat() {
+        if (this.state.colosseumRunning) {
+            this.state.colosseumRunning = false;
+            if (this.colosseumInterval) clearInterval(this.colosseumInterval);
+            this.addLog(`⏹️ Stopped at Speed x${this.state.colosseumSpeed} after Fight #${this.state.colosseumFightCount}`);
+            // Reset session fight count
+            this.state.colosseumFightCount = 0;
+            this.state.colosseumCurrentTime = 0;
+            this.state.colosseumSurvivalTime = 0;
+            this.updateColosseumUI();
+        }
     }
-}
 
     updateColosseumUI() {
         if (!this.state.inColosseum || !this.state.enemy) return;
@@ -2364,7 +2421,7 @@ stopColosseumCombat() {
         const choicesDiv = document.getElementById('buffChoices');
         const buttonsDiv = document.getElementById('buffChoiceButtons');
 
-        if (NameEl) NameEl.textContent = this.state.enemy.name + (this.state.enemy.isBoss ? '' : ' (Fight #' + this.state.enemy.level + ')');
+        if (NameEl) NameEl.textContent = this.state.enemy.name + (this.state.enemy.isBoss ? '' : ' (Speed x' + this.state.enemy.level + ')');
         if (emojiEl) emojiEl.textContent = this.state.enemy.emoji;
         if (hpEl) {
             const p = Math.max(0, Math.floor((this.state.enemy.hp / this.state.enemy.maxHp) * 10));
@@ -2376,13 +2433,15 @@ stopColosseumCombat() {
             const pp = Math.max(0, Math.floor((Math.max(0, ph) / pm) * 10));
             playerHpEl.textContent = `[${'█'.repeat(pp)}${'░'.repeat(10 - pp)}] ${Math.max(0, ph)}/${pm}`;
         }
-        const arenaLevelEl = document.getElementById('colosseum-arena-level');
-        if (arenaLevelEl) arenaLevelEl.textContent = this.state.colosseumArenaLevel;
+        const fightCountEl = document.getElementById('colosseum-fight-count');
+        if (fightCountEl) fightCountEl.textContent = this.state.colosseumFightCount;
+        const bestFightEl = document.getElementById('colosseum-best-fight');
+        if (bestFightEl) bestFightEl.textContent = this.state.colosseumBestFight;
         const bossWarning = document.getElementById('colosseum-boss-warning');
         if (bossWarning) {
-            const nextFight = this.state.colosseumArenaLevel + 1;
-            const isBossNext = (nextFight % 10 === 0) && !this.state.colosseumRunning;
-            bossWarning.style.display = isBossNext ? 'block' : 'none';
+            const isBossSpeed = (this.state.colosseumSpeed % 10 === 0);
+            const bossAlreadyDefeated = this.state.colosseumBossesDefeated.includes(this.state.colosseumSpeed);
+            bossWarning.style.display = (isBossSpeed && !bossAlreadyDefeated) ? 'block' : 'none';
         }
         if (timeEl) timeEl.textContent = this.state.colosseumSurvivalTime.toFixed(1) + 's';
         if (bestTimeEl) bestTimeEl.textContent = this.state.colosseumBestTime.toFixed(1) + 's';
