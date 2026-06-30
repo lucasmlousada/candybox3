@@ -1930,9 +1930,18 @@ class CandyBox3 {
         return reward;
     }
 
+    _bulkTreeCost(currentCount, amount, unitBase = 1000) {
+        return Math.floor(unitBase * (amount * currentCount + amount * (amount + 1) / 2));
+    }
+
     buildForestUI() {
         const forest = document.getElementById('forestView');
         if (!forest) return;
+        const n = this.state.chocolateTrees;
+        const cost1   = 1000 * (n + 1);
+        const cost10  = Math.floor(this._bulkTreeCost(n, 10)  * 0.9);
+        const cost100 = Math.floor(this._bulkTreeCost(n, 100) * 0.8);
+        const c = Math.floor(this.state.candies);
         forest.innerHTML = `
             <div class="panel" style="position:relative;">
                 <h2>🌲 Chocolate Bars Forest</h2>
@@ -1950,13 +1959,16 @@ class CandyBox3 {
                     <div style="position: absolute; top: 30%; right: 15%; font-size: 20px;">🌳</div>
                 </div>
                 <div style="margin: 20px 0;">
-                    <p>Trees Planted: <strong id="forest-trees">0</strong></p>
-                    <p>Chocolate/Hour: <strong id="forest-rate">0</strong></p>
-                    <p>Cost for next tree: <strong id="forest-cost">1000</strong> candies</p>
+                    <p>Trees Planted: <strong id="forest-trees">${n}</strong></p>
+                    <p>Chocolate/Hour: <strong id="forest-rate">${this.state.chocolateRate}</strong></p>
+                    <p>Cost for next tree: <strong id="forest-cost">${cost1}</strong> 🍬 candies</p>
+                    <p style="font-size:11px;color:#888;">You have: <span id="forest-owned-candies">${c}</span> 🍬</p>
                 </div>
-                <div style="margin: 20px 0;">
-                    <button class="action-btn" data-action="plant-tree">🌱 Plant Tree</button>
-                    <button class="action-btn" data-action="go-map" style="margin-left: 10px;">🗺️ Back to Map</button>
+                <div style="margin: 20px 0; display:flex; flex-wrap:wrap; gap:6px;">
+                    <button class="action-btn" data-action="plant-tree" id="forest-btn-1" ${c < cost1 ? 'disabled' : ''}>🌱 Plant ×1 (${cost1} 🍬)</button>
+                    <button class="action-btn" data-action="plant-tree-10" id="forest-btn-10" ${c < cost10 ? 'disabled' : ''}>🌿 Buy ×10 (${cost10} 🍬 <span style="color:#4f4;font-size:0.85em;">−10%</span>)</button>
+                    <button class="action-btn" data-action="plant-tree-100" id="forest-btn-100" ${c < cost100 ? 'disabled' : ''}>🌳 Buy ×100 (${cost100} 🍬 <span style="color:#4f4;font-size:0.85em;">−20%</span>)</button>
+                    <button class="action-btn" data-action="go-map" style="margin-left:4px;">🗺️ Back to Map</button>
                 </div>
                 ${this.renderArtifactHotspots('forest')}
                 ${!this.state.cauldronFound ? '<button data-action="find-cauldron" style="position:absolute;bottom:10%;left:8%;width:40px;height:40px;opacity:0;cursor:pointer;" aria-label="hidden cauldron"></button>' : ''}
@@ -2011,13 +2023,27 @@ class CandyBox3 {
     }
 
     updateForestDisplay() {
-        const treesEl = document.getElementById('forest-trees');
-        const rateEl = document.getElementById('forest-rate');
-        const costEl = document.getElementById('forest-cost');
+        const n = this.state.chocolateTrees;
+        const cost1   = 1000 * (n + 1);
+        const cost10  = Math.floor(this._bulkTreeCost(n, 10)  * 0.9);
+        const cost100 = Math.floor(this._bulkTreeCost(n, 100) * 0.8);
+        const c = Math.floor(this.state.candies);
 
-        if (treesEl) treesEl.textContent = this.state.chocolateTrees;
-        if (rateEl) rateEl.textContent = this.state.chocolateRate;
-        if (costEl) costEl.textContent = Math.floor(1000 * (this.state.chocolateTrees + 1));
+        const treesEl = document.getElementById('forest-trees');
+        const rateEl  = document.getElementById('forest-rate');
+        const costEl  = document.getElementById('forest-cost');
+        const ownedEl = document.getElementById('forest-owned-candies');
+        if (treesEl) treesEl.textContent = n;
+        if (rateEl)  rateEl.textContent  = this.state.chocolateRate;
+        if (costEl)  costEl.textContent  = cost1;
+        if (ownedEl) ownedEl.textContent = c;
+
+        const btn1   = document.getElementById('forest-btn-1');
+        const btn10  = document.getElementById('forest-btn-10');
+        const btn100 = document.getElementById('forest-btn-100');
+        if (btn1)   { btn1.disabled   = c < cost1;   btn1.innerHTML   = `🌱 Plant ×1 (${cost1} 🍬)`; }
+        if (btn10)  { btn10.disabled  = c < cost10;  btn10.innerHTML  = `🌿 Buy ×10 (${cost10} 🍬 <span style="color:#4f4;font-size:0.85em;">−10%</span>)`; }
+        if (btn100) { btn100.disabled = c < cost100; btn100.innerHTML = `🌳 Buy ×100 (${cost100} 🍬 <span style="color:#4f4;font-size:0.85em;">−20%</span>)`; }
     }
 
     plantTree() {
@@ -2026,20 +2052,35 @@ class CandyBox3 {
             this.addLog('Not enough candies to plant a tree');
             return;
         }
-
         this.state.candies -= cost;
         this.state.chocolateTrees += 1;
         this.state.chocolateRate += 1;
         this.addLog(`Planted a chocolate tree! (+1 chocolate/hour)`);
-
-        // Store tree position (state-driven, not DOM)
-        this.state.chocolateTreePositions.push({
-            x: Math.random(),
-            y: Math.random()
-        });
-
+        this.state.chocolateTreePositions.push({ x: Math.random(), y: Math.random() });
         this.updateForestDisplay();
-        this.renderForest(); // Re-render forest with new tree
+        this.renderForest();
+        this.updateUI();
+        this.doSave();
+    }
+
+    plantTreeBulk(amount, discount) {
+        const n = this.state.chocolateTrees;
+        const fullCost = this._bulkTreeCost(n, amount);
+        const cost = Math.floor(fullCost * (1 - discount));
+        if (this.state.candies < cost) {
+            this.addLog(`Not enough candies! Need ${cost} 🍬 for ×${amount} trees.`);
+            return;
+        }
+        this.state.candies -= cost;
+        for (let i = 0; i < amount; i++) {
+            this.state.chocolateTrees += 1;
+            this.state.chocolateRate += 1;
+            this.state.chocolateTreePositions.push({ x: Math.random(), y: Math.random() });
+        }
+        const saved = Math.floor(fullCost * discount);
+        this.addLog(`🌳 Planted ×${amount} chocolate trees! (+${amount} chocolate/hour, saved ${saved} 🍬)`);
+        this.updateForestDisplay();
+        this.renderForest();
         this.updateUI();
         this.doSave();
     }
@@ -2067,7 +2108,11 @@ class CandyBox3 {
     buildLollipopFarmUI() {
         const farm = document.getElementById('lollipopFarmView');
         if (!farm) return;
-        const cost = Math.floor(1000 * (this.state.lollipopFarmTrees + 1));
+        const n = this.state.lollipopFarmTrees;
+        const cost1   = 1000 * (n + 1);
+        const cost10  = Math.floor(this._bulkTreeCost(n, 10)  * 0.9);
+        const cost100 = Math.floor(this._bulkTreeCost(n, 100) * 0.8);
+        const ch = Math.floor(this.state.chocolate);
         farm.innerHTML = `
             <div class="panel" style="position:relative;">
                 <h2>🍭 Lollipop Farm</h2>
@@ -2083,32 +2128,43 @@ class CandyBox3 {
                     <div style="position: absolute; top: 30%; right: 15%; font-size: 20px;">🌱</div>
                 </div>
                 <div style="margin: 20px 0;">
-                    <p>Lollipops Planted: <strong id="lollipop-farm-trees-count">${this.state.lollipopFarmTrees}</strong></p>
+                    <p>Lollipops Planted: <strong id="lollipop-farm-trees-count">${n}</strong></p>
                     <p>Lollipops/Hour: <strong id="lollipop-farm-rate-view">${this.state.lollipopFarmRate}</strong></p>
-                    <p>Cost for next plant: <strong id="lollipop-farm-cost">${cost}</strong> 🍫 chocolate bars</p>
-                    <p style="font-size:11px; color:#888;">You have: ${Math.floor(this.state.chocolate)} 🍫</p>
+                    <p>Cost for next plant: <strong id="lollipop-farm-cost">${cost1}</strong> 🍫 chocolate bars</p>
+                    <p style="font-size:11px;color:#888;">You have: <span id="lollipop-farm-owned-choc">${ch}</span> 🍫</p>
                 </div>
-                <div style="margin: 20px 0;">
-                    <button class="action-btn" data-action="plant-lollipop-tree" ${this.state.chocolate < cost ? 'disabled' : ''}>🌱 Plant Lollipop (${cost} 🍫)</button>
-                    <button class="action-btn" data-action="go-map" style="margin-left: 10px;">🗺️ Back to Map</button>
+                <div style="margin: 20px 0; display:flex; flex-wrap:wrap; gap:6px;">
+                    <button class="action-btn" data-action="plant-lollipop-tree" id="lollipop-btn-1" ${ch < cost1 ? 'disabled' : ''}>🌱 Plant ×1 (${cost1} 🍫)</button>
+                    <button class="action-btn" data-action="plant-lollipop-tree-10" id="lollipop-btn-10" ${ch < cost10 ? 'disabled' : ''}>🍬 Buy ×10 (${cost10} 🍫 <span style="color:#4f4;font-size:0.85em;">−10%</span>)</button>
+                    <button class="action-btn" data-action="plant-lollipop-tree-100" id="lollipop-btn-100" ${ch < cost100 ? 'disabled' : ''}>🍭 Buy ×100 (${cost100} 🍫 <span style="color:#4f4;font-size:0.85em;">−20%</span>)</button>
+                    <button class="action-btn" data-action="go-map" style="margin-left:4px;">🗺️ Back to Map</button>
                 </div>
             </div>
         `;
     }
 
     updateLollipopFarmDisplay() {
+        const n = this.state.lollipopFarmTrees;
+        const cost1   = 1000 * (n + 1);
+        const cost10  = Math.floor(this._bulkTreeCost(n, 10)  * 0.9);
+        const cost100 = Math.floor(this._bulkTreeCost(n, 100) * 0.8);
+        const ch = Math.floor(this.state.chocolate);
+
         const treesEl = document.getElementById('lollipop-farm-trees-count');
-        const rateEl = document.getElementById('lollipop-farm-rate-view');
-        const costEl = document.getElementById('lollipop-farm-cost');
-        const cost = Math.floor(1000 * (this.state.lollipopFarmTrees + 1));
-        if (treesEl) treesEl.textContent = this.state.lollipopFarmTrees;
-        if (rateEl) rateEl.textContent = this.state.lollipopFarmRate;
-        if (costEl) costEl.textContent = cost;
-        const plantBtn = document.querySelector('[data-action="plant-lollipop-tree"]');
-        if (plantBtn) {
-            plantBtn.disabled = this.state.chocolate < cost;
-            plantBtn.textContent = `🌱 Plant Lollipop (${cost} 🍫)`;
-        }
+        const rateEl  = document.getElementById('lollipop-farm-rate-view');
+        const costEl  = document.getElementById('lollipop-farm-cost');
+        const ownedEl = document.getElementById('lollipop-farm-owned-choc');
+        if (treesEl) treesEl.textContent = n;
+        if (rateEl)  rateEl.textContent  = this.state.lollipopFarmRate;
+        if (costEl)  costEl.textContent  = cost1;
+        if (ownedEl) ownedEl.textContent = ch;
+
+        const btn1   = document.getElementById('lollipop-btn-1');
+        const btn10  = document.getElementById('lollipop-btn-10');
+        const btn100 = document.getElementById('lollipop-btn-100');
+        if (btn1)   { btn1.disabled   = ch < cost1;   btn1.innerHTML   = `🌱 Plant ×1 (${cost1} 🍫)`; }
+        if (btn10)  { btn10.disabled  = ch < cost10;  btn10.innerHTML  = `🍬 Buy ×10 (${cost10} 🍫 <span style="color:#4f4;font-size:0.85em;">−10%</span>)`; }
+        if (btn100) { btn100.disabled = ch < cost100; btn100.innerHTML = `🍭 Buy ×100 (${cost100} 🍫 <span style="color:#4f4;font-size:0.85em;">−20%</span>)`; }
     }
 
     plantLollipopTree() {
@@ -2124,6 +2180,29 @@ class CandyBox3 {
         this.state.lollipopFarmTreePositions.push({ x: Math.random(), y: Math.random() });
         this.updateLollipopFarmDisplay();
         this.renderLollipopFarm();
+        this.updateUI();
+        this.doSave();
+    }
+
+    plantLollipopTreeBulk(amount, discount) {
+        const n = this.state.lollipopFarmTrees;
+        const fullCost = this._bulkTreeCost(n, amount);
+        const cost = Math.floor(fullCost * (1 - discount));
+        if (this.state.chocolate < cost) {
+            this.addLog(`Not enough chocolate bars! Need ${cost} 🍫 for ×${amount} lollipops.`);
+            return;
+        }
+        this.state.chocolate -= cost;
+        for (let i = 0; i < amount; i++) {
+            this.state.lollipopFarmTrees += 1;
+            this.state.lollipopFarmRate += 1;
+            this.state.lollipopFarmTreePositions.push({ x: Math.random(), y: Math.random() });
+        }
+        const saved = Math.floor(fullCost * discount);
+        this.addLog(`🍭 Planted ×${amount} lollipops! (+${amount} lollipops/hour, saved ${saved} 🍫)`);
+        this.updateLollipopFarmDisplay();
+        this.renderLollipopFarm();
+        this.updateUI();
         this.doSave();
     }
 
@@ -3562,6 +3641,12 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'plant-lollipop-tree':
                 game.plantLollipopTree();
                 break;
+            case 'plant-lollipop-tree-10':
+                game.plantLollipopTreeBulk(10, 0.10);
+                break;
+            case 'plant-lollipop-tree-100':
+                game.plantLollipopTreeBulk(100, 0.20);
+                break;
             case 'go-map':
                 if (game.state.view === 'colosseum') {
                     if (game.colosseumInterval) {
@@ -3682,6 +3767,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'plant-tree':
                 game.plantTree();
+                break;
+            case 'plant-tree-10':
+                game.plantTreeBulk(10, 0.10);
+                break;
+            case 'plant-tree-100':
+                game.plantTreeBulk(100, 0.20);
                 break;
             case 'buy-weapon':
                 game.buyWeapon(e.target.dataset.weaponId);
