@@ -1,0 +1,965 @@
+/* ============================================================
+   2025 TIME WARP STYLE
+   Activated via body.tw3 class
+   Light mode: Apple.com 2025 (Luna/SF design language)
+   Dark mode:  Epic Games Store 2025
+   All rules scoped to body.tw3 to avoid conflicts
+   ============================================================ */
+
+/* ============================================================
+   APPLE 2025 — body.tw3
+   Palette: #f5f5f7 bg · #1d1d1f text · #0071e3 blue · #86868b secondary
+   Font: system-ui / SF Pro
+   ============================================================ */
+
+body.tw3 {
+    background-color: #f5f5f7;
+    color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---- SCROLLBAR ---- */
+body.tw3 ::-webkit-scrollbar { width: 8px; }
+body.tw3 ::-webkit-scrollbar-track { background: transparent; }
+body.tw3 ::-webkit-scrollbar-thumb {
+    background: #c7c7cc;
+    border-radius: 4px;
+}
+body.tw3 ::-webkit-scrollbar-thumb:hover { background: #aeaeb2; }
+
+/* ---- CONTAINER ---- */
+body.tw3 #container {
+    max-width: 980px;
+    margin: 0 auto;
+    background: #f5f5f7;
+}
+
+/* ---- HEADER — Apple nav bar ---- */
+body.tw3 header {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 0;
+    text-align: center;
+    margin-bottom: 0;
+}
+
+/* Apple nav links strip */
+body.tw3 header::before {
+    content: "🍬  Candy Box  ·  Store  ·  Factory  ·  Forest  ·  Village  ·  Colosseum  ·  Cauldron  ·  Support";
+    display: block;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1d1d1f;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    padding: 0 22px;
+    height: 44px;
+    line-height: 44px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Product announcement bar */
+body.tw3 header::after {
+    content: "Candy Box 3 — Now with Time Warp technology.  Learn more  ›";
+    display: block;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    padding: 8px 22px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    text-align: center;
+}
+
+body.tw3 header h1 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #1d1d1f;
+    letter-spacing: -0.02em;
+    padding: 10px 22px;
+    margin: 0;
+}
+
+body.tw3 header p {
+    color: #86868b;
+    font-size: 11px;
+    font-weight: 400;
+    padding: 0 22px 10px;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+/* ---- HERO SECTION ---- */
+body.tw3 #container::before {
+    content: "The sweetest experience. Ever.  Discover Candy Box 3 Pro  ›";
+    display: block;
+    background: linear-gradient(135deg, #fbfbfd 0%, #e8f0fe 50%, #f0f4ff 100%);
+    color: #1d1d1f;
+    font-size: 18px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    text-align: center;
+    padding: 32px 22px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- #main layout ---- */
+body.tw3 #main {
+    gap: 12px;
+    padding: 20px 0;
+}
+
+/* ---- PANELS — Apple product cards ---- */
+body.tw3 .panel {
+    background: #ffffff;
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04);
+    padding: 20px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-size: 14px;
+    color: #1d1d1f;
+}
+
+body.tw3 .panel h3 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d1d1f;
+    letter-spacing: -0.03em;
+    margin: 0 0 16px 0;
+    padding: 0 0 12px 0;
+    border-bottom: 1px solid #f0f0f5;
+    background: none;
+}
+
+body.tw3 .panel h2 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1d1d1f;
+    letter-spacing: -0.04em;
+    margin: 0 0 16px 0;
+    padding: 0 0 12px 0;
+    border-bottom: 1px solid #f0f0f5;
+    background: none;
+}
+
+/* ---- STATUS PANEL — Apple info card ---- */
+body.tw3 #status-panel {
+    background: linear-gradient(135deg, #ffffff 0%, #f9f9fb 100%);
+    border-radius: 18px;
+}
+
+body.tw3 .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #f0f0f5;
+    padding: 10px 0;
+    font-size: 14px;
+}
+
+body.tw3 .stat-row:last-child { border-bottom: none; }
+
+body.tw3 .stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    min-width: 90px;
+}
+
+/* ---- BUTTONS — Apple pill style ---- */
+body.tw3 .action-btn {
+    background: #0071e3;
+    border: none;
+    border-radius: 980px;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 18px;
+    cursor: pointer;
+    min-width: 100px;
+    letter-spacing: -0.01em;
+    transition: background 0.15s ease;
+}
+
+body.tw3 .action-btn:hover {
+    background: #0077ed;
+    font-weight: 500;
+}
+
+body.tw3 .action-btn:active {
+    background: #006edb;
+    transform: scale(0.98);
+}
+
+body.tw3 .action-btn:disabled {
+    background: #d2d2d7;
+    color: #86868b;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+body.tw3 .upgrade-btn {
+    background: #0071e3;
+    border: none;
+    border-radius: 980px;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    cursor: pointer;
+    margin-left: 8px;
+    letter-spacing: -0.01em;
+}
+
+body.tw3 .upgrade-btn:hover:not(:disabled) {
+    background: #0077ed;
+}
+
+body.tw3 .upgrade-btn:disabled {
+    background: #d2d2d7;
+    color: #86868b;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+body.tw3 .settings-btn {
+    background: #1d1d1f;
+    border: none;
+    border-radius: 980px;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 18px;
+    cursor: pointer;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+}
+
+body.tw3 .settings-btn:hover {
+    background: #3a3a3c;
+}
+
+/* ---- UPGRADE ITEMS — Apple feature list ---- */
+body.tw3 .upgrade-item {
+    background: #f9f9fb;
+    border: none;
+    border-left: 3px solid #0071e3;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+
+body.tw3 .upgrade-name {
+    color: #1d1d1f;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+}
+
+body.tw3 .upgrade-cost {
+    color: #86868b;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+/* ---- LINKS / CLICKABLE — Apple blue ---- */
+body.tw3 .clickable {
+    color: #0071e3;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 400;
+}
+
+body.tw3 .clickable:hover {
+    text-decoration: underline;
+    background-color: transparent;
+}
+
+body.tw3 .locked {
+    color: #d2d2d7;
+    font-style: normal;
+}
+
+/* ---- MAP — Apple card nodes ---- */
+body.tw3 .map-btn {
+    min-width: 160px;
+    white-space: nowrap;
+}
+
+body.tw3 .map-conn {
+    color: #c7c7cc;
+    font-family: -apple-system, sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+/* ---- ASCII MAP ---- */
+body.tw3 #asciiMap {
+    background: #f9f9fb;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 11px;
+    color: #3a3a3c;
+}
+
+/* ---- MONSTER SELECT ---- */
+body.tw3 #monster-select-panel select,
+body.tw3 select {
+    background: #ffffff;
+    border: 1px solid #d2d2d7;
+    border-radius: 8px;
+    color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    padding: 6px 10px;
+    appearance: none;
+}
+
+/* ---- COMBAT DISPLAY — Terminal card ---- */
+body.tw3 #combat-display {
+    background: #1c1c1e;
+    border: none;
+    border-radius: 12px;
+    color: #30d158;
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+    font-size: 12px;
+    padding: 16px;
+}
+
+/* ---- INVENTORY ---- */
+body.tw3 .inventory-item {
+    border-bottom: 1px solid #f0f0f5;
+    padding: 8px 0;
+    color: #1d1d1f;
+    font-size: 14px;
+}
+
+body.tw3 .inventory-item::before {
+    content: "› ";
+    color: #0071e3;
+    font-weight: 600;
+}
+
+/* ---- COLOSSEUM ---- */
+body.tw3 #colosseum-buffs-display {
+    background: #f9f9fb;
+    border: none;
+    border-radius: 10px;
+    color: #1d1d1f;
+    padding: 12px;
+}
+
+body.tw3 #buffChoices {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 10px;
+    color: #1d1d1f;
+    padding: 12px;
+}
+
+/* ---- LOG ENTRIES — Notification feed ---- */
+body.tw3 .log-entry {
+    font-size: 13px;
+    color: #3a3a3c;
+    border-bottom: 1px solid #f0f0f5;
+    padding: 6px 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+}
+
+body.tw3 .log-entry:last-child { border-bottom: none; }
+
+body.tw3 .log-entry::before {
+    content: "· ";
+    color: #0071e3;
+    font-weight: 700;
+}
+
+/* ---- PRE / ASCII ART ---- */
+body.tw3 pre {
+    background: #f9f9fb;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+    font-size: 10px;
+    color: #3a3a3c;
+    overflow-x: auto;
+}
+
+/* ---- FOOTER — Apple style ---- */
+body.tw3 footer {
+    background: #1d1d1f;
+    color: #86868b;
+    border-top: none;
+    padding: 20px 22px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    text-align: center;
+    margin-top: 8px;
+    border-radius: 0;
+}
+
+body.tw3 footer p { color: #86868b; }
+
+body.tw3 footer::before {
+    content: "Shop  ·  Mac  ·  iPad  ·  iPhone  ·  Candy Factory  ·  Privacy Policy  ·  Terms of Use";
+    display: block;
+    color: #6e6e73;
+    font-size: 11px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #3a3a3c;
+    padding-bottom: 12px;
+}
+
+/* ---- SPECIAL WARP BUTTON ---- */
+body.tw3 [data-action="toggle-time-warp-3"] {
+    background: linear-gradient(135deg, #0071e3, #34aadc);
+    border-radius: 980px;
+    color: #ffffff;
+    font-weight: 600;
+    animation: apple-pulse 3s ease-in-out infinite;
+    box-shadow: 0 4px 16px rgba(0,113,227,0.35);
+}
+
+@keyframes apple-pulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(0,113,227,0.35); }
+    50%       { box-shadow: 0 4px 28px rgba(0,113,227,0.6), 0 0 0 4px rgba(0,113,227,0.1); }
+}
+
+@media (max-width: 600px) {
+    body.tw3 #container::before {
+        font-size: 13px;
+        padding: 20px 12px;
+        white-space: normal;
+    }
+
+    body.tw3 header::before {
+        font-size: 10px;
+        padding: 0 12px;
+    }
+
+    body.tw3 .panel {
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+
+    body.tw3 pre,
+    body.tw3 #asciiMap {
+        font-size: 7px !important;
+        line-height: 1.1;
+        overflow-x: auto;
+        max-width: 100%;
+    }
+}
+
+/* ============================================================
+   EPIC GAMES 2025 — body.tw3.dark-mode
+   Palette: #121212 bg · #f5f5f5 text · #F5821F orange · #1e2328 card
+   Font: Arial, Helvetica — bold, aggressive
+   ============================================================ */
+
+body.tw3.dark-mode {
+    background-color: #121212;
+    color: #f5f5f5;
+    font-family: 'Brutal Type', 'Arial Black', Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+}
+
+body.tw3.dark-mode #container {
+    background: #121212;
+}
+
+/* ---- SCROLLBAR ---- */
+body.tw3.dark-mode ::-webkit-scrollbar { width: 6px; }
+body.tw3.dark-mode ::-webkit-scrollbar-track { background: #1c1c1c; }
+body.tw3.dark-mode ::-webkit-scrollbar-thumb {
+    background: #F5821F;
+    border-radius: 3px;
+}
+
+/* ---- HERO BANNER ---- */
+body.tw3.dark-mode #container::before {
+    content: "FREE NOW: CANDY BOX 3  ·  ★★★★★ EDITOR'S CHOICE  ·  CLAIM NOW  ›";
+    display: block;
+    background: linear-gradient(135deg, #0d1117 0%, #1a1a2e 40%, #16213e 100%);
+    color: #F5821F;
+    font-size: 13px;
+    font-family: 'Arial Black', Arial, Helvetica, sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-align: center;
+    padding: 14px 22px;
+    border-bottom: 2px solid #F5821F;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- HEADER — Epic dark nav ---- */
+body.tw3.dark-mode header {
+    background: linear-gradient(180deg, #0e0e10 0%, #121214 100%);
+    border-bottom: 2px solid #F5821F;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    padding: 0;
+    text-align: left;
+}
+
+/* Epic nav links */
+body.tw3.dark-mode header::before {
+    content: "EPIC GAMES  ·  Store  ·  Discover  ·  Browse  ·  News  ·  Free Games  ·  Fortnite  ·  🛒 Cart";
+    display: block;
+    background: #0e0e10;
+    color: #c7d5e0;
+    font-size: 12px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0 22px;
+    height: 50px;
+    line-height: 50px;
+    border-bottom: 1px solid #2a2a2a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Featured deal bar */
+body.tw3.dark-mode header::after {
+    content: "🎮 FREE THIS WEEK: Candy Box 3  —  Time-limited offer. No purchase required.  GET IT FREE  ›";
+    display: block;
+    background: linear-gradient(90deg, #1a0a00 0%, #2d1500 50%, #1a0a00 100%);
+    color: #F5821F;
+    font-size: 12px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 10px 22px;
+    border-bottom: 1px solid #3a1a00;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.tw3.dark-mode header h1 {
+    font-family: 'Arial Black', Arial, Helvetica, sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 10px 22px 4px;
+    margin: 0;
+    text-shadow: 0 0 20px rgba(245,130,31,0.4);
+}
+
+body.tw3.dark-mode header p {
+    color: #F5821F;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0 22px 10px;
+    margin: 0;
+}
+
+/* ---- PANELS — Epic store cards ---- */
+body.tw3.dark-mode .panel {
+    background: #1e2328;
+    border: 1px solid #2a2f36;
+    border-radius: 4px;
+    color: #c7d5e0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+body.tw3.dark-mode .panel h3 {
+    font-family: 'Arial Black', Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: none;
+    border-bottom: 2px solid #F5821F;
+    padding: 0 0 10px 0;
+    margin: 0 0 14px 0;
+}
+
+body.tw3.dark-mode .panel h2 {
+    font-family: 'Arial Black', Arial, Helvetica, sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    border-bottom: 2px solid #F5821F;
+    padding: 0 0 10px 0;
+    margin: 0 0 14px 0;
+}
+
+/* ---- STATUS PANEL — HUD ---- */
+body.tw3.dark-mode #status-panel {
+    background: linear-gradient(180deg, #1a1e24 0%, #16191f 100%);
+    border: 1px solid #2a2f36;
+    border-top: 3px solid #F5821F;
+}
+
+body.tw3.dark-mode .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #2a2f36;
+    padding: 8px 0;
+    color: #c7d5e0;
+}
+
+body.tw3.dark-mode .stat-row:last-child { border-bottom: none; }
+
+body.tw3.dark-mode .stat-label {
+    color: #F5821F;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    min-width: 90px;
+}
+
+/* ---- BUTTONS — Epic orange CTA ---- */
+body.tw3.dark-mode .action-btn {
+    background: #F5821F;
+    border: none;
+    border-radius: 4px;
+    color: #000000;
+    font-family: 'Arial Black', Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    cursor: pointer;
+    min-width: 100px;
+    transition: background 0.1s ease, transform 0.1s ease;
+}
+
+body.tw3.dark-mode .action-btn:hover {
+    background: #ff9940;
+    color: #000000;
+    font-weight: 900;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245,130,31,0.4);
+}
+
+body.tw3.dark-mode .action-btn:active {
+    background: #e07010;
+    transform: translateY(0);
+}
+
+body.tw3.dark-mode .action-btn:disabled {
+    background: #2a2f36;
+    color: #4a5568;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+}
+
+body.tw3.dark-mode .upgrade-btn {
+    background: #F5821F;
+    border: none;
+    border-radius: 4px;
+    color: #000000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 10px;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+body.tw3.dark-mode .upgrade-btn:hover:not(:disabled) {
+    background: #ff9940;
+    transform: translateY(-1px);
+}
+
+body.tw3.dark-mode .upgrade-btn:disabled {
+    background: #2a2f36;
+    color: #4a5568;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+body.tw3.dark-mode .settings-btn {
+    background: transparent;
+    border: 1px solid #F5821F;
+    border-radius: 4px;
+    color: #F5821F;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    cursor: pointer;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+body.tw3.dark-mode .settings-btn:hover {
+    background: #F5821F;
+    color: #000000;
+}
+
+/* ---- UPGRADE ITEMS — Epic game cards ---- */
+body.tw3.dark-mode .upgrade-item {
+    background: #16191f;
+    border: 1px solid #2a2f36;
+    border-left: 3px solid #F5821F;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+}
+
+body.tw3.dark-mode .upgrade-item:hover {
+    border-color: #F5821F;
+    background: #1e2328;
+}
+
+body.tw3.dark-mode .upgrade-name {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+}
+
+body.tw3.dark-mode .upgrade-cost {
+    color: #F5821F;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+/* ---- LINKS / CLICKABLE ---- */
+body.tw3.dark-mode .clickable {
+    color: #F5821F;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+body.tw3.dark-mode .clickable:hover {
+    color: #ff9940;
+    text-decoration: underline;
+    background-color: transparent;
+}
+
+body.tw3.dark-mode .locked {
+    color: #4a5568;
+    font-style: normal;
+}
+
+/* ---- MAP — Epic dark nodes ---- */
+body.tw3.dark-mode .map-btn {
+    min-width: 160px;
+    white-space: nowrap;
+}
+
+body.tw3.dark-mode .map-conn {
+    color: #F5821F;
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* ---- ASCII MAP ---- */
+body.tw3.dark-mode #asciiMap {
+    background: #0d1117;
+    border: 1px solid #F5821F;
+    border-radius: 4px;
+    padding: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #F5821F;
+}
+
+/* ---- MONSTER SELECT ---- */
+body.tw3.dark-mode #monster-select-panel select,
+body.tw3.dark-mode select {
+    background: #16191f;
+    border: 1px solid #F5821F;
+    border-radius: 4px;
+    color: #c7d5e0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    padding: 6px 10px;
+}
+
+/* ---- COMBAT DISPLAY — Epic battle HUD ---- */
+body.tw3.dark-mode #combat-display {
+    background: #0d1117;
+    border: 1px solid #F5821F;
+    border-radius: 4px;
+    color: #F5821F;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    box-shadow: 0 0 20px rgba(245,130,31,0.15), inset 0 0 30px rgba(0,0,0,0.5);
+}
+
+/* ---- INVENTORY ---- */
+body.tw3.dark-mode .inventory-item {
+    border-bottom: 1px solid #2a2f36;
+    padding: 8px 0;
+    color: #c7d5e0;
+}
+
+body.tw3.dark-mode .inventory-item::before {
+    content: "▸ ";
+    color: #F5821F;
+    font-weight: 700;
+}
+
+/* ---- COLOSSEUM ---- */
+body.tw3.dark-mode #colosseum-buffs-display {
+    background: #0d1117;
+    border: 1px solid #F5821F;
+    border-radius: 4px;
+    color: #c7d5e0;
+    padding: 12px;
+}
+
+body.tw3.dark-mode #buffChoices {
+    background: #1a1200;
+    border: 2px solid #F5821F;
+    border-radius: 4px;
+    color: #f5f5f5;
+}
+
+/* ---- LOG ENTRIES ---- */
+body.tw3.dark-mode .log-entry {
+    font-size: 13px;
+    color: #8a9ab5;
+    border-bottom: 1px solid #2a2f36;
+    padding: 5px 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body.tw3.dark-mode .log-entry:last-child { border-bottom: none; }
+
+body.tw3.dark-mode .log-entry::before {
+    content: "▸ ";
+    color: #F5821F;
+    font-weight: 700;
+}
+
+/* ---- PRE / ASCII ART ---- */
+body.tw3.dark-mode pre {
+    background: #0d1117;
+    border: 1px solid #2a2f36;
+    border-radius: 4px;
+    padding: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #F5821F;
+    overflow-x: auto;
+}
+
+/* ---- FOOTER — Epic style ---- */
+body.tw3.dark-mode footer {
+    background: #0e0e10;
+    color: #8a9ab5;
+    border-top: 2px solid #F5821F;
+    padding: 20px 22px;
+    font-size: 12px;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    margin-top: 8px;
+}
+
+body.tw3.dark-mode footer p { color: #8a9ab5; }
+
+body.tw3.dark-mode footer::before {
+    content: "Store  ·  Discover  ·  Free Games  ·  News  ·  Help Center  ·  Community  ·  Developers";
+    display: block;
+    color: #4a5568;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #2a2f36;
+    padding-bottom: 12px;
+}
+
+/* ---- SPECIAL WARP 3 BUTTON — Epic orange glow ---- */
+body.tw3.dark-mode [data-action="toggle-time-warp-3"] {
+    background: linear-gradient(135deg, #F5821F, #ff4500);
+    border: none;
+    border-radius: 4px;
+    color: #ffffff;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    animation: epic-pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 16px rgba(245,130,31,0.5);
+}
+
+@keyframes epic-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(245,130,31,0.4); }
+    50%       { box-shadow: 0 0 24px rgba(245,130,31,0.8), 0 0 48px rgba(245,130,31,0.3); }
+}
+
+@media (max-width: 600px) {
+    body.tw3.dark-mode #container::before {
+        font-size: 10px;
+        padding: 10px 12px;
+        white-space: normal;
+    }
+
+    body.tw3.dark-mode header::before,
+    body.tw3.dark-mode header::after {
+        font-size: 10px;
+        padding: 0 10px;
+    }
+
+    body.tw3.dark-mode pre,
+    body.tw3.dark-mode #asciiMap {
+        font-size: 7px !important;
+        line-height: 1.1;
+        overflow-x: auto;
+        max-width: 100%;
+    }
+}
